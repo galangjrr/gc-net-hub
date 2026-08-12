@@ -154,6 +154,7 @@ export default function Home() {
       return;
     }
     setBookingStep(2);
+    setTimeout(() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' }), 50);
   };
 
   const handlePayment = async () => {
@@ -993,7 +994,10 @@ export default function Home() {
 
                   <div className="flex items-center gap-4 mb-6 border-b border-hairline pb-4">
                     <button
-                      onClick={() => setBookingStep(1)}
+                      onClick={() => {
+                        setBookingStep(1);
+                        setTimeout(() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' }), 50);
+                      }}
                       className="w-10 h-10 flex items-center justify-center bg-surface-dark border border-hairline rounded-[2px] text-white hover:border-nvidia-green hover:text-nvidia-green transition-colors shrink-0"
                     >
                       <CaretLeft size={20} weight="bold" />
@@ -1293,7 +1297,7 @@ export default function Home() {
                 <div className="flex justify-between items-center border-b border-purple-500/20 pb-4 mb-6">
                   <h2 className="text-2xl font-bold text-purple-400 tracking-tight uppercase tracking-widest flex items-center gap-3">
                     <span className="w-2 h-6 bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)] animate-pulse" />
-                    Regulasi GC Net
+                    Peraturan GC Net
                   </h2>
                   <button
                     onClick={() => setShowTcModal(false)}
@@ -1313,8 +1317,8 @@ export default function Home() {
                     <p>Booking web ini gunanya buat <strong>masuk ke dalam antrean</strong>. <em>Gamers</em> yang datang langsung (<em>walk-in</em>) ke warnet tetep dapet prioritas utama kalau ada PC kosong. Kalau kamu <em>booking</em> buat main setelah sesi orang lain, pastiin kamu udah <em>standby</em> di lokasi sebelum durasinya habis biar bisa langsung sambung main!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🍔</span> Urusan Perut & F&B</h3>
-                    <p>Dilarang keras bawa <em>F&B</em> dari luar yang gampang tumpah, berminyak, apalagi berpotensi merusak <em>gear</em> sultan kita. Gak usah repot, <em>order</em> aja langsung di kantin GC Net! Variannya banyak, harga cincai, dan wadahnya dijamin aman buat nge-game.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🍔</span> Urusan Makanan dan Minuman</h3>
+                    <p>Dilarang keras bawa <em>F&B</em> dari luar yang gampang tumpah, berminyak, apalagi berpotensi merusak <em>gear</em> warnet kita. Gak usah repot, <em>order</em> aja langsung di kantin GC Net! Variannya banyak, harga cincai, dan wadahnya dijamin aman buat nge-game.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🚬</span> Area Bebas Asap</h3>
@@ -1326,7 +1330,7 @@ export default function Home() {
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⚠️</span> Anti-Cheat & Fair Play</h3>
-                    <p>Main bersih itu keren! Kalo sampai ketahuan pake <em>cheat</em>, aplikasi ilegal, atau <em>browsing</em> yang aneh-aneh, sanksinya auto <strong>banned permanen</strong> dari tongkrongan GC Net. <em>Play fair, play safe!</em></p>
+                    <p>Main bersih itu keren! Kalo sampai ketahuan pake <em>cheat</em>, aplikasi ilegal, atau <em>browsing</em> yang aneh-aneh, sanksinya auto <strong>diomelin</strong> sama abang-abangan GC Net. <em>Play fair, play safe!</em></p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">✨</span> Jaga Kebersihan Bareng</h3>
@@ -1334,7 +1338,7 @@ export default function Home() {
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">💻</span> Request Install Game?</h3>
-                    <p>Jangan sembarangan nge-<em>install</em> aplikasi pihak ketiga yang berisiko bikin sistem PC kita <em>ngambek</em>. Kalo butuh <em>request game</em> atau <em>software</em> tertentu, <em>colek</em> aja Operator kita yang lagi <em>shift</em>!</p>
+                    <p>Jangan sembarangan nge-<em>install</em> aplikasi pihak ketiga yang berisiko bikin sistem PC kita <em>ngambek</em>. Kalo butuh <em>request game</em> atau <em>software</em> tertentu, <em>bilang</em> aja sama Operator kita yang lagi <em>jaga</em>!</p>
                   </div>
                 </div>
 
@@ -1385,8 +1389,9 @@ export default function Home() {
                   onClick={() => {
                     setShowQueueWarning(false);
                     setBookingStep(2);
+                    setTimeout(() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' }), 50);
                   }}
-                  className="px-4 py-2 bg-nvidia-green text-black hover:bg-[#88d600] text-[10px] font-bold uppercase transition-colors"
+                  className="px-4 py-2 bg-warning text-black text-[10px] font-bold uppercase transition-transform hover:scale-105"
                 >
                   Tetep Lanjut
                 </button>
