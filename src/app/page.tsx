@@ -773,7 +773,7 @@ export default function Home() {
               &gt; BELUM ADA DATA ANTREAN DENGAN FILTER INI
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-[1fr]">
               {filteredBookings.map((b) => {
                 const pc = db.pcs?.find((p: PC) => p.id === b.pc_id);
                 const pkg = db.pakets?.find((p: Paket) => p.id === b.paket_id);
@@ -783,44 +783,44 @@ export default function Home() {
                   <motion.div
                     key={b.id}
                     variants={itemVariants}
-                    className="nvidia-card p-4 flex flex-col justify-between gap-3 relative overflow-hidden group hover:border-nvidia-green/50 transition-all bg-black/60 backdrop-blur-md"
+                    className="nvidia-card h-full p-6 md:p-8 flex flex-col justify-between gap-4 relative overflow-hidden group hover:border-nvidia-green/50 transition-all bg-black/60 backdrop-blur-md"
                   >
                     <div className="nvidia-corner"></div>
 
-                    <div className="flex items-center justify-between pb-3 border-b border-hairline">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between pb-4 md:pb-6 border-b border-hairline">
+                      <div className="flex items-center gap-3">
                         {isPending ? (
-                          <Clock size={18} className="text-warning-bright animate-pulse" />
+                          <Clock size={24} className="text-warning-bright animate-pulse" />
                         ) : (
-                          <CheckCircle size={18} className="text-nvidia-green" weight="fill" />
+                          <CheckCircle size={24} className="text-nvidia-green" weight="fill" />
                         )}
-                        <span className="font-bold text-white text-sm uppercase tracking-tight">{b.player_name}</span>
+                        <span className="font-bold text-white text-base md:text-lg uppercase tracking-tight">{b.player_name}</span>
                       </div>
-                      <span className="text-[10px] text-white/40 font-bold font-mono">
+                      <span className="text-xs md:text-sm text-white/40 font-bold font-mono">
                         {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[11px] bg-black/50 p-2.5 rounded-[2px] border border-white/5">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-white/40 uppercase font-bold">TARGET PC</span>
-                        <span className="text-nvidia-green font-bold text-xs uppercase">{pc?.name || b.pc_id}</span>
+                    <div className="grid grid-cols-2 gap-3 text-xs md:text-sm bg-black/50 p-4 md:p-6 rounded-[2px] border border-white/5">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] md:text-xs text-white/40 uppercase font-bold">TARGET PC</span>
+                        <span className="text-nvidia-green font-bold text-sm md:text-base uppercase">{pc?.name || b.pc_id}</span>
                       </div>
-                      <div className="flex flex-col text-right">
-                        <span className="text-[9px] text-white/40 uppercase font-bold">PAKET / TARIF</span>
-                        <span className="text-white/90 font-bold truncate">{pkg?.name || "Custom"}</span>
-                        <span className="text-nvidia-green font-bold text-[10px]">RP {pkg?.price?.toLocaleString("id-ID")}</span>
+                      <div className="flex flex-col gap-1 text-right">
+                        <span className="text-[10px] md:text-xs text-white/40 uppercase font-bold">PAKET / TARIF</span>
+                        <span className="text-white/90 font-bold text-sm md:text-base truncate">{pkg?.name || "Custom"}</span>
+                        <span className="text-nvidia-green font-bold text-xs md:text-sm">RP {pkg?.price?.toLocaleString("id-ID")}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1">
-                      <span className={`px-2.5 py-1 rounded-[2px] text-[9px] font-bold uppercase tracking-widest ${isPending
+                    <div className="flex items-center justify-between pt-2 md:pt-4">
+                      <span className={`px-3 py-1.5 md:px-4 md:py-2 rounded-[2px] text-[10px] md:text-xs font-bold uppercase tracking-widest ${isPending
                         ? 'bg-warning/10 text-warning border border-warning/30'
                         : 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30'
                         }`}>
                         {isPending ? 'MENUNGGU VERIFIKASI' : 'BOOKING AKTIF'}
                       </span>
-                      <span className="text-white/30 text-[9px] font-mono">#{b.id.slice(-5)}</span>
+                      <span className="text-white/30 text-xs md:text-sm font-mono">#{b.id.slice(-5)}</span>
                     </div>
                   </motion.div>
                 );
@@ -896,6 +896,11 @@ export default function Home() {
                             {!isSelected && (
                               <div className="absolute inset-0 bg-nvidia-green/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                             )}
+                            
+                            {/* Watermark Icon */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
+                              <Monitor size={80} weight="duotone" className={isSelected ? "text-nvidia-green" : "text-white"} />
+                            </div>
 
                             <div className="flex justify-between w-full relative z-10 mb-2 items-start gap-2">
                               <span className="font-sans text-sm md:text-base font-black tracking-tighter uppercase leading-tight">
@@ -950,8 +955,8 @@ export default function Home() {
                                   )}
                                 </div>
                               ) : (
-                                <div className={`text-[13px] h-full tracking-tight font-bold uppercase flex items-center justify-center gap-2 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/30'}`}>
-                                  {isSelected ? <><CheckCircle size={18} weight="fill" /> DIPILIH</> : "KOSONG"}
+                                <div className={`text-sm md:text-base h-full tracking-tight font-bold uppercase flex items-center justify-center gap-2 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/30'}`}>
+                                  {isSelected ? <><CheckCircle size={20} weight="fill" /> DIPILIH</> : "KOSONG"}
                                 </div>
                               )}
                             </div>
