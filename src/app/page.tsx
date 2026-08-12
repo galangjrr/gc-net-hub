@@ -253,22 +253,16 @@ export default function Home() {
   };
 
   // ── Memoized computed data (avoid recompute on every polling render) ──
-  const generatedJamPakets = useMemo(() => Array.from({ length: 10 }, (_, i) => {
-    const hours = i + 1;
-    return {
-      id: `jam-${hours}`,
-      name: `${hours} Jam`,
-      price: hours * 4000,
-      duration_minutes: hours * 60,
-      type: "normal" as const,
-      fixed_start_time: undefined,
-      fixed_end_time: undefined
-    };
-  }), []);
+  const generatedJamPakets = useMemo(() => {
+    return [...(db?.pakets?.filter(p => 
+      p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
+    ) || [])].sort((a, b) => (a.duration_minutes || 0) - (b.duration_minutes || 0));
+  }, [db?.pakets]);
 
   const hargaPakets = useMemo(() => {
-    const rawNormalPakets = [...(db?.pakets?.filter(p => !p.fixed_start_time && !p.is_custom) || [])].sort((a, b) => a.price - b.price);
-    return rawNormalPakets.filter(p => p.price % 1000 === 0 && ![60, 120, 180, 240, 300].includes(p.duration_minutes || 0));
+    return [...(db?.pakets?.filter(p => 
+      !p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
+    ) || [])].sort((a, b) => a.price - b.price);
   }, [db?.pakets]);
 
   const spesialPakets = useMemo(() => {
