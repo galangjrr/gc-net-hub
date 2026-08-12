@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/galangjrr/gc-net-hub/main/public/logo/Logo%20GC%20Net%20Anim.gif" width="280" alt="GC Net Animated Logo" />
+  <img src="https://raw.githubusercontent.com/galangjrr/gc-net-hub/main/public/logo/Logo%20GC%20Net%20Anim.gif" width="520" alt="GC Net Animated Logo" />
 </p>
 
 <h1 align="center">GC Net Booking & Management System</h1>
