@@ -5,7 +5,12 @@ export async function POST(req: Request) {
   try {
     const { username, password, rememberMe } = await req.json();
 
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    if (
+      ADMIN_USERNAME && 
+      ADMIN_PASSWORD && 
+      username === ADMIN_USERNAME && 
+      password === ADMIN_PASSWORD
+    ) {
       const response = NextResponse.json({ success: true });
       
       const maxAge = rememberMe ? 31536000 : 43200; // 1 year or 12 hours
