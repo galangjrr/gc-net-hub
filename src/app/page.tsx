@@ -735,13 +735,13 @@ export default function Home() {
       {/* ── Live Antrean & Status Section ── */}
       <motion.section
         id="antrean"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh]"
+        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh] flex flex-col"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1400px] w-full mx-auto px-6">
+        <div className="max-w-[1400px] w-full mx-auto px-6 flex-1 flex flex-col">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-6 border-b border-hairline">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -769,7 +769,7 @@ export default function Home() {
 
           {/* Cards Grid */}
           {filteredBookings.length === 0 ? (
-            <div className="nvidia-card p-12 text-center text-white/40 tracking-tight text-sm uppercase">
+            <div className="nvidia-card p-12 flex-1 flex flex-col items-center justify-center text-white/40 tracking-tight text-sm uppercase">
               &gt; BELUM ADA DATA ANTREAN DENGAN FILTER INI
             </div>
           ) : (
@@ -833,14 +833,14 @@ export default function Home() {
       {/* ── Booking Interface ── */}
       <motion.section
         id="booking"
-        className="relative z-20 py-10 md:py-24 scroll-mt-16 min-h-[90vh]"
+        className="relative z-20 py-10 md:py-24 scroll-mt-16 min-h-[90vh] flex flex-col"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1400px] w-full mx-auto px-6">
-          <div className="w-full relative overflow-hidden min-h-[400px]">
+        <div className="max-w-[1400px] w-full mx-auto px-6 flex-1 flex flex-col">
+          <div className="w-full relative overflow-hidden flex-1 flex flex-col">
             <AnimatePresence mode="wait">
               {bookingStep === 1 && (
                 <motion.div
@@ -848,7 +848,7 @@ export default function Home() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="w-full nvidia-card p-8 flex flex-col"
+                  className="w-full flex-1 nvidia-card p-8 flex flex-col"
                 >
                   <div className="nvidia-corner"></div>
 
@@ -982,7 +982,7 @@ export default function Home() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="w-full max-w-2xl mx-auto nvidia-card p-8 flex flex-col"
+                  className="w-full max-w-2xl mx-auto flex-1 nvidia-card p-8 flex flex-col"
                 >
                   <div className="nvidia-corner"></div>
 
