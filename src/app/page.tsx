@@ -499,22 +499,18 @@ export default function Home() {
               className="text-4xl md:text-7xl font-bold tracking-tighter leading-[0.95] text-white mb-6 uppercase tracking-tight drop-shadow-2xl"
             >
               BOOKING DULU.<br />
-              <span className="whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-nvidia-green to-emerald-300 drop-shadow-[0_0_20px_rgba(118,185,0,0.3)]">
-                MASUK ANTREAN.
-              </span>
-              <br />
               <span 
                 className="inline-block mt-2 md:mt-4 text-transparent drop-shadow-[0_0_20px_rgba(118,185,0,0.8)]"
                 style={{ WebkitTextStroke: '3px #76b900' }}
               >
-                GASS!
+                BARU MASUK ANTREAN.
               </span>
             </motion.h1>
 
             <p className="text-white/60 text-base md:text-lg leading-relaxed mb-8 tracking-tight max-w-[45ch]">
-              ✓ Pilih PC, Bayar QRIS, Upload Bukti.<br />
-              ✓ Nggak pake ribet bikin akun.<br />
-              ✓ Admin Acc, pantau antrean, tinggal main!
+              ✓ Kalo PC penuh, wajib booking buat antre.<br />
+              ✓ Datang langsung ke lokasi tetap prioritas utama.<br />
+              ✓ Admin Acc, pantau antrean, tunggu giliran!
             </p>
 
             <div className="flex flex-col gap-4 items-start">
@@ -525,7 +521,7 @@ export default function Home() {
                 onClick={scrollToBooking}
                 className="nvidia-button gap-2 w-max"
               >
-                Gas Main <ArrowRight weight="bold" />
+                Booking Sekarang! <ArrowRight weight="bold" />
               </motion.a>
 
               <button
@@ -1314,6 +1310,10 @@ export default function Home() {
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⏰</span> Dateng On-Time Yuk!</h3>
                     <p>Kalo kamu udah <em>booking</em>, usahain on-time ya! Kita kasih toleransi telat maksimal <strong>5 menit</strong>. Lewat dari itu, argometernya otomatis jalan atau PC-nya bakal kita oper ke <em>player</em> lain yang udah standby duluan. Hargain waktu sesama <em>gamers</em> yuk!</p>
+                  </div>
+                  <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">👑</span> Prioritas Walk-in & Antrean</h3>
+                    <p>Booking web ini gunanya buat <strong>masuk ke dalam antrean</strong>. <em>Gamers</em> yang datang langsung (<em>walk-in</em>) ke warnet tetep dapet prioritas utama kalau ada PC kosong. Kalau kamu <em>booking</em> buat main setelah sesi orang lain, pastiin kamu udah <em>standby</em> di lokasi sebelum durasinya habis biar bisa langsung sambung main!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🍔</span> Urusan Perut & F&B</h3>
