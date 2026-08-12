@@ -503,7 +503,10 @@ export default function Home() {
                 MASUK ANTREAN.
               </span>
               <br />
-              <span className="inline-block mt-2 md:mt-4 px-4 md:px-6 py-1 md:py-2 bg-white text-black italic tracking-widest transform -skew-x-12 shadow-[10px_10px_0_rgba(118,185,0,0.5)] border-2 border-nvidia-green">
+              <span 
+                className="inline-block mt-2 md:mt-4 italic tracking-widest transform -skew-x-12 text-transparent drop-shadow-[0_0_15px_rgba(118,185,0,0.8)]"
+                style={{ WebkitTextStroke: '2px #76b900' }}
+              >
                 GASS!
               </span>
             </motion.h1>
