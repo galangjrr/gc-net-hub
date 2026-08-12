@@ -741,7 +741,7 @@ export default function Home() {
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1400px] w-full mx-auto px-6 flex-1 flex flex-col">
+        <div className="max-w-[1800px] w-full mx-auto px-6 flex-1 flex flex-col">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-6 border-b border-hairline">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -839,7 +839,7 @@ export default function Home() {
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1400px] w-full mx-auto px-6 flex-1 flex flex-col">
+        <div className="max-w-[1800px] w-full mx-auto px-6 flex-1 flex flex-col">
           <div className="w-full relative overflow-hidden flex-1 flex flex-col">
             <AnimatePresence mode="wait">
               {bookingStep === 1 && (
@@ -866,7 +866,7 @@ export default function Home() {
                       initial="hidden"
                       whileInView="show"
                       viewport={{ once: true, margin: "-50px" }}
-                      className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 content-between"
+                      className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 auto-rows-[1fr]"
                     >
                       {db?.pcs?.map((pc) => {
                         const isSelected = selectedPc === pc.id;
