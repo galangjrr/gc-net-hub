@@ -498,16 +498,16 @@ export default function Home() {
             <motion.h1
               className="text-4xl md:text-7xl font-bold tracking-tighter leading-[0.95] text-white mb-6 uppercase tracking-tight drop-shadow-2xl"
             >
-              Booking Untuk Antre.<br />
+              BOOKING DULU.<br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-nvidia-green to-emerald-300 drop-shadow-[0_0_20px_rgba(118,185,0,0.3)]">
-                Baru Main.
+                MASUK ANTREAN. GASS!
               </span>
             </motion.h1>
 
-            <p className="text-white/60 text-base leading-relaxed mb-8 tracking-tight max-w-[45ch]">
-              &gt; PILIH PC, BAYAR QRIS, UPLOAD SS.<br />
-              &gt; GA PERLU BIKIN AKUN.<br />
-              &gt; ADMIN CEK, LANGSUNG MAIN.
+            <p className="text-white/60 text-base md:text-lg leading-relaxed mb-8 tracking-tight max-w-[45ch]">
+              ✓ Pilih PC, Bayar QRIS, Upload Bukti.<br />
+              ✓ Nggak pake ribet bikin akun.<br />
+              ✓ Admin Acc, pantau antrean, tinggal main!
             </p>
 
             <div className="flex flex-col gap-4 items-start">
