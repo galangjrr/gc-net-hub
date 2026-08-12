@@ -1,1 +1,118 @@
 @import "tailwindcss";
+
+@theme {
+  --color-nvidia-green: #76b900;
+  --color-nvidia-dark: #5a8d00;
+  --color-nvidia-pale: #bff230;
+  
+  --color-surface-dark: #000000;
+  --color-surface-soft: #1a1a1a;
+  
+  --color-hairline: #5e5e5e;
+  --color-hairline-soft: #333333;
+  
+  --color-warning: #df6500;
+  --color-error: #e52020;
+}
+
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  @apply bg-surface-dark text-white antialiased selection:bg-nvidia-green/30 selection:text-white;
+}
+
+@layer utilities {
+  .nvidia-card {
+    @apply bg-surface-dark border border-hairline relative rounded-[2px] overflow-hidden;
+  }
+  
+  .nvidia-corner {
+    @apply absolute top-0 left-0 w-[12px] h-[12px] bg-nvidia-green z-10;
+  }
+
+  .nvidia-button {
+    @apply bg-nvidia-green text-black font-bold px-6 py-[11px] h-[44px] rounded-[2px] transition-colors hover:bg-nvidia-dark inline-flex items-center justify-center tracking-tight;
+  }
+
+  .nvidia-outline {
+    @apply bg-transparent text-white font-bold px-6 py-[11px] h-[44px] rounded-[2px] border border-white transition-colors hover:bg-white hover:text-black inline-flex items-center justify-center tracking-tight;
+  }
+}
+
+/* Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #76b900;
+}
+
+/* Immersive Scanline Effect */
+.scanlines {
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0,0,0,0.2) 50%,
+    rgba(0,0,0,0.2)
+  );
+  background-size: 100% 4px;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* ── Performance: CSS Animations (replacing JS intervals) ── */
+
+/* Floating animation for carousel cards */
+@keyframes card-float {
+  0%, 100% { transform: translateY(-8px); }
+  50% { transform: translateY(8px); }
+}
+.animate-card-float {
+  animation: card-float 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Spec card micro-float with variable delay via --float-delay */
+@keyframes spec-float {
+  0%, 100% { transform: translateY(-4px); }
+  50% { transform: translateY(4px); }
+}
+.animate-spec-float {
+  animation: spec-float var(--float-duration, 3s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+  will-change: transform;
+}
+
+/* Holographic scan line sweep */
+@keyframes holo-scan {
+  0% { top: -10%; }
+  100% { top: 110%; }
+}
+.animate-holo-scan {
+  animation: holo-scan var(--scan-duration, 1.5s) linear infinite;
+  animation-delay: var(--scan-delay, 0s);
+  will-change: top;
+}
+
+/* Game icon ping-pong pulse (replaces JS setInterval pingPong) */
+@keyframes game-ping {
+  0%, 100% { opacity: 0.6; transform: scale(1) translateY(0); }
+  50% { opacity: 1; transform: scale(1.1) translateY(-16px); }
+}
+.animate-game-ping {
+  animation: game-ping 3s ease-in-out infinite;
+}
+
+/* GPU compositing hint for heavy transform elements */
+.gpu-layer {
+  will-change: transform, opacity;
+}
