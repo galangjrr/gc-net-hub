@@ -773,7 +773,7 @@ export default function Home() {
               &gt; BELUM ADA DATA ANTREAN DENGAN FILTER INI
             </div>
           ) : (
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-[1fr]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredBookings.map((b) => {
                 const pc = db.pcs?.find((p: PC) => p.id === b.pc_id);
                 const pkg = db.pakets?.find((p: Paket) => p.id === b.paket_id);
@@ -783,7 +783,7 @@ export default function Home() {
                   <motion.div
                     key={b.id}
                     variants={itemVariants}
-                    className="nvidia-card h-full p-6 md:p-8 flex flex-col justify-between gap-4 relative overflow-hidden group hover:border-nvidia-green/50 transition-all bg-black/60 backdrop-blur-md"
+                    className="nvidia-card p-6 md:p-8 flex flex-col justify-between gap-4 relative overflow-hidden group hover:border-nvidia-green/50 transition-all bg-black/60 backdrop-blur-md"
                   >
                     <div className="nvidia-corner"></div>
 
