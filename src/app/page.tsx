@@ -499,10 +499,8 @@ export default function Home() {
               className="text-4xl md:text-7xl font-bold tracking-tighter leading-[0.95] text-white mb-6 uppercase tracking-tight drop-shadow-2xl"
             >
               BOOKING DULU.<br />
-              <span className="inline-block mt-2 md:mt-4 px-4 md:px-8 py-2 md:py-4 bg-white/5 backdrop-blur-md border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] rounded-[2px]">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-nvidia-green to-emerald-300 drop-shadow-[0_0_20px_rgba(118,185,0,0.3)]">
-                  BARU MASUK ANTREAN.
-                </span>
+              <span className="whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-nvidia-green to-emerald-300 drop-shadow-[0_0_20px_rgba(118,185,0,0.3)]">
+                BARU MASUK ANTREAN.
               </span>
             </motion.h1>
 
