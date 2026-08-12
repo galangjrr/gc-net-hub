@@ -254,13 +254,13 @@ export default function Home() {
 
   // ── Memoized computed data (avoid recompute on every polling render) ──
   const generatedJamPakets = useMemo(() => {
-    return [...(db?.pakets?.filter(p => 
+    return [...(db?.pakets?.filter(p =>
       p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
     ) || [])].sort((a, b) => (a.duration_minutes || 0) - (b.duration_minutes || 0));
   }, [db?.pakets]);
 
   const hargaPakets = useMemo(() => {
-    return [...(db?.pakets?.filter(p => 
+    return [...(db?.pakets?.filter(p =>
       !p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
     ) || [])].sort((a, b) => a.price - b.price);
   }, [db?.pakets]);
@@ -613,7 +613,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h4 className="tracking-tight font-bold text-nvidia-green tracking-widest uppercase mb-1">Custom Durasi Fleksibel</h4>
-                    <p className="text-xs md:text-sm text-white/60 tracking-tight">Bisa nambah waktu semaumu! Hitungan sangat miring: <strong className="text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">Rp 2.000 / 30 Menit</strong>.</p>
+                    <p className="text-xs md:text-sm text-white/60 tracking-tight">Bisa nambah waktu semaumu! <strong className="text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">Rp 2.000 / 30 Menit</strong>.</p>
                   </div>
                 </div>
               </div>
@@ -896,7 +896,7 @@ export default function Home() {
                             {!isSelected && (
                               <div className="absolute inset-0 bg-nvidia-green/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                             )}
-                            
+
                             {/* Watermark Icon */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
                               <Monitor size={80} weight="duotone" className={isSelected ? "text-nvidia-green" : "text-white"} />
@@ -956,7 +956,7 @@ export default function Home() {
                                 </div>
                               ) : (
                                 <div className={`text-sm md:text-base h-full tracking-tight font-bold uppercase flex items-center justify-center gap-2 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/30'}`}>
-                                  {isSelected ? <><CheckCircle size={20} weight="fill" /> DIPILIH</> : "KOSONG"}
+                                  {isSelected ? <><CheckCircle size={20} weight="fill" /> DIPILIH</> : "READY TO BOOK"}
                                 </div>
                               )}
                             </div>
@@ -1305,24 +1305,32 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar tracking-tight text-sm text-white/70 space-y-4">
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⏰</span> Toleransi Keterlambatan</h3>
-                    <p>Booking yang sudah dikonfirmasi memiliki toleransi keterlambatan <strong>maksimal 15 menit</strong> dari waktu mulai. Lebih dari itu, billing otomatis berjalan.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⏰</span> Dateng On-Time Yuk!</h3>
+                    <p>Kalo kamu udah <em>booking</em>, usahain on-time ya! Kita kasih toleransi telat maksimal <strong>5 menit</strong>. Lewat dari itu, argometernya otomatis jalan atau PC-nya bakal kita oper ke <em>player</em> lain yang udah standby duluan. Hargain waktu sesama <em>gamers</em> yuk!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🍔</span> Makanan & Minuman</h3>
-                    <p>Dilarang membawa makanan dan minuman dari luar. GC Net menyediakan kantin lengkap dengan harga terjangkau.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🍔</span> Urusan Perut & F&B</h3>
+                    <p>Dilarang keras bawa <em>F&B</em> dari luar yang gampang tumpah, berminyak, apalagi berpotensi merusak <em>gear</em> sultan kita. Gak usah repot, <em>order</em> aja langsung di kantin GC Net! Variannya banyak, harga cincai, dan wadahnya dijamin aman buat nge-game.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🚬</span> Aturan Merokok</h3>
-                    <p>Merokok/Vaping hanya diperbolehkan di area <strong>Smoking Room</strong>. PC Regular dan VIP Room murni bebas asap rokok.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🚬</span> Area Bebas Asap</h3>
+                    <p>Seluruh ruangan GC Net itu 100% bebas asap ya, <em>guys</em>. Buat kamu yang mau sebat atau nge-<em>vape</em>, silakan <em>melipir</em> ke area luar warnet. Biar tetep adem dan wangi buat semua <em>user</em>.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">💸</span> Pengembalian Dana (Refund)</h3>
-                    <p>Paket Billing atau Custom Waktu yang sudah dibeli dan diaktifkan <strong>tidak dapat direfund</strong> atau dipindahtangankan ke PC lain.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">💸</span> No Refund Ya</h3>
+                    <p>Buat paket <em>billing</em> atau waktu <em>custom</em> yang udah sukses di-<em>checkout</em> dan aktif, otomatis <strong>gak bisa di-refund</strong> atau dibatalin. Jadi pastiin lagi semuanya udah pas sebelum bayar!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⚠️</span> Tindakan Ilegal & Cheat</h3>
-                    <p>Penggunaan cheat, program ilegal, atau akses situs terlarang akan berujung pada <strong>banned permanen</strong> dari warnet GC Net.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⚠️</span> Anti-Cheat & Fair Play</h3>
+                    <p>Main bersih itu keren! Kalo sampai ketahuan pake <em>cheat</em>, aplikasi ilegal, atau <em>browsing</em> yang aneh-aneh, sanksinya auto <strong>banned permanen</strong> dari tongkrongan GC Net. <em>Play fair, play safe!</em></p>
+                  </div>
+                  <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">✨</span> Jaga Kebersihan Bareng</h3>
+                    <p>Biar mainnya makin <em>pewe</em>, yuk sama-sama jaga kebersihan area dan <em>gear</em> yang kamu pake. Jangan lupa buang sisa sampahmu pada tempatnya ya!</p>
+                  </div>
+                  <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">💻</span> Request Install Game?</h3>
+                    <p>Jangan sembarangan nge-<em>install</em> aplikasi pihak ketiga yang berisiko bikin sistem PC kita <em>ngambek</em>. Kalo butuh <em>request game</em> atau <em>software</em> tertentu, <em>colek</em> aja Operator kita yang lagi <em>shift</em>!</p>
                   </div>
                 </div>
 
