@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     default: "GC Net Hub",
     template: "%s | GC Net Hub",
   },
-  description: "Warnet murah performa ngebut! Spek rata kanan mulai dari 5000/jam. Booking langsung dari web, tanpa antre.",
+  description: "Warnet Murah Tapi Gak Murahan! Spek PC OKe, harga mulai 4000/jam. Booking langsung dari web.",
 };
 
 export default function RootLayout({
