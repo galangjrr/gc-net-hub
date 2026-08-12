@@ -359,7 +359,7 @@ export default function Home() {
                 key={item.id}
                 href={`#${item.id}`}
                 onClick={item.fn}
-                className={`relative py-2 tracking-tight font-bold text-xs md:text-sm tracking-widest uppercase transition-all duration-500 z-10 whitespace-nowrap overflow-hidden ${isActive ? "max-w-[150px] px-4 opacity-100 text-black drop-shadow-md" : "max-w-0 px-0 opacity-0 group-hover:max-w-[150px] group-hover:px-4 group-hover:opacity-100 text-white/50 hover:text-white"}`}
+                className={`relative py-2 tracking-tight font-bold text-xs md:text-sm tracking-widest uppercase transition-all duration-500 z-10 whitespace-nowrap overflow-hidden ${isActive ? "max-w-[250px] px-4 opacity-100 text-black drop-shadow-md" : "max-w-0 px-0 opacity-0 group-hover:max-w-[250px] group-hover:px-4 group-hover:opacity-100 text-white/50 hover:text-white"}`}
               >
                 {isActive && (
                   <motion.div
@@ -581,7 +581,7 @@ export default function Home() {
       {/* ── Price List Section ── */}
       <motion.section
         id="pricelist"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16"
+        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh]"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
@@ -735,7 +735,7 @@ export default function Home() {
       {/* ── Live Antrean & Status Section ── */}
       <motion.section
         id="antrean"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16"
+        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh]"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
@@ -833,7 +833,7 @@ export default function Home() {
       {/* ── Booking Interface ── */}
       <motion.section
         id="booking"
-        className="relative z-20 py-10 md:py-24 scroll-mt-16"
+        className="relative z-20 py-10 md:py-24 scroll-mt-16 min-h-[90vh]"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
