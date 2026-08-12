@@ -216,19 +216,19 @@ export default function DataPC() {
             <div className="grid grid-cols-2 gap-2 mt-2">
               <div className="flex flex-col bg-black/40 p-2 rounded-[2px]">
                 <span className="text-[9px] text-white/40 uppercase">CPU</span>
-                <span className="text-white/80 text-xs truncate">{pc.specs?.cpu || "-"}</span>
+                <span className="text-white/80 text-[10px] md:text-xs line-clamp-2 leading-tight">{pc.specs?.cpu || "-"}</span>
               </div>
               <div className="flex flex-col bg-black/40 p-2 rounded-[2px]">
                 <span className="text-[9px] text-white/40 uppercase">GPU</span>
-                <span className="text-white/80 text-xs truncate">{pc.specs?.gpu || "-"}</span>
+                <span className="text-white/80 text-[10px] md:text-xs line-clamp-2 leading-tight">{pc.specs?.gpu || "-"}</span>
               </div>
               <div className="flex flex-col bg-black/40 p-2 rounded-[2px]">
                 <span className="text-[9px] text-white/40 uppercase">RAM</span>
-                <span className="text-white/80 text-xs truncate">{pc.specs?.ram || "-"}</span>
+                <span className="text-white/80 text-[10px] md:text-xs line-clamp-2 leading-tight">{pc.specs?.ram || "-"}</span>
               </div>
               <div className="flex flex-col bg-black/40 p-2 rounded-[2px]">
                 <span className="text-[9px] text-white/40 uppercase">Monitor</span>
-                <span className="text-white/80 text-xs truncate">{pc.specs?.monitor || "-"}</span>
+                <span className="text-white/80 text-[10px] md:text-xs line-clamp-2 leading-tight">{pc.specs?.monitor || "-"}</span>
               </div>
             </div>
           </div>

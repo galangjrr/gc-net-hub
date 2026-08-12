@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { BookOpenText, CheckCircle, WarningCircle, SortDescending } from "@phosphor-icons/react";
@@ -102,7 +102,7 @@ export default function LogAktivitasPage() {
                         </div>
                       )}
                     </td>
-                    <td className="p-4 text-white/40 text-xs truncate max-w-[200px]">
+                    <td className="p-4 text-white/40 text-xs line-clamp-3 leading-relaxed min-w-[150px] max-w-[250px]">
                       {log.reason || "-"}
                     </td>
                   </tr>

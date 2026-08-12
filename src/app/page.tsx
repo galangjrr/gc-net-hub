@@ -937,13 +937,13 @@ export default function Home() {
                                     const pName = paket?.name || "Custom";
                                     return (
                                       <div key={b.id} className="flex flex-col justify-center gap-1.5 w-full">
-                                        <div className="flex items-center gap-2">
-                                          <User size={14} weight="fill" className={`shrink-0 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
-                                          <span className="text-[12px] uppercase font-bold text-white/90 truncate">{b.player_name || "Guest"}</span>
+                                        <div className="flex items-start gap-2">
+                                          <User size={14} weight="fill" className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
+                                          <span className="text-[12px] uppercase font-bold text-white/90 line-clamp-2 leading-tight">{b.player_name || "Guest"}</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                          <Package size={14} weight="fill" className={`shrink-0 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
-                                          <span className="text-[12px] font-bold text-white/70 truncate">{pName}</span>
+                                        <div className="flex items-start gap-2">
+                                          <Package size={14} weight="fill" className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
+                                          <span className="text-[12px] font-bold text-white/70 line-clamp-2 leading-tight">{pName}</span>
                                         </div>
                                       </div>
                                     );
