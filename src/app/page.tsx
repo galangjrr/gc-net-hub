@@ -581,7 +581,7 @@ export default function Home() {
       {/* ── Price List Section ── */}
       <motion.section
         id="pricelist"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh]"
+        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 md:min-h-[90vh]"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
@@ -735,7 +735,7 @@ export default function Home() {
       {/* ── Live Antrean & Status Section ── */}
       <motion.section
         id="antrean"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh] flex flex-col"
+        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 md:min-h-[90vh] flex flex-col"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
@@ -833,7 +833,7 @@ export default function Home() {
       {/* ── Booking Interface ── */}
       <motion.section
         id="booking"
-        className="relative z-20 py-10 md:py-24 scroll-mt-16 min-h-[90vh] flex flex-col"
+        className="relative z-20 py-10 md:py-24 scroll-mt-16 md:min-h-[90vh] flex flex-col"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
