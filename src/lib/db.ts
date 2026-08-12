@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabaseAdmin } from './supabase';
 
 
 export interface PCSpecs {
@@ -99,12 +99,12 @@ export async function getDB(): Promise<DatabaseSchema> {
     { data: bookings },
     { data: logs }
   ] = await Promise.all([
-    supabase.from('settings').select('*').limit(1).single(),
-    supabase.from('inventory').select('*'),
-    supabase.from('pcs').select('*'),
-    supabase.from('pakets').select('*'),
-    supabase.from('bookings').select('*'),
-    supabase.from('logs').select('*')
+    supabaseAdmin.from('settings').select('*').limit(1).single(),
+    supabaseAdmin.from('inventory').select('*'),
+    supabaseAdmin.from('pcs').select('*'),
+    supabaseAdmin.from('pakets').select('*'),
+    supabaseAdmin.from('bookings').select('*'),
+    supabaseAdmin.from('logs').select('*')
   ]);
 
   return {
