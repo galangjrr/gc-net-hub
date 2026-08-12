@@ -866,7 +866,7 @@ export default function Home() {
                       initial="hidden"
                       whileInView="show"
                       viewport={{ once: true, margin: "-50px" }}
-                      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4"
+                      className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 auto-rows-[1fr]"
                     >
                       {db?.pcs?.map((pc) => {
                         const isSelected = selectedPc === pc.id;
@@ -886,7 +886,7 @@ export default function Home() {
                             key={pc.id}
                             onClick={() => handlePcClick(pc.id)}
                             className={`
-                              relative flex flex-col items-start justify-between p-3 md:p-4 rounded-[2px] transition-all min-h-[140px] md:min-h-[180px] border border-hairline overflow-hidden group
+                              relative flex flex-col items-start justify-between p-3 md:p-4 rounded-[2px] transition-all border border-hairline overflow-hidden group h-full
                               ${isSelected
                                 ? "bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[inset_0_0_20px_rgba(118,185,0,0.2)]"
                                 : "bg-surface-dark text-white hover:border-white/50"
