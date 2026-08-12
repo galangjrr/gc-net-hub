@@ -154,7 +154,6 @@ export default function Home() {
       return;
     }
     setBookingStep(2);
-    setTimeout(() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' }), 50);
   };
 
   const handlePayment = async () => {
@@ -842,7 +841,7 @@ export default function Home() {
       >
         <div className="max-w-[1800px] w-full mx-auto px-6 flex-1 flex flex-col">
           <div className="w-full relative overflow-hidden flex-1 flex flex-col">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               {bookingStep === 1 && (
                 <motion.div
                   key="step1"
@@ -996,7 +995,6 @@ export default function Home() {
                     <button
                       onClick={() => {
                         setBookingStep(1);
-                        setTimeout(() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' }), 50);
                       }}
                       className="w-10 h-10 flex items-center justify-center bg-surface-dark border border-hairline rounded-[2px] text-white hover:border-nvidia-green hover:text-nvidia-green transition-colors shrink-0"
                     >
@@ -1389,7 +1387,6 @@ export default function Home() {
                   onClick={() => {
                     setShowQueueWarning(false);
                     setBookingStep(2);
-                    setTimeout(() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' }), 50);
                   }}
                   className="px-4 py-2 bg-warning text-black text-[10px] font-bold uppercase transition-transform hover:scale-105"
                 >
