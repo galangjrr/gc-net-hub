@@ -1,6 +1,27 @@
 # GC Net Booking & Management System
 
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/galangjrr/gc-net-hub?style=for-the-badge&color=7c3aed" alt="Last Commit" />
+  <img src="https://img.shields.io/badge/BUILD-PASSING-4c1?style=for-the-badge" alt="Build Passing" />
+  <img src="https://img.shields.io/badge/HOSTED%20ON-VERCEL-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Hosted on Vercel" />
+  <img src="https://img.shields.io/badge/DATABASE-SUPABASE-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Database Supabase" />
+</p>
+
 GC Net Booking is an end-to-end, real-time iCafe (Internet Cafe) management system built for high-performance operations, automated billing, live PC status monitoring, POS inventory management, and financial reporting.
+
+---
+
+## Tech Stack
+
+<p align="center">
+  <img src="https://img.shields.io/badge/NEXT.JS-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/TYPESCRIPT-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/REACT-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/TAILWIND_CSS-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/SUPABASE-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/POSTGRESQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/NODE.JS-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+</p>
 
 ---
 
@@ -57,20 +78,6 @@ The system is built on Next.js App Router and utilizes Supabase PostgreSQL as it
 * **Cookie-Based Authentication:** Protected administrative routes verified via server-side session checks.
 * **Payload Validation:** MIME-type verification for file uploads (images and PDFs) on both client and server.
 * **Database Isolation:** Row Level Security (RLS) enabled on PostgreSQL; API routes execute via a secured Service Role key to prevent unauthorized direct database writes.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-| :--- | :--- |
-| **Framework** | Next.js 15 (App Router) |
-| **Language** | TypeScript |
-| **Styling** | Tailwind CSS, Vanilla CSS |
-| **UI Components** | Lucide / Phosphor Icons, Framer Motion |
-| **Database** | Supabase (PostgreSQL) |
-| **Authentication** | Custom Server-Side Cookie Auth |
-| **PDF Parsing** | pdf-parse |
 
 ---
 
