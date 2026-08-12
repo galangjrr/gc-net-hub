@@ -866,7 +866,7 @@ export default function Home() {
                       initial="hidden"
                       whileInView="show"
                       viewport={{ once: true, margin: "-50px" }}
-                      className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 auto-rows-[1fr]"
+                      className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5 content-between"
                     >
                       {db?.pcs?.map((pc) => {
                         const isSelected = selectedPc === pc.id;
