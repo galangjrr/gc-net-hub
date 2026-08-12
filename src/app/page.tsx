@@ -498,9 +498,9 @@ export default function Home() {
             <motion.h1
               className="text-4xl md:text-7xl font-bold tracking-tighter leading-[0.95] text-white mb-6 uppercase tracking-tight drop-shadow-2xl"
             >
-              Booking Dulu.<br />
+              Booking Untuk Antre.<br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-nvidia-green to-emerald-300 drop-shadow-[0_0_20px_rgba(118,185,0,0.3)]">
-                Langsung Main.
+                Baru Main.
               </span>
             </motion.h1>
 
