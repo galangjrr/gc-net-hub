@@ -1,4 +1,8 @@
-# GC Net Booking & Management System
+<p align="center">
+  <img src="public/logo/GC%20Net%20Master%20Logo.svg" width="260" alt="GC Net Logo" />
+</p>
+
+<h1 align="center">GC Net Booking & Management System</h1>
 
 <p align="center">
   <img src="https://img.shields.io/github/last-commit/galangjrr/gc-net-hub?style=for-the-badge&color=7c3aed" alt="Last Commit" />
