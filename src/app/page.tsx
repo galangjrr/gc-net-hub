@@ -581,13 +581,13 @@ export default function Home() {
       {/* ── Price List Section ── */}
       <motion.section
         id="pricelist"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh]"
+        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh] flex flex-col justify-center"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1400px] mx-auto px-6">
+        <div className="max-w-[1400px] w-full mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tighter uppercase tracking-tight mb-4">DAFTAR HARGA</h2>
             <p className="text-white/50 tracking-tight max-w-xl mx-auto">Pilih paket billing sesuai dengan kebutuhanmu. Tersedia paket regular dan paket spesial.</p>
@@ -735,13 +735,13 @@ export default function Home() {
       {/* ── Live Antrean & Status Section ── */}
       <motion.section
         id="antrean"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh]"
+        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 min-h-[90vh] flex flex-col justify-center"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1400px] mx-auto px-6">
+        <div className="max-w-[1400px] w-full mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-6 border-b border-hairline">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -833,13 +833,13 @@ export default function Home() {
       {/* ── Booking Interface ── */}
       <motion.section
         id="booking"
-        className="relative z-20 py-10 md:py-24 scroll-mt-16 min-h-[90vh]"
+        className="relative z-20 py-10 md:py-24 scroll-mt-16 min-h-[90vh] flex flex-col justify-center"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1400px] mx-auto px-6">
+        <div className="max-w-[1400px] w-full mx-auto px-6">
           <div className="w-full relative overflow-hidden min-h-[600px]">
             <AnimatePresence mode="wait">
               {bookingStep === 1 && (
