@@ -961,7 +961,7 @@ export default function Home() {
                     </motion.div>
                   )}
 
-                  <div className="mt-8 pt-6 border-t border-hairline flex justify-end">
+                  <div className="mt-auto pt-6 border-t border-hairline flex justify-end">
                     <button
                       onClick={handleNextStep}
                       disabled={!selectedPc}
