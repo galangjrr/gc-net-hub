@@ -13,7 +13,9 @@ import {
   Trash,
   MagnifyingGlass,
   Sparkle,
+  CurrencyDollar,
 } from "@phosphor-icons/react";
+import { useDebounce } from "use-debounce";
 
 /* ── Mock Data ── */
 const ADMIN_PCS = Array.from({ length: 10 }, (_, i) => ({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Database, CheckCircle, Clock, XCircle, FileImage, Plus, MagnifyingGlass, Desktop } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";

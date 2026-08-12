@@ -1,7 +1,5 @@
 import { supabase } from './supabase';
 
-// Get the path to database.json in the project root
-const dbPath = path.join(process.cwd(), 'database.json');
 
 export interface PCSpecs {
   cpu: string;
