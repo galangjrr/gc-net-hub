@@ -801,14 +801,14 @@ export default function Home() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-xs md:text-sm bg-black/50 p-4 md:p-6 rounded-[2px] border border-white/5">
-                      <div className="flex flex-col gap-1">
+                    <div className="grid grid-cols-[auto_1fr] gap-4 text-xs md:text-sm bg-black/50 p-4 md:p-6 rounded-[2px] border border-white/5">
+                      <div className="flex flex-col gap-1 pr-2">
                         <span className="text-[10px] md:text-xs text-white/40 uppercase font-bold">TARGET PC</span>
                         <span className="text-nvidia-green font-bold text-sm md:text-base uppercase">{pc?.name || b.pc_id}</span>
                       </div>
-                      <div className="flex flex-col gap-1 text-right">
+                      <div className="flex flex-col gap-1 text-right min-w-0">
                         <span className="text-[10px] md:text-xs text-white/40 uppercase font-bold">PAKET / TARIF</span>
-                        <span className="text-white/90 font-bold text-sm md:text-base truncate">{pkg?.name || "Custom"}</span>
+                        <span className="text-white/90 font-bold text-sm md:text-base line-clamp-2 leading-tight">{pkg?.name || "Custom"}</span>
                         <span className="text-nvidia-green font-bold text-xs md:text-sm">RP {pkg?.price?.toLocaleString("id-ID")}</span>
                       </div>
                     </div>
