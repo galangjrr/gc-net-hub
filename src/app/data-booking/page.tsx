@@ -269,7 +269,7 @@ export default function DataBookingPage() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-[0_0_20px_rgba(118,185,0,0.25)]"
               >
                 <Plus size={16} weight="bold" />
-                + Tambah Booking Manual
+                Tambah Booking Manual
               </button>
             </div>
           </div>
