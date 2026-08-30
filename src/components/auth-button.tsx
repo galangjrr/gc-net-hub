@@ -38,7 +38,7 @@ export default function AuthButton() {
       if (res.ok) {
         setIsAdmin(true);
         setShowLogin(false);
-        window.location.href = "/kasir";
+        window.location.href = "/data-booking";
       } else {
         setLoginError(true);
         setPassword("");

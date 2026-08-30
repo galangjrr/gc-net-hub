@@ -7,8 +7,8 @@ import { ShoppingCart, Database, Desktop, ChartLineUp, Monitor, Package, Sliders
 import { motion, AnimatePresence } from "motion/react";
 
 const NAV_ITEMS = [
-  { href: "/kasir", label: "MEJA KASIR", icon: ShoppingCart, admin: true },
   { href: "/data-booking", label: "ANTREAN", icon: Database, admin: true },
+  { href: "/kasir", label: "KASIR", icon: ShoppingCart, admin: true },
   { href: "/data-pc", label: "DATA PC & SPEK", icon: Monitor, admin: true },
   { href: "/log", label: "LOG AKTIVITAS", icon: BookOpenText, admin: true },
   { href: "/rekap", label: "REKAP & POOLING", icon: ChartLineUp, admin: true },

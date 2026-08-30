@@ -157,7 +157,7 @@ export default function AccountsManagementPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-6">
             <div className="flex items-center gap-4">
-              <Link href="/kasir" className="p-2 hover:bg-surface rounded-lg text-white/50 hover:text-white transition">
+              <Link href="/data-booking" className="p-2 hover:bg-surface rounded-lg text-white/50 hover:text-white transition">
                 <ArrowLeft size={24} />
               </Link>
               <div>
