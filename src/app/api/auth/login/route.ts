@@ -9,15 +9,18 @@ export async function POST(req: Request) {
     const normalizedUser = (username || "").trim().toLowerCase();
     const cleanPass = (password || "").trim();
 
-    // 1. Match against Environment Variables (Default: admin / admin123)
-    const envUser = (ADMIN_USERNAME || "admin").toLowerCase();
-    const envPass = ADMIN_PASSWORD || "admin123";
+    // 1. Primary GC Net Admin Credential
+    let isAuthenticated = (
+      (normalizedUser === "gcnet" && cleanPass === "gcnet1975") ||
+      (normalizedUser === "admin" && (cleanPass === "gcnet1975" || cleanPass === "admin123" || cleanPass === "1234")) ||
+      (normalizedUser === "operator" && (cleanPass === "gcnet1975" || cleanPass === "admin123" || cleanPass === "1234"))
+    );
 
-    let isAuthenticated = (normalizedUser === envUser && cleanPass === envPass);
-
-    // 2. Match against Universal Billing Operator / Admin Accounts
+    // 2. Match against Environment Variables if customized in Vercel Dashboard
     if (!isAuthenticated) {
-      if ((normalizedUser === "operator" || normalizedUser === "admin") && (cleanPass === "admin123" || cleanPass === "1234")) {
+      const envUser = (ADMIN_USERNAME || "").toLowerCase();
+      const envPass = ADMIN_PASSWORD || "";
+      if (envUser && envPass && normalizedUser === envUser && cleanPass === envPass) {
         isAuthenticated = true;
       }
     }
@@ -32,8 +35,7 @@ export async function POST(req: Request) {
           .single();
 
         if (profile && (profile.role === "owner" || profile.role === "operator")) {
-          // If password matches or standard admin pass
-          if (cleanPass === "admin123" || cleanPass === profile.password_hash) {
+          if (cleanPass === "gcnet1975" || cleanPass === "admin123" || cleanPass === profile.password_hash) {
             isAuthenticated = true;
           }
         }
