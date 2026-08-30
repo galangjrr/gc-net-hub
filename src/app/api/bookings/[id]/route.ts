@@ -25,6 +25,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       // Delete booking
       await supabaseAdmin.from('bookings').delete().eq('id', id);
 
+      // Check if there are other bookings for this PC, if not clear timer
+      const { data: remainingBookings } = await supabaseAdmin.from('bookings').select('id').eq('pc_id', booking.pc_id);
+      if (!remainingBookings || remainingBookings.length === 0) {
+        await supabaseAdmin.from('pcs').update({
+          expected_empty_time: null,
+          status: 'available'
+        }).eq('id', booking.pc_id);
+      }
+
       // Clean up custom paket
       if (paket?.is_custom) {
         await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
@@ -53,6 +62,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     } else if (action === 'complete') {
       // Delete booking
       await supabaseAdmin.from('bookings').delete().eq('id', id);
+
+      // Clear PC expected_empty_time and set status to available
+      await supabaseAdmin.from('pcs').update({
+        expected_empty_time: null,
+        status: 'available'
+      }).eq('id', booking.pc_id);
 
       // Clean up custom paket
       if (paket?.is_custom) {

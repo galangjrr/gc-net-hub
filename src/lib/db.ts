@@ -107,10 +107,20 @@ export async function getDB(): Promise<DatabaseSchema> {
     supabaseAdmin.from('logs').select('*')
   ]);
 
+  const now = Date.now();
+  const cleanedPcs = (pcs || []).map((pc: any) => {
+    if (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= now) {
+      // Asynchronously clean up stale expired timer in background
+      supabaseAdmin.from('pcs').update({ expected_empty_time: null, status: 'available' }).eq('id', pc.id).then();
+      return { ...pc, expected_empty_time: null, status: 'available' };
+    }
+    return pc;
+  });
+
   return {
     settings: settings || { userCounter: 1 },
     inventory: inventory || [],
-    pcs: pcs || [],
+    pcs: cleanedPcs,
     pakets: pakets || [],
     bookings: bookings || [],
     logs: logs || [],
