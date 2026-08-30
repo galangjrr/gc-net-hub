@@ -279,35 +279,38 @@ export default function DataBookingPage() {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
               <button
                 onClick={() => setFilterTab('all')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border shrink-0 ${
                   filterTab === 'all'
                     ? "bg-nvidia-green text-black border-nvidia-green shadow-[0_0_15px_rgba(118,185,0,0.2)]"
                     : "bg-surface border-hairline text-white/60 hover:text-white"
                 }`}
               >
-                Semua Antrean ({allBookings.length})
+                <span className="sm:hidden">Semua ({allBookings.length})</span>
+                <span className="hidden sm:inline">Semua Antrean ({allBookings.length})</span>
               </button>
               <button
                 onClick={() => setFilterTab('pending')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center gap-1.5 ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center gap-1.5 shrink-0 ${
                   filterTab === 'pending'
                     ? "bg-amber-500 text-black border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                     : "bg-surface border-hairline text-amber-400 hover:text-white"
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"></span>
-                Menunggu Verifikasi ({pendingCount})
+                <span className="sm:hidden">Verifikasi ({pendingCount})</span>
+                <span className="hidden sm:inline">Menunggu Verifikasi ({pendingCount})</span>
               </button>
               <button
                 onClick={() => setFilterTab('active')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center gap-1.5 ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center gap-1.5 shrink-0 ${
                   filterTab === 'active'
                     ? "bg-emerald-500 text-black border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                     : "bg-surface border-hairline text-emerald-400 hover:text-white"
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
-                Antrean Terkonfirmasi ({activeCount})
+                <span className="sm:hidden">Antre ({activeCount})</span>
+                <span className="hidden sm:inline">Antrean Terkonfirmasi ({activeCount})</span>
               </button>
             </div>
 
@@ -532,11 +535,11 @@ export default function DataBookingPage() {
 
                     {isPending ? (
                       <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Clock size={12} className="animate-spin" /> Menunggu Verifikasi
+                        <Clock size={12} className="animate-spin" /> Verifikasi
                       </span>
                     ) : (
                       <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle size={12} weight="fill" /> Antrean Terkonfirmasi
+                        <CheckCircle size={12} weight="fill" /> Terkonfirmasi
                       </span>
                     )}
                   </div>
@@ -590,18 +593,18 @@ export default function DataBookingPage() {
                   ) : (
                     <div className="space-y-2 pt-1">
                       {/* Quick Timers */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => handleSetTimer(b.pc_id, b.id, 60)}
                           className="flex-1 py-1.5 bg-surface-dark hover:bg-nvidia-green hover:text-black border border-hairline rounded text-xs font-mono font-bold text-white/70 transition"
                         >
-                          +1 Jam
+                          +1j
                         </button>
                         <button
                           onClick={() => handleSetTimer(b.pc_id, b.id, 120)}
                           className="flex-1 py-1.5 bg-surface-dark hover:bg-nvidia-green hover:text-black border border-hairline rounded text-xs font-mono font-bold text-white/70 transition"
                         >
-                          +2 Jam
+                          +2j
                         </button>
                         <button
                           onClick={() => handleEditClick(b)}
@@ -637,7 +640,7 @@ export default function DataBookingPage() {
                           onClick={() => handleAction(b.id, 'complete')}
                           className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                         >
-                          ▶ Mulai Main ke PC
+                          ▶ Mulai Main
                         </button>
                       </div>
                     </div>
