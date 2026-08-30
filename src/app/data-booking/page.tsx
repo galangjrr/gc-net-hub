@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Database, CheckCircle, Clock, XCircle, FileImage, Plus, MagnifyingGlass, Desktop, Sparkle, ArrowClockwise, PencilSimple, Check, Trash, HourglassMedium, User } from "@phosphor-icons/react";
+import { Database, CheckCircle, Clock, XCircle, FileImage, Plus, MagnifyingGlass, Desktop, Sparkle, ArrowClockwise, PencilSimple, Check, Trash, HourglassMedium, User, Play, X } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
 import PinGuard from "@/components/PinGuard";
@@ -414,9 +414,9 @@ export default function DataBookingPage() {
                               <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'approve')}
-                                className="px-4 py-1.5 bg-nvidia-green hover:bg-[#88d600] text-black font-bold text-[11px] uppercase rounded transition shadow-[0_0_10px_rgba(118,185,0,0.3)]"
+                                className="px-4 py-1.5 bg-nvidia-green hover:bg-[#88d600] text-black font-bold text-[11px] uppercase rounded transition shadow-[0_0_10px_rgba(118,185,0,0.3)] flex items-center gap-1.5"
                               >
-                                ✓ Konfirmasi
+                                <Check weight="bold" size={13} /> Konfirmasi
                               </button>
                               <button
                                 disabled={loadingId === b.id}
@@ -481,9 +481,9 @@ export default function DataBookingPage() {
                               <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'complete')}
-                                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded text-[11px] uppercase transition flex items-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded text-[11px] uppercase transition flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                               >
-                                ▶ Mulai Main ke PC
+                                <Play weight="fill" size={12} /> Mulai Main ke PC
                               </button>
                             </>
                           )}
@@ -552,8 +552,9 @@ export default function DataBookingPage() {
                         <Desktop size={14} /> {pc?.name || b.pc_id}
                       </span>
                       {pc?.expected_empty_time && (
-                        <span className="text-[10px] text-amber-400 font-mono block mt-0.5">
-                          ⏳ Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                        <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 mt-0.5">
+                          <HourglassMedium size={12} />
+                          Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       )}
                     </div>
@@ -578,9 +579,9 @@ export default function DataBookingPage() {
                       <button
                         disabled={loadingId === b.id}
                         onClick={() => handleAction(b.id, 'approve')}
-                        className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded-lg text-xs uppercase shadow-[0_0_15px_rgba(118,185,0,0.3)]"
+                        className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded-lg text-xs uppercase shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center justify-center gap-1.5"
                       >
-                        ✓ Konfirmasi
+                        <Check weight="bold" size={14} /> Konfirmasi
                       </button>
                       <button
                         disabled={loadingId === b.id}
@@ -638,9 +639,9 @@ export default function DataBookingPage() {
                         <button
                           disabled={loadingId === b.id}
                           onClick={() => handleAction(b.id, 'complete')}
-                          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                         >
-                          ▶ Mulai Main
+                          <Play weight="fill" size={12} /> Mulai Main
                         </button>
                       </div>
                     </div>
@@ -809,9 +810,9 @@ export default function DataBookingPage() {
               <div className="relative max-w-lg w-full flex flex-col items-center justify-center space-y-4">
                 <button
                   onClick={() => setBuktiImage(null)}
-                  className="self-end px-3 py-1 bg-surface border border-hairline text-white hover:text-error text-xs font-bold uppercase rounded"
+                  className="self-end px-3 py-1.5 bg-surface border border-hairline text-white hover:text-error text-xs font-bold uppercase rounded flex items-center gap-1.5 transition"
                 >
-                  Tutup [✕]
+                  <X size={14} weight="bold" /> Tutup
                 </button>
                 <img
                   src={buktiImage}

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, Variants } from "motion/react";
-import { Monitor, ArrowRight, GameController, WarningCircle, CheckCircle, Crosshair, UploadSimple, CaretLeft, CaretRight, Sparkle, Clock, User, Package } from "@phosphor-icons/react";
+import { Monitor, ArrowRight, GameController, WarningCircle, CheckCircle, Crosshair, UploadSimple, CaretLeft, CaretRight, Sparkle, Clock, User, Package, Crown, Hamburger, CigaretteSlash, Money, Warning, Star, Check, X, HourglassMedium, Play } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { DatabaseSchema, PC, Paket } from "@/lib/db";
@@ -516,11 +516,20 @@ export default function Home() {
               </span>
             </motion.h1>
 
-            <p className="text-white/60 text-base md:text-lg leading-relaxed mb-8 tracking-tight max-w-[45ch]">
-              ✓ Kalo PC penuh, wajib booking buat antre.<br />
-              ✓ Datang langsung ke lokasi tetap prioritas utama.<br />
-              ✓ Admin Acc, pantau antrean, tunggu giliran!
-            </p>
+            <div className="text-white/60 text-base md:text-lg leading-relaxed mb-8 tracking-tight max-w-[45ch] space-y-2">
+              <div className="flex items-center gap-2">
+                <Check weight="bold" className="text-nvidia-green shrink-0" size={18} />
+                <span>Kalo PC penuh, wajib booking buat antre.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check weight="bold" className="text-nvidia-green shrink-0" size={18} />
+                <span>Datang langsung ke lokasi tetap prioritas utama.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check weight="bold" className="text-nvidia-green shrink-0" size={18} />
+                <span>Admin Acc, pantau antrean, tunggu giliran!</span>
+              </div>
+            </div>
 
             <div className="flex flex-col gap-4 items-start">
               <motion.a
@@ -621,7 +630,7 @@ export default function Home() {
                 <div className="flex items-center gap-4 w-full">
                   <div className="relative flex items-center justify-center w-12 h-12 shrink-0">
                     <div className="absolute inset-0 bg-nvidia-green/20 blur-[10px] rounded-full animate-pulse" />
-                    <span className="text-2xl relative z-10">⏱️</span>
+                    <Clock size={24} className="text-nvidia-green relative z-10" />
                   </div>
                   <div>
                     <h4 className="tracking-tight font-bold text-nvidia-green tracking-widest uppercase mb-1">Custom Durasi Fleksibel</h4>
@@ -718,7 +727,9 @@ export default function Home() {
                                 {category.items.map(p => (
                                   <div key={p.id} className={`group relative flex justify-between items-center p-3 border border-white/5 bg-black/40 ${theme.hoverBgGlow} ${theme.hoverBorder} transition-all rounded-[2px] overflow-hidden`}>
                                     <div className="relative z-10 flex items-center gap-2">
-                                      <span className={`${theme.text}/50 group-hover:${theme.text} transition-colors`}>{category.type === "spesial" ? "★" : "▹"}</span>
+                                      <span className={`${theme.text}/50 group-hover:${theme.text} transition-colors flex items-center`}>
+                                        {category.type === "spesial" ? <Star weight="fill" size={12} className="text-amber-400" /> : <CaretRight weight="bold" size={12} />}
+                                      </span>
                                       <div className="flex flex-col">
                                         <span className="tracking-tight text-white font-bold text-sm">
                                           {category.type === "harga" ? getSlangName(p.price, p.name) : p.name}
@@ -987,7 +998,13 @@ export default function Home() {
                         : "bg-surface-soft text-white/20 cursor-not-allowed border border-hairline"
                         }`}
                     >
-                      {selectedPc ? "Lanjut ke Pembayaran ➔" : "Pilih PC Dulu Bro"}
+                      {selectedPc ? (
+                        <span className="flex items-center gap-2">
+                          Lanjut ke Pembayaran <ArrowRight weight="bold" size={16} />
+                        </span>
+                      ) : (
+                        "Pilih PC Dulu Bro"
+                      )}
                     </button>
                   </div>
                 </motion.div>
@@ -1313,41 +1330,41 @@ export default function Home() {
                     onClick={() => setShowTcModal(false)}
                     className="text-white/50 hover:text-white transition-colors p-2"
                   >
-                    ✕
+                    <X size={18} />
                   </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar tracking-tight text-sm text-white/70 space-y-4">
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⏰</span> Dateng On-Time Yuk!</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} weight="fill" className="text-purple-400 shrink-0" /> Dateng On-Time Yuk!</h3>
                     <p>Kalo kamu udah <em>booking</em>, usahain on-time ya! Kita kasih toleransi telat maksimal <strong>5 menit</strong>. Lewat dari itu, argometernya otomatis jalan atau PC-nya bakal kita oper ke <em>player</em> lain yang udah standby duluan. Hargain waktu sesama <em>gamers</em> yuk!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">👑</span> Prioritas Walk-in & Antrean</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Crown size={20} weight="fill" className="text-purple-400 shrink-0" /> Prioritas Walk-in & Antrean</h3>
                     <p>Booking web ini gunanya buat <strong>masuk ke dalam antrean</strong>. <em>Gamers</em> yang datang langsung (<em>walk-in</em>) ke warnet tetep dapet prioritas utama kalau ada PC kosong. Kalau kamu <em>booking</em> buat main setelah sesi orang lain, pastiin kamu udah <em>standby</em> di lokasi sebelum durasinya habis biar bisa langsung sambung main!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🍔</span> Urusan Makanan dan Minuman</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Hamburger size={20} weight="fill" className="text-purple-400 shrink-0" /> Urusan Makanan dan Minuman</h3>
                     <p>Dilarang keras bawa <em>F&B</em> dari luar yang gampang tumpah, berminyak, apalagi berpotensi merusak <em>gear</em> warnet kita. Gak usah repot, <em>order</em> aja langsung di kantin GC Net! Variannya banyak, harga cincai, dan wadahnya dijamin aman buat nge-game.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">🚬</span> Area Bebas Asap</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><CigaretteSlash size={20} weight="fill" className="text-purple-400 shrink-0" /> Area Bebas Asap</h3>
                     <p>Seluruh ruangan GC Net itu 100% bebas asap ya, <em>guys</em>. Buat kamu yang mau sebat atau nge-<em>vape</em>, silakan <em>melipir</em> ke area luar warnet. Biar tetep adem dan wangi buat semua <em>user</em>.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">💸</span> No Refund Ya</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Money size={20} weight="fill" className="text-purple-400 shrink-0" /> No Refund Ya</h3>
                     <p>Buat paket <em>booking</em> atau waktu <em>custom</em> yang udah sukses di-<em>checkout</em> dan aktif, otomatis <strong>gak bisa di-refund</strong> atau dibatalin. Jadi pastiin lagi semuanya udah pas sebelum bayar!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⚠️</span> Anti-Cheat & Fair Play</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Warning size={20} weight="fill" className="text-purple-400 shrink-0" /> Anti-Cheat & Fair Play</h3>
                     <p>Main bersih itu keren! Kalo sampai ketahuan pake <em>cheat</em>, aplikasi ilegal, atau <em>browsing</em> yang aneh-aneh, sanksinya auto <strong>diomelin</strong> sama abang-abangan GC Net. <em>Play fair, play safe!</em></p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">✨</span> Jaga Kebersihan Bareng</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Sparkle size={20} weight="fill" className="text-purple-400 shrink-0" /> Jaga Kebersihan Bareng</h3>
                     <p>Biar mainnya makin <em>pewe</em>, yuk sama-sama jaga kebersihan area dan <em>gear</em> yang kamu pake. Jangan lupa buang sisa sampahmu pada tempatnya ya!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">💻</span> Request Install Game?</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Monitor size={20} weight="fill" className="text-purple-400 shrink-0" /> Request Install Game?</h3>
                     <p>Jangan sembarangan nge-<em>install</em> aplikasi pihak ketiga yang berisiko bikin sistem PC kita <em>ngambek</em>. Kalo butuh <em>request game</em> atau <em>software</em> tertentu, <em>bilang</em> aja sama Operator kita yang lagi <em>jaga</em>!</p>
                   </div>
                 </div>

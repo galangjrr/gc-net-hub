@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingCart, Coffee, BowlFood, Package, Trash } from "@phosphor-icons/react";
+import { ShoppingCart, Coffee, BowlFood, Package, Trash, Check } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import type { DatabaseSchema, InventoryItem } from "@/lib/db";
 
@@ -229,7 +229,9 @@ export default function KasirPage() {
             </div>
             <div className="flex gap-3">
               <button onClick={() => setShowConfirm(false)} className="flex-1 py-3 border border-hairline text-white/50 hover:text-white tracking-tight font-bold text-xs uppercase transition-colors">BATAL</button>
-              <button onClick={handleCheckout} className="flex-1 py-3 nvidia-button text-xs uppercase">LUNAS ✓</button>
+              <button onClick={handleCheckout} className="flex-1 py-3 nvidia-button text-xs uppercase flex items-center justify-center gap-1.5">
+                <Check weight="bold" size={16} /> LUNAS
+              </button>
             </div>
           </div>
         </div>
