@@ -195,20 +195,32 @@ export default function Home() {
     }
 
     const sendBooking = async (base64SS?: string) => {
-      await fetch("/api/bookings", {
-        method: "POST",
-        body: JSON.stringify({
-          pc_id: selectedPc,
-          paket_id: finalPaketId,
-          player_name: playerName,
-          ss_bukti: base64SS
-        })
-      });
-      setShowSuccessModal(true);
-      setPlayerName("");
-      setSsFile(null);
-      setBookingStep(1);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/bookings", {
+          method: "POST",
+          body: JSON.stringify({
+            pc_id: selectedPc,
+            paket_id: finalPaketId,
+            player_name: playerName,
+            ss_bukti: base64SS
+          })
+        });
+        const resData = await res.json();
+        if (!res.ok) {
+          alert(resData?.error || "Gagal membuat booking. Silakan coba lagi.");
+          setLoading(false);
+          return;
+        }
+        setShowSuccessModal(true);
+        setPlayerName("");
+        setSsFile(null);
+        setBookingStep(1);
+        setLoading(false);
+        loadData();
+      } catch (err: any) {
+        alert("Terjadi kesalahan jaringan saat mengirim booking.");
+        setLoading(false);
+      }
     };
 
     if (ssFile) {

@@ -3,11 +3,12 @@ import { isAdminRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(req: Request) {
-  if (!isAdminRequest(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
   try {
     const data = await req.json();
+    // Only standard catalog packages require admin authentication. Custom on-the-fly packages are permitted for bookings.
+    if (!data.is_custom && !isAdminRequest(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const newPaket = {
       id: `paket-${crypto.randomUUID()}`,
       name: data.name,
