@@ -62,9 +62,9 @@ export default function DataBookingPage() {
       if (res === null) return;
       reason = res || "Dibatalkan Admin";
     } else if (action === 'complete') {
-      if (!confirm("Selesaikan sesi booking ini?")) return;
+      if (!confirm("Pemain sudah tiba dan mulai bermain di bilik PC? (Selesaikan antrean web)")) return;
     } else if (action === 'approve') {
-      if (!confirm("Approve booking ini dan izinkan main?")) return;
+      if (!confirm("Verifikasi pembayaran & masukkan pemain ke dalam antrean terkonfirmasi?")) return;
     }
 
     setLoadingId(id);
@@ -285,7 +285,7 @@ export default function DataBookingPage() {
                     : "bg-surface border-hairline text-white/60 hover:text-white"
                 }`}
               >
-                Semua ({allBookings.length})
+                Semua Antrean ({allBookings.length})
               </button>
               <button
                 onClick={() => setFilterTab('pending')}
@@ -296,7 +296,7 @@ export default function DataBookingPage() {
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"></span>
-                Menunggu ({pendingCount})
+                Menunggu Verifikasi ({pendingCount})
               </button>
               <button
                 onClick={() => setFilterTab('active')}
@@ -307,7 +307,7 @@ export default function DataBookingPage() {
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
-                Sesi Aktif ({activeCount})
+                Antrean Terkonfirmasi ({activeCount})
               </button>
             </div>
 
@@ -349,12 +349,12 @@ export default function DataBookingPage() {
                         {isPending ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
                             <Clock size={12} className="animate-spin" />
-                            Verifikasi
+                            Menunggu Verifikasi
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
                             <CheckCircle size={12} weight="fill" />
-                            Aktif
+                            Antrean Terkonfirmasi
                           </span>
                         )}
                       </td>
@@ -413,7 +413,7 @@ export default function DataBookingPage() {
                                 onClick={() => handleAction(b.id, 'approve')}
                                 className="px-4 py-1.5 bg-nvidia-green hover:bg-[#88d600] text-black font-bold text-[11px] uppercase rounded transition shadow-[0_0_10px_rgba(118,185,0,0.3)]"
                               >
-                                Approve
+                                ✓ Konfirmasi
                               </button>
                               <button
                                 disabled={loadingId === b.id}
@@ -478,9 +478,9 @@ export default function DataBookingPage() {
                               <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'complete')}
-                                className="px-3 py-1.5 bg-surface-dark hover:bg-white hover:text-black border border-hairline rounded text-[11px] font-bold uppercase transition"
+                                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded text-[11px] uppercase transition flex items-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                               >
-                                Selesai
+                                ▶ Mulai Main ke PC
                               </button>
                             </>
                           )}
@@ -532,11 +532,11 @@ export default function DataBookingPage() {
 
                     {isPending ? (
                       <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Clock size={12} className="animate-spin" /> Verifikasi
+                        <Clock size={12} className="animate-spin" /> Menunggu Verifikasi
                       </span>
                     ) : (
                       <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle size={12} weight="fill" /> Aktif
+                        <CheckCircle size={12} weight="fill" /> Antrean Terkonfirmasi
                       </span>
                     )}
                   </div>
@@ -577,7 +577,7 @@ export default function DataBookingPage() {
                         onClick={() => handleAction(b.id, 'approve')}
                         className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded-lg text-xs uppercase shadow-[0_0_15px_rgba(118,185,0,0.3)]"
                       >
-                        Approve
+                        ✓ Konfirmasi
                       </button>
                       <button
                         disabled={loadingId === b.id}
@@ -612,7 +612,7 @@ export default function DataBookingPage() {
                       </div>
 
                       {/* Custom Input & Complete Button */}
-                      <div className="flex items-stretch gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch gap-2">
                         <div className="flex-1 flex items-stretch border border-hairline rounded-lg overflow-hidden bg-surface-dark">
                           <input
                             type="text"
@@ -635,9 +635,9 @@ export default function DataBookingPage() {
                         <button
                           disabled={loadingId === b.id}
                           onClick={() => handleAction(b.id, 'complete')}
-                          className="px-4 py-2 bg-surface-dark hover:bg-white hover:text-black border border-hairline rounded-lg text-xs font-bold uppercase transition"
+                          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                         >
-                          Selesai
+                          ▶ Mulai Main ke PC
                         </button>
                       </div>
                     </div>
