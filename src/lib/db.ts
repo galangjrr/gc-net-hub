@@ -111,13 +111,36 @@ export async function getDB(): Promise<DatabaseSchema> {
   ]);
 
   const now = Date.now();
+  const activeBookingsMap = new Map<string, any>();
+  (bookings || []).forEach((b: any) => {
+    if (b.status === 'active' && b.pc_id) {
+      activeBookingsMap.set(b.pc_id.toLowerCase(), b);
+    }
+  });
+
   const cleanedPcs = (pcs || []).map((pc: any) => {
+    const activeBooking = activeBookingsMap.get(pc.id.toLowerCase());
+    const paket = activeBooking ? (pakets || []).find((p: any) => p.id === activeBooking.paket_id) : null;
+    const hasTimer = pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > now;
+
     if (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= now) {
       // Asynchronously clean up stale expired timer in background
       supabaseAdmin.from('pcs').update({ expected_empty_time: null, status: 'available' }).eq('id', pc.id).then();
-      return { ...pc, expected_empty_time: null, status: 'available' };
+      return { 
+        ...pc, 
+        expected_empty_time: null, 
+        status: 'available',
+        player_name: undefined,
+        paket_name: undefined
+      };
     }
-    return pc;
+
+    return { 
+      ...pc, 
+      status: (pc.status === 'occupied' || hasTimer) ? 'occupied' : (pc.status || 'available'),
+      player_name: activeBooking ? activeBooking.player_name : pc.player_name,
+      paket_name: paket ? paket.name : (pc.status === 'occupied' ? 'Paket Billing' : undefined)
+    };
   });
 
   return {
