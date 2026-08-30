@@ -42,7 +42,7 @@ export default function PaketBillingPage() {
       <div className="nvidia-card p-8">
         <div className="nvidia-corner"></div>
         <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-white mb-6 border-b border-hairline pb-4">
-          MASTER DATA: Paket Billing
+          MASTER DATA: Paket & Tarif Booking
         </h2>
         
         <div className="flex flex-wrap gap-4 mb-6">

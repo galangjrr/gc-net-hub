@@ -602,7 +602,7 @@ export default function Home() {
         <div className="max-w-[1400px] w-full mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tighter uppercase tracking-tight mb-4">DAFTAR HARGA</h2>
-            <p className="text-white/50 tracking-tight max-w-xl mx-auto">Pilih paket billing sesuai dengan kebutuhanmu. Tersedia paket regular dan paket spesial.</p>
+            <p className="text-white/50 tracking-tight max-w-xl mx-auto">Pilih paket booking sesuai dengan kebutuhanmu. Tersedia paket regular dan paket spesial.</p>
           </div>
 
           <div className="flex flex-col gap-12">
@@ -1037,7 +1037,7 @@ export default function Home() {
                     {/* Package Selection */}
                     <div className="flex flex-col h-[280px]">
                       <label className="text-[11px] font-bold text-white mb-2 block uppercase tracking-widest tracking-tight shrink-0">
-                        Cari / Bikin Paket Billing
+                        Cari / Bikin Paket Booking
                       </label>
                       <input
                         id="portal-paket"
@@ -1102,7 +1102,7 @@ export default function Home() {
                             return (
                               <div className="p-4 text-center text-white/40 tracking-tight text-xs border border-dashed border-white/10 rounded-xl">
                                 {(parsedPrice > 0 && parsedPrice < 3000)
-                                  ? "Minimal billing Rp 3.000 boss"
+                                  ? "Minimal booking Rp 3.000 boss"
                                   : "Paket nggak ketemu"}
                               </div>
                             );
@@ -1336,7 +1336,7 @@ export default function Home() {
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">💸</span> No Refund Ya</h3>
-                    <p>Buat paket <em>billing</em> atau waktu <em>custom</em> yang udah sukses di-<em>checkout</em> dan aktif, otomatis <strong>gak bisa di-refund</strong> atau dibatalin. Jadi pastiin lagi semuanya udah pas sebelum bayar!</p>
+                    <p>Buat paket <em>booking</em> atau waktu <em>custom</em> yang udah sukses di-<em>checkout</em> dan aktif, otomatis <strong>gak bisa di-refund</strong> atau dibatalin. Jadi pastiin lagi semuanya udah pas sebelum bayar!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><span className="text-lg">⚠️</span> Anti-Cheat & Fair Play</h3>

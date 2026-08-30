@@ -134,7 +134,7 @@ export default function DataBookingPage() {
       if (res === null) return;
       reason = res || "Dibatalkan Admin";
     } else if (action === 'complete') {
-      if (!confirm("Selesaikan billing ini?")) return;
+      if (!confirm("Selesaikan sesi booking ini?")) return;
     } else if (action === 'approve') {
       if (!confirm("Approve booking ini dan izinkan main?")) return;
     }
@@ -569,7 +569,7 @@ export default function DataBookingPage() {
                 )}
               </div>
               <div className="flex flex-col h-[280px]">
-                <label className="text-[10px] text-white/50 uppercase tracking-tight mb-1">Cari / Bikin Paket Billing</label>
+                <label className="text-[10px] text-white/50 uppercase tracking-tight mb-1">Cari / Bikin Paket Booking</label>
                 <input
                   id="admin-paket"
                   type="text"

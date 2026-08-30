@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { href: "/data-pc", label: "DATA PC & SPEK", icon: Monitor, admin: true },
   { href: "/log", label: "LOG AKTIVITAS", icon: BookOpenText, admin: true },
   { href: "/rekap", label: "REKAP & POOLING", icon: ChartLineUp, admin: true },
-  { href: "/paket-billing", label: "PAKET BILLING", icon: Sliders, admin: true },
+  { href: "/paket-billing", label: "PAKET BOOKING", icon: Sliders, admin: true },
   { href: "/stok-kasir", label: "STOK KASIR", icon: Package, admin: true },
   { href: "/admin/accounts", label: "AKUN STAFF", icon: ShieldCheck, admin: true },
   { href: "/", label: "PORTAL DEPAN", icon: Desktop, admin: false },
