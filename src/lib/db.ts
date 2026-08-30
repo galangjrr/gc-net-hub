@@ -18,6 +18,9 @@ export interface PCSpecs {
 export type PC = {
   id: string;
   name: string;
+  status?: 'available' | 'occupied' | 'maintenance' | string;
+  player_name?: string;
+  paket_name?: string;
   expected_empty_time?: string;
   image?: string;
   specs?: PCSpecs;
