@@ -16,20 +16,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid image format for ss_bukti' }, { status: 400 });
     }
 
-    // Guard: PC exist?
+    // PC exist check
     const { data: pc } = await supabaseAdmin.from('pcs').select('id').eq('id', pc_id).single();
-    if (!pc) return NextResponse.json({ error: 'PC not found' }, { status: 404 });
-
-    // Guard: Race Condition / Double Booking
-    const { data: existingBookings } = await supabaseAdmin
-      .from('bookings')
-      .select('id')
-      .eq('pc_id', pc_id)
-      .in('status', ['pending', 'active']);
-
-    if (existingBookings && existingBookings.length > 0) {
-      return NextResponse.json({ error: 'PC sudah dibooking oleh pemain lain.' }, { status: 409 });
-    }
+    if (!pc) return NextResponse.json({ error: 'PC tidak ditemukan' }, { status: 404 });
+    
+    // Note: Antrean bertumpuk diizinkan (FIFO queue bagi pemain yang bersedia menunggu)
     
     let finalPlayerName = player_name;
     if (!finalPlayerName) {

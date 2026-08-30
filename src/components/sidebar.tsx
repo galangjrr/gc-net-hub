@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, Database, Desktop, ChartLineUp, Monitor, Package, Sliders, BookOpenText, List, X, SignOut, LockKey } from "@phosphor-icons/react";
+import { ShoppingCart, Database, Desktop, ChartLineUp, Monitor, Package, Sliders, BookOpenText, List, X, SignOut, LockKey, ShieldCheck } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
 
 const NAV_ITEMS = [
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/rekap", label: "REKAP & POOLING", icon: ChartLineUp, admin: true },
   { href: "/paket-billing", label: "PAKET BILLING", icon: Sliders, admin: true },
   { href: "/stok-kasir", label: "STOK KASIR", icon: Package, admin: true },
+  { href: "/admin/accounts", label: "AKUN STAFF", icon: ShieldCheck, admin: true },
   { href: "/", label: "PORTAL DEPAN", icon: Desktop, admin: false },
 ];
 

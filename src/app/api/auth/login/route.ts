@@ -9,41 +9,55 @@ export async function POST(req: Request) {
     const normalizedUser = (username || "").trim().toLowerCase();
     const cleanPass = (password || "").trim();
 
-    // 1. Primary GC Net Admin Credential
-    let isAuthenticated = (
-      (normalizedUser === "gcnet" && cleanPass === "gcnet1975") ||
-      (normalizedUser === "admin" && (cleanPass === "gcnet1975" || cleanPass === "admin123" || cleanPass === "1234")) ||
-      (normalizedUser === "operator" && (cleanPass === "gcnet1975" || cleanPass === "admin123" || cleanPass === "1234"))
-    );
+    if (!normalizedUser || !cleanPass) {
+      return NextResponse.json({ error: "Username dan Password wajib diisi" }, { status: 400 });
+    }
 
-    // 2. Match against Environment Variables if customized in Vercel Dashboard
-    if (!isAuthenticated) {
-      const envUser = (ADMIN_USERNAME || "").toLowerCase();
-      const envPass = ADMIN_PASSWORD || "";
-      if (envUser && envPass && normalizedUser === envUser && cleanPass === envPass) {
+    let isAuthenticated = false;
+    let matchedUser = normalizedUser;
+    let matchedRole = 'operator';
+
+    // 1. Primary GC Net Master Owner Credential
+    if (normalizedUser === "gcnet" && cleanPass === (ADMIN_PASSWORD || "gcnet1975")) {
+      isAuthenticated = true;
+      matchedRole = 'owner';
+    }
+
+    // 2. Match against Environment Variables if custom set in Vercel
+    if (!isAuthenticated && ADMIN_USERNAME && ADMIN_PASSWORD) {
+      if (normalizedUser === ADMIN_USERNAME.toLowerCase() && cleanPass === ADMIN_PASSWORD) {
         isAuthenticated = true;
+        matchedRole = 'admin';
       }
     }
 
-    // 3. Fallback: Match against Supabase profiles table
+    // 3. Match against Database Managed Staff Accounts
     if (!isAuthenticated) {
       try {
-        const { data: profile } = await supabaseAdmin
-          .from("profiles")
+        const { data: rows } = await supabaseAdmin
+          .from("inventory")
           .select("*")
-          .ilike("username", normalizedUser)
-          .single();
+          .eq("category", "staff_account")
+          .neq("stock", 0); // active accounts only
 
-        if (profile && (profile.role === "owner" || profile.role === "operator")) {
-          if (cleanPass === "gcnet1975" || cleanPass === "admin123" || cleanPass === profile.password_hash) {
-            isAuthenticated = true;
+        if (rows && rows.length > 0) {
+          for (const r of rows) {
+            try {
+              const acc = JSON.parse(r.name);
+              if (acc.username?.toLowerCase() === normalizedUser && acc.password === cleanPass) {
+                isAuthenticated = true;
+                matchedUser = acc.fullName || acc.username;
+                matchedRole = acc.role || 'operator';
+                break;
+              }
+            } catch (_) {}
           }
         }
       } catch (_) {}
     }
 
     if (isAuthenticated) {
-      const response = NextResponse.json({ success: true, user: username });
+      const response = NextResponse.json({ success: true, user: matchedUser, role: matchedRole });
       const maxAge = rememberMe ? 31536000 : 43200; // 1 year or 12 hours
 
       response.cookies.set("admin_unlocked", "true", {
