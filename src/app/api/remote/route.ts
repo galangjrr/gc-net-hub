@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { isAdminRequest } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    // 0. HARDENING: Verify Admin / Operator Cookie
+    const isAuth = isAdminRequest(req) || req.headers.get('cookie')?.includes('admin_unlocked=true');
+    if (!isAuth) {
+      return NextResponse.json({ error: 'Akses ditolak. Silakan login kasir terlebih dahulu.' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { workstation_id, command, payload } = body;
 
@@ -40,6 +47,19 @@ export async function POST(req: Request) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+
+      // Record Audit Trail
+      await supabaseAdmin.from('logs').insert({
+        id: `log-rem-${Date.now()}`,
+        player_name: playerName,
+        pc_name: pcId.toUpperCase(),
+        paket_name: payload?.packageName || `${durMin}m`,
+        price: payload?.price || 4000,
+        start_time: new Date().toISOString(),
+        end_time: emptyTime,
+        status: 'Selesai',
+        reason: 'Aktivasi Remote Companion HP'
+      });
 
       return NextResponse.json({ success: true, data });
     }
