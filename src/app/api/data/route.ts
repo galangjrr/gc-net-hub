@@ -9,20 +9,10 @@ export async function GET(req: Request) {
   try {
     const db = await getDB();
     const isAdmin = isAdminRequest(req);
-    
-    // Create a safe copy of the database to send
-    const safeDb = JSON.parse(JSON.stringify(db));
-    if (!isAdmin && safeDb.bookings) {
-      safeDb.bookings.forEach((b: any) => {
-        delete b.ss_bukti;
-      });
-    }
 
-    return NextResponse.json(safeDb, {
+    return NextResponse.json(db, {
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        'Cache-Control': isAdmin ? 'no-store, max-age=0' : 'public, s-maxage=2, stale-while-revalidate=5',
       },
     });
   } catch (error) {

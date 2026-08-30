@@ -2,6 +2,25 @@ import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const { data: booking, error } = await supabaseAdmin
+      .from('bookings')
+      .select('id, pc_id, paket_id, player_name, status, created_at, ss_bukti')
+      .eq('id', id)
+      .single();
+
+    if (error || !booking) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(booking);
+  } catch (err) {
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+  }
+}
+
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

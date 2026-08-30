@@ -5,6 +5,7 @@ import { Monitor, ArrowRight, Gamepad2, AlertCircle, CheckCircle2, Crosshair, Up
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { DatabaseSchema, PC, Paket } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import PCCarousel from "@/components/pc-carousel";
 import GameIcons from "@/components/game-icons";
 
@@ -127,7 +128,19 @@ export default function Home() {
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
 
+    // Realtime Supabase Sync for instant UI updates on status change
+    const channel = supabase
+      .channel('public:gc-booking-home')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pcs' }, () => {
+        loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+        loadData();
+      })
+      .subscribe();
+
     return () => {
+      supabase.removeChannel(channel);
       clearInterval(interval);
       clearInterval(timerInterval);
       window.removeEventListener("scroll", handleScroll);

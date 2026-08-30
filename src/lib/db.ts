@@ -99,12 +99,12 @@ export async function getDB(): Promise<DatabaseSchema> {
     { data: bookings },
     { data: logs }
   ] = await Promise.all([
-    supabaseAdmin.from('settings').select('*').limit(1).single(),
-    supabaseAdmin.from('inventory').select('*').neq('category', 'staff_account'),
-    supabaseAdmin.from('pcs').select('*'),
-    supabaseAdmin.from('pakets').select('*'),
-    supabaseAdmin.from('bookings').select('*'),
-    supabaseAdmin.from('logs').select('*')
+    supabaseAdmin.from('settings').select('id, user_counter, daily_pdf_revenue').limit(1).single(),
+    supabaseAdmin.from('inventory').select('id, name, price, stock, category').neq('category', 'staff_account'),
+    supabaseAdmin.from('pcs').select('id, name, status, expected_empty_time, image, specs').order('id', { ascending: true }),
+    supabaseAdmin.from('pakets').select('id, name, price, duration_minutes, fixed_start_time, fixed_end_time, days, is_custom').order('price', { ascending: true }),
+    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at').order('created_at', { ascending: false }).limit(50),
+    supabaseAdmin.from('logs').select('id, player_name, pc_name, paket_name, price, start_time, end_time, status, reason').order('end_time', { ascending: false }).limit(100)
   ]);
 
   const now = Date.now();

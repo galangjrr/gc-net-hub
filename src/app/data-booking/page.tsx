@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Database, CheckCircle2, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import PinGuard from "@/components/PinGuard";
 
 export default function DataBookingPage() {
@@ -51,8 +52,22 @@ export default function DataBookingPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
-    return () => clearInterval(interval);
+    const interval = setInterval(loadData, 10000);
+
+    const channel = supabase
+      .channel('public:gc-booking-admin')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+        loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pcs' }, () => {
+        loadData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleAction = async (id: string, action: 'approve' | 'reject' | 'complete') => {
@@ -202,9 +217,29 @@ export default function DataBookingPage() {
     setLoadingId(null);
   };
 
-  const showBukti = (ss?: string) => {
-    if (!ss) return alert("Pemain tidak melampirkan screenshot bukti transfer.");
-    setBuktiImage(ss);
+  const showBukti = async (bookingId: string, directSs?: string) => {
+    if (directSs) {
+      setBuktiImage(directSs);
+      return;
+    }
+    setLoadingId(bookingId);
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ss_bukti) {
+          setBuktiImage(data.ss_bukti);
+        } else {
+          alert("Pemain tidak melampirkan screenshot bukti transfer.");
+        }
+      } else {
+        alert("Bukti pembayaran tidak ditemukan.");
+      }
+    } catch (_) {
+      alert("Gagal memuat bukti pembayaran.");
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   if (!db) return <div className="p-8 tracking-tight text-white/50 uppercase text-xs animate-pulse">MEMUAT DATA ANTREAN...</div>;
@@ -406,7 +441,7 @@ export default function DataBookingPage() {
                           {isPending ? (
                             <>
                               <button
-                                onClick={() => showBukti(b.ss_bukti)}
+                                onClick={() => showBukti(b.id, b.ss_bukti)}
                                 className="px-3 py-1.5 bg-surface-dark hover:bg-white/10 border border-hairline text-white/70 hover:text-white rounded text-[11px] font-bold uppercase transition flex items-center gap-1"
                               >
                                 <ImageIcon size={14} /> Cek Bukti
@@ -571,7 +606,7 @@ export default function DataBookingPage() {
                   {isPending ? (
                     <div className="flex gap-2 pt-1">
                       <button
-                        onClick={() => showBukti(b.ss_bukti)}
+                        onClick={() => showBukti(b.id, b.ss_bukti)}
                         className="flex-1 py-2.5 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
                       >
                         <ImageIcon size={14} /> Bukti
