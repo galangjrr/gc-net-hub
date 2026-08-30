@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Database, CheckCircle, Clock, XCircle, FileImage, Plus, MagnifyingGlass, Desktop } from "@phosphor-icons/react";
-import { motion } from "motion/react";
+import { Database, CheckCircle, Clock, XCircle, FileImage, Plus, MagnifyingGlass, Desktop, Sparkle, ArrowClockwise, PencilSimple, Check, Trash, HourglassMedium, User } from "@phosphor-icons/react";
+import { motion, AnimatePresence } from "motion/react";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
+import PinGuard from "@/components/PinGuard";
 
 export default function DataBookingPage() {
   const [db, setDb] = useState<DatabaseSchema | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [editBookingId, setEditBookingId] = useState<string | null>(null);
+  const [filterTab, setFilterTab] = useState<'all' | 'pending' | 'active'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
   const prevPendingCount = useRef<number>(0);
 
   const [showManual, setShowManual] = useState(false);
@@ -25,6 +28,117 @@ export default function DataBookingPage() {
     }, 300);
     return () => clearTimeout(handler);
   }, [searchPaket]);
+
+  const loadData = async () => {
+    try {
+      const res = await fetch("/api/data", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setDb(data);
+
+        // Sound effect on new pending booking
+        const pendingCount = data?.bookings?.filter((b: Booking) => b.status === "pending").length || 0;
+        if (pendingCount > prevPendingCount.current) {
+          try {
+            const audio = new Audio("/sounds/new-booking.mp3");
+            audio.play().catch(() => {});
+          } catch (_) {}
+        }
+        prevPendingCount.current = pendingCount;
+      }
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAction = async (id: string, action: 'approve' | 'reject' | 'complete') => {
+    let reason = "";
+    if (action === 'reject') {
+      const res = prompt("Alasan Pembatalan (Salah Input, Pemain Batal, dll):");
+      if (res === null) return;
+      reason = res || "Dibatalkan Admin";
+    } else if (action === 'complete') {
+      if (!confirm("Selesaikan sesi booking ini?")) return;
+    } else if (action === 'approve') {
+      if (!confirm("Approve booking ini dan izinkan main?")) return;
+    }
+
+    setLoadingId(id);
+    try {
+      await fetch(`/api/bookings/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, reason })
+      });
+      await loadData();
+    } catch (err) {
+      alert("Gagal memproses aksi booking.");
+    }
+    setLoadingId(null);
+  };
+
+  const handleSetTimer = async (pcId: string, bookingId: string, minutes: number) => {
+    setLoadingId(bookingId);
+    try {
+      if (minutes > 0) {
+        const newEmptyTime = new Date(Date.now() + minutes * 60000).toISOString();
+        await fetch("/api/pcs", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: pcId,
+            expected_empty_time: newEmptyTime,
+            status: 'occupied'
+          })
+        });
+      } else {
+        await fetch("/api/pcs", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: pcId,
+            expected_empty_time: null,
+            status: 'available'
+          })
+        });
+      }
+      await loadData();
+    } catch (err) {
+      alert("Gagal memperbarui timer PC.");
+    }
+    setLoadingId(null);
+  };
+
+  const handleCustomTimerSubmit = (pcId: string, bookingId: string, rawInput: string) => {
+    const query = rawInput.toLowerCase().trim();
+    if (!query) return;
+
+    let val = 0;
+    const timeStr = query.replace(/jam/g, 'j').replace(/menit/g, 'm').replace(/[^0-9jm]/g, '');
+    if (timeStr.includes('j')) {
+      const h = parseInt(timeStr.split('j')[0]) || 0;
+      const m = parseInt(timeStr.split('j')[1]?.split('m')[0]) || 0;
+      val = (h * 60) + m;
+    } else if (timeStr.includes('m')) {
+      val = parseInt(timeStr.split('m')[0]) || 0;
+    } else {
+      val = parseInt(timeStr) || 0;
+    }
+
+    handleSetTimer(pcId, bookingId, val);
+  };
+
+  const handleEditClick = (b: Booking) => {
+    setEditBookingId(b.id);
+    const pcName = db?.pcs?.find(p => p.id === b.pc_id)?.name || "";
+    setManualData({ playerName: b.player_name, pcId: b.pc_id, searchPc: pcName });
+    setSelectedPaket(b.paket_id);
+    setShowManual(true);
+  };
 
   const handleManualSubmit = async () => {
     let finalPcId = manualData.pcId;
@@ -48,6 +162,7 @@ export default function DataBookingPage() {
 
       const newPaketRes = await fetch("/api/pakets", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: `Personal ${timeStr.trim()}`, price: priceNum, is_custom: true })
       });
       const createdPaket = await newPaketRes.json();
@@ -58,16 +173,17 @@ export default function DataBookingPage() {
     if (editBookingId) {
       await fetch(`/api/bookings/${editBookingId}`, {
         method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "edit_booking",
-          pc_id: finalPcId,
-          paket_id: finalPaketId,
-          player_name: manualData.playerName
+          action: 'edit_paket',
+          customName: db?.pakets?.find(p => p.id === finalPaketId)?.name,
+          customPrice: db?.pakets?.find(p => p.id === finalPaketId)?.price
         })
       });
     } else {
       await fetch("/api/bookings", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pc_id: finalPcId,
           paket_id: finalPaketId,
@@ -76,280 +192,296 @@ export default function DataBookingPage() {
         })
       });
     }
-    
+
     setShowManual(false);
     setEditBookingId(null);
     setManualData({ playerName: "", pcId: "", searchPc: "" });
     setSearchPaket("");
     setSelectedPaket(null);
-    setShowPcList(false);
     await loadData();
     setLoadingId(null);
   };
 
-  const loadData = async () => {
-    const res = await fetch("/api/data");
-    const data = await res.json();
-    setDb(data);
+  const showBukti = (ss?: string) => {
+    if (!ss) return alert("Pemain tidak melampirkan screenshot bukti transfer.");
+    setBuktiImage(ss);
+  };
 
-    // Notification Logic
-    if (data.bookings) {
-      const currentPending = data.bookings.filter((b: Booking) => b.status === "pending");
-      const currentPendingCount = currentPending.length;
-      
-      if (currentPendingCount > prevPendingCount.current) {
-        // Trigger Audio (using a simple beep data URI to avoid needing an external file)
-        const audio = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Short beep placeholder, will use a standard beep
-        audio.play().catch(e => console.log("Audio play blocked by browser", e));
-        
-        // Trigger Desktop Notification
-        if (Notification.permission === "granted") {
-          new Notification("Booking Baru!", {
-            body: `Ada ${currentPendingCount - prevPendingCount.current} booking baru masuk ke antrean. Segera verifikasi!`,
-            icon: "/favicon.ico"
-          });
-        }
-      }
-      prevPendingCount.current = currentPendingCount;
+  if (!db) return <div className="p-8 tracking-tight text-white/50 uppercase text-xs animate-pulse">MEMUAT DATA ANTREAN...</div>;
+
+  const allBookings = db.bookings || [];
+  const pendingCount = allBookings.filter(b => b.status === "pending").length;
+  const activeCount = allBookings.filter(b => b.status === "active").length;
+
+  const filteredBookings = allBookings.filter(b => {
+    if (filterTab === 'pending' && b.status !== 'pending') return false;
+    if (filterTab === 'active' && b.status !== 'active') return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = b.player_name.toLowerCase().includes(q);
+      const matchPc = b.pc_id.toLowerCase().includes(q) || (db.pcs.find(p => p.id === b.pc_id)?.name.toLowerCase().includes(q));
+      return matchName || matchPc;
     }
-  };
-
-  useEffect(() => {
-    // Request notification permission on mount
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
-      }
-    }
-
-    loadData();
-    const interval = setInterval(loadData, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleAction = async (id: string, action: 'approve' | 'reject' | 'complete') => {
-    let reason = "";
-    if (action === 'reject') {
-      const res = prompt("Alasan Pembatalan (Salah Input, Pemain Batal, dll):");
-      if (res === null) return;
-      reason = res || "Dibatalkan Admin";
-    } else if (action === 'complete') {
-      if (!confirm("Selesaikan sesi booking ini?")) return;
-    } else if (action === 'approve') {
-      if (!confirm("Approve booking ini dan izinkan main?")) return;
-    }
-
-    setLoadingId(id);
-    await fetch(`/api/bookings/${id}`, {
-      method: "PUT",
-      body: JSON.stringify({ action, reason })
-    });
-    await loadData();
-    setLoadingId(null);
-  };
-
-  const handleEditClick = (b: Booking) => {
-    setEditBookingId(b.id);
-    const pcName = db?.pcs?.find(p => p.id === b.pc_id)?.name || "";
-    setManualData({ playerName: b.player_name, pcId: b.pc_id, searchPc: pcName });
-    setSelectedPaket(b.paket_id);
-    const pkg = db?.pakets?.find(p => p.id === b.paket_id);
-    setSearchPaket(pkg ? pkg.price.toString() : ""); // Pre-fill search with price so it shows up
-    setShowManual(true);
-  };
-
-  const showBukti = (base64: string | undefined) => {
-    if (!base64) return alert("User tidak mengupload bukti bayar!");
-    setBuktiImage(base64);
-  };
-
-  if (!db) return <div className="p-8 tracking-tight text-white/50 text-xs">LOADING DATA...</div>;
+    return true;
+  });
 
   return (
-    <div className="bg-surface-dark p-4 md:p-8">
-      <div className="max-w-[1400px] mx-auto">
-        <div className="flex items-center justify-between mb-8 pb-6 border-b border-hairline">
-          <div className="flex items-center gap-4">
-            <Database size={32} className="text-nvidia-green" weight="fill" />
-            <div>
-              <h1 className="text-3xl font-bold text-white uppercase tracking-tight tracking-tight">Data Antrean & Booking</h1>
-              <p className="text-white/60 tracking-tight text-sm mt-1">&gt; VERIFIKASI QRIS & APPROVE PC</p>
+    <PinGuard>
+      <div className="min-h-screen bg-surface-dark p-4 md:p-8 pt-16 md:pt-8 text-white space-y-6">
+        <div className="max-w-[1400px] mx-auto space-y-6">
+          
+          {/* Header & Quick Action */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green">
+                <Database size={32} weight="duotone" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tight">Data Antrean & Booking</h1>
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-nvidia-green"></span>
+                  </span>
+                </div>
+                <p className="text-xs text-white/50 uppercase tracking-wider mt-1">
+                  Verifikasi pembayaran QRIS, approval bilik, & monitoring waktu realtime
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={loadData}
+                className="p-2.5 bg-surface hover:bg-white/10 border border-hairline rounded-lg text-white/70 hover:text-white transition"
+                title="Segarkan Data"
+              >
+                <ArrowClockwise size={18} />
+              </button>
+              <button
+                onClick={() => {
+                  setEditBookingId(null);
+                  setManualData({ playerName: "", pcId: "", searchPc: "" });
+                  setSearchPaket("");
+                  setSelectedPaket(null);
+                  setShowManual(true);
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-[0_0_20px_rgba(118,185,0,0.25)]"
+              >
+                <Plus size={16} weight="bold" />
+                + Tambah Booking Manual
+              </button>
             </div>
           </div>
-          <button 
-            onClick={() => {
-              setEditBookingId(null);
-              setManualData({ playerName: "", pcId: "", searchPc: "" });
-              setSearchPaket("");
-              setSelectedPaket(null);
-              setShowManual(true);
-            }}
-            className="nvidia-button text-sm uppercase tracking-widest px-6"
-          >
-            + TAMBAH BOOKING MANUAL
-          </button>
-        </div>
 
-        <div className="nvidia-card overflow-hidden">
-          <div className="nvidia-corner"></div>
+          {/* Stats Bar & Filter Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+              <button
+                onClick={() => setFilterTab('all')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border ${
+                  filterTab === 'all'
+                    ? "bg-nvidia-green text-black border-nvidia-green shadow-[0_0_15px_rgba(118,185,0,0.2)]"
+                    : "bg-surface border-hairline text-white/60 hover:text-white"
+                }`}
+              >
+                Semua ({allBookings.length})
+              </button>
+              <button
+                onClick={() => setFilterTab('pending')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center gap-1.5 ${
+                  filterTab === 'pending'
+                    ? "bg-amber-500 text-black border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                    : "bg-surface border-hairline text-amber-400 hover:text-white"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"></span>
+                Menunggu ({pendingCount})
+              </button>
+              <button
+                onClick={() => setFilterTab('active')}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center gap-1.5 ${
+                  filterTab === 'active'
+                    ? "bg-emerald-500 text-black border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                    : "bg-surface border-hairline text-emerald-400 hover:text-white"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                Sesi Aktif ({activeCount})
+              </button>
+            </div>
 
-          {/* Desktop View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left tracking-tight whitespace-nowrap">
-              <thead className="bg-surface-soft text-white/50 text-[11px] uppercase border-b border-hairline">
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Cari pemain atau PC..."
+                className="w-full bg-surface border border-hairline p-2.5 pl-9 rounded-lg text-xs text-white placeholder:text-white/40 focus:border-nvidia-green outline-none"
+              />
+              <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+            </div>
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden lg:block bg-surface border border-hairline rounded-xl overflow-hidden shadow-2xl">
+            <table className="w-full text-left text-xs whitespace-nowrap">
+              <thead className="bg-surface-dark border-b border-hairline text-white/50 text-[10px] uppercase tracking-wider">
                 <tr>
-                  <th className="p-4 font-bold border-r border-hairline w-16">Status</th>
-                  <th className="p-4 font-bold border-r border-hairline">Pemain</th>
-                  <th className="p-4 font-bold border-r border-hairline">Target PC</th>
-                  <th className="p-4 font-bold border-r border-hairline">Paket / Tarif</th>
-                  <th className="p-4 font-bold border-r border-hairline">Waktu Booking</th>
-                  <th className="p-4 font-bold text-center">Aksi / Verifikasi</th>
+                  <th className="p-4 pl-6 w-28">Status</th>
+                  <th className="p-4">Pemain</th>
+                  <th className="p-4">Target PC & Countdown</th>
+                  <th className="p-4">Paket / Tarif</th>
+                  <th className="p-4">Waktu Booking</th>
+                  <th className="p-4 pr-6 text-right">Aksi & Timer Bilik</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-hairline bg-surface-dark text-sm">
-                {db.bookings?.map((b) => {
-                  const pc = db.pcs.find((p: PC) => p.id === b.pc_id);
-                  const pkg = db.pakets.find((p: Paket) => p.id === b.paket_id);
+              <tbody className="divide-y divide-hairline">
+                {filteredBookings.map((b) => {
+                  const pc = db.pcs.find(p => p.id === b.pc_id);
+                  const pkg = db.pakets.find(p => p.id === b.paket_id);
+                  const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
+                  const isPending = b.status === "pending";
 
                   return (
-                    <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="p-4 border-r border-hairline">
-                        <div className="flex justify-center">
-                          {b.status === "pending" ? (
-                            <Clock size={20} className="text-warning-bright animate-pulse" />
-                          ) : (
-                            <CheckCircle size={20} className="text-nvidia-green" weight="fill" />
-                          )}
+                    <tr key={b.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="p-4 pl-6">
+                        {isPending ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+                            <Clock size={12} className="animate-spin" />
+                            Verifikasi
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                            <CheckCircle size={12} weight="fill" />
+                            Aktif
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="p-4 font-bold text-white text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-surface-dark border border-hairline flex items-center justify-center text-nvidia-green font-mono text-xs">
+                            {b.player_name.slice(0, 1).toUpperCase()}
+                          </div>
+                          <span>{b.player_name}</span>
                         </div>
                       </td>
-                      <td className="p-4 border-r border-hairline text-white font-bold">
-                        {b.player_name}
-                      </td>
-                      <td className="p-4 border-r border-hairline font-bold text-nvidia-green">
+
+                      <td className="p-4">
                         <div className="flex flex-col">
-                          <span>{pc?.name || b.pc_id}</span>
-                          {pc?.expected_empty_time && (
-                            <span className="text-[10px] text-amber-400 font-mono font-normal mt-0.5">
-                              ⏳ Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                          <span className="font-bold text-nvidia-green text-sm flex items-center gap-1.5">
+                            <Desktop size={14} />
+                            {pc?.name || b.pc_id}
+                          </span>
+                          {pc?.expected_empty_time ? (
+                            <span className="text-[11px] font-mono text-amber-400 flex items-center gap-1 mt-0.5">
+                              <HourglassMedium size={12} />
+                              Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
                             </span>
+                          ) : (
+                            <span className="text-[10px] text-white/30 uppercase mt-0.5">Siap Main / Standby</span>
                           )}
                         </div>
                       </td>
-                      <td className="p-4 border-r border-hairline text-white/70">
-                        {pkg?.name} <span className="text-[10px] ml-2 font-bold text-white/40">RP {pkg?.price?.toLocaleString("id-ID")}</span>
+
+                      <td className="p-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-white">{pkg?.name || 'Paket Kustom'}</span>
+                          <span className="font-mono text-nvidia-green font-bold text-[11px]">
+                            Rp {resolvedPrice.toLocaleString("id-ID")}
+                          </span>
+                        </div>
                       </td>
-                      <td className="p-4 border-r border-hairline text-white/50 text-xs">
-                        {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+
+                      <td className="p-4 font-mono text-white/50 text-[11px]">
+                        {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
                       </td>
-                      <td className="p-3 md:p-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {b.status === "pending" && (
+
+                      <td className="p-4 pr-6 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {isPending ? (
                             <>
-                              <button 
+                              <button
                                 onClick={() => showBukti(b.ss_bukti)}
-                                className="px-3 py-2 border border-hairline text-white/70 hover:text-white hover:border-white/50 text-[10px] font-bold uppercase flex items-center gap-1 transition-colors min-h-[36px]"
+                                className="px-3 py-1.5 bg-surface-dark hover:bg-white/10 border border-hairline text-white/70 hover:text-white rounded text-[11px] font-bold uppercase transition flex items-center gap-1"
                               >
                                 <FileImage size={14} /> Cek Bukti
                               </button>
-                              <button 
+                              <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'approve')}
-                                className="px-3 py-2 bg-nvidia-green text-black hover:bg-[#88d600] text-[10px] font-bold uppercase transition-colors min-h-[36px]"
+                                className="px-4 py-1.5 bg-nvidia-green hover:bg-[#88d600] text-black font-bold text-[11px] uppercase rounded transition shadow-[0_0_10px_rgba(118,185,0,0.3)]"
                               >
                                 Approve
                               </button>
-                              <button 
+                              <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'reject')}
-                                className="px-3 py-2 text-error-deep border border-error-deep hover:bg-error-deep hover:text-white text-[10px] font-bold uppercase transition-colors min-h-[36px]"
+                                className="px-3 py-1.5 bg-error/10 hover:bg-error text-error hover:text-white border border-error/30 rounded text-[11px] font-bold uppercase transition"
                               >
                                 Batal
                               </button>
                             </>
-                          )}
-                          {b.status === "active" && (
+                          ) : (
                             <>
-                              <span className="text-[10px] text-nvidia-green font-bold uppercase px-3 py-2 border border-nvidia-green/30 bg-nvidia-green/10 min-h-[36px] flex items-center">
-                                ANTREAN AKTIF
-                              </span>
-                              <button 
-                                disabled={loadingId === b.id}
-                                onClick={() => handleEditClick(b)}
-                                className="px-3 py-2 bg-nvidia-green/10 text-nvidia-green hover:bg-nvidia-green hover:text-black text-[10px] font-bold uppercase transition-colors border border-nvidia-green/30 min-h-[36px]"
-                              >
-                                EDIT
-                              </button>
-                              <button 
-                                disabled={loadingId === b.id}
-                                onClick={() => handleAction(b.id, 'complete')}
-                                className="px-3 py-2 bg-surface-soft text-white hover:bg-white hover:text-black text-[10px] font-bold uppercase transition-colors border border-hairline min-h-[36px]"
-                              >
-                                SELESAI
-                              </button>
-                              
-                              <div className="flex items-stretch ml-2 border border-hairline rounded-[2px] overflow-hidden">
-                                <input 
+                              {/* Quick Timer Chips */}
+                              <div className="flex items-center gap-1 bg-surface-dark p-1 rounded-lg border border-hairline">
+                                <button
+                                  onClick={() => handleSetTimer(b.pc_id, b.id, 60)}
+                                  className="px-2 py-1 bg-surface hover:bg-nvidia-green hover:text-black rounded text-[10px] font-mono font-bold text-white/70 transition"
+                                  title="Set 1 Jam"
+                                >
+                                  +1j
+                                </button>
+                                <button
+                                  onClick={() => handleSetTimer(b.pc_id, b.id, 120)}
+                                  className="px-2 py-1 bg-surface hover:bg-nvidia-green hover:text-black rounded text-[10px] font-mono font-bold text-white/70 transition"
+                                  title="Set 2 Jam"
+                                >
+                                  +2j
+                                </button>
+                                
+                                <input
                                   type="text"
-                                  id={`sync-waktu-${b.id}`}
-                                  placeholder="Contoh: 1j 30m"
-                                  className="w-28 bg-surface-dark px-2 py-1 text-[10px] text-white focus:border-nvidia-green outline-none"
-                                />
-                                <button 
-                                  onClick={async () => {
-                                    const input = document.getElementById(`sync-waktu-${b.id}`) as HTMLInputElement;
-                                    const query = input.value.toLowerCase().trim();
-                                    if (!query) return;
-
-                                    let val = 0;
-                                    const timeStr = query.replace(/jam/g, 'j').replace(/menit/g, 'm').replace(/[^0-9jm]/g, '');
-                                    if (timeStr.includes('j')) {
-                                      const h = parseInt(timeStr.split('j')[0]) || 0;
-                                      const m = parseInt(timeStr.split('j')[1]?.split('m')[0]) || 0;
-                                      val = (h * 60) + m;
-                                    } else if (timeStr.includes('m')) {
-                                      val = parseInt(timeStr.split('m')[0]) || 0;
-                                    } else {
-                                      val = parseInt(timeStr) || 0;
-                                    }
-                                    
-                                    setLoadingId(b.id);
-                                    try {
-                                      if (val > 0) {
-                                        const newEmptyTime = new Date(Date.now() + val * 60000).toISOString();
-                                        await fetch("/api/pcs", {
-                                          method: "PUT",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({
-                                            id: b.pc_id,
-                                            expected_empty_time: newEmptyTime,
-                                            status: 'occupied'
-                                          })
-                                        });
-                                      } else {
-                                        await fetch("/api/pcs", {
-                                          method: "PUT",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({
-                                            id: b.pc_id,
-                                            expected_empty_time: null,
-                                            status: 'available'
-                                          })
-                                        });
-                                      }
+                                  id={`timer-input-${b.id}`}
+                                  placeholder="e.g. 1j 30m"
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                      const input = document.getElementById(`timer-input-${b.id}`) as HTMLInputElement;
+                                      handleCustomTimerSubmit(b.pc_id, b.id, input.value);
                                       input.value = "";
-                                      await loadData();
-                                    } catch (err) {
-                                      console.error("Error setting PC timer:", err);
-                                      alert("Gagal memperbarui timer PC");
                                     }
-                                    setLoadingId(null);
                                   }}
-                                  disabled={loadingId === b.id}
-                                  className="bg-nvidia-green text-black px-3 py-1 text-[10px] font-bold uppercase hover:bg-[#88d600] disabled:opacity-50"
+                                  className="w-20 bg-black/40 border border-hairline px-2 py-1 rounded text-[10px] text-white focus:border-nvidia-green outline-none"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const input = document.getElementById(`timer-input-${b.id}`) as HTMLInputElement;
+                                    handleCustomTimerSubmit(b.pc_id, b.id, input.value);
+                                    input.value = "";
+                                  }}
+                                  className="px-2.5 py-1 bg-nvidia-green text-black font-bold text-[10px] uppercase rounded hover:bg-[#88d600] transition"
                                 >
                                   SET
                                 </button>
                               </div>
+
+                              <button
+                                onClick={() => handleEditClick(b)}
+                                className="p-2 bg-surface-dark hover:bg-white/10 text-cyan-400 border border-cyan-500/30 rounded transition"
+                                title="Edit Booking"
+                              >
+                                <PencilSimple size={14} />
+                              </button>
+
+                              <button
+                                disabled={loadingId === b.id}
+                                onClick={() => handleAction(b.id, 'complete')}
+                                className="px-3 py-1.5 bg-surface-dark hover:bg-white hover:text-black border border-hairline rounded text-[11px] font-bold uppercase transition"
+                              >
+                                Selesai
+                              </button>
                             </>
                           )}
                         </div>
@@ -357,10 +489,11 @@ export default function DataBookingPage() {
                     </tr>
                   );
                 })}
-                {(!db.bookings || db.bookings.length === 0) && (
+
+                {filteredBookings.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="p-12 text-center text-white/30 text-xs uppercase font-bold">
-                      TIDAK ADA ANTREAN ATAU PC AKTIF SAAT INI
+                    <td colSpan={6} className="p-12 text-center text-white/30 text-xs uppercase tracking-widest font-bold">
+                      Tidak ada data antrean dalam kategori ini.
                     </td>
                   </tr>
                 )}
@@ -368,380 +501,326 @@ export default function DataBookingPage() {
             </table>
           </div>
 
-          {/* Mobile View */}
-          <div className="md:hidden flex flex-col divide-y divide-hairline bg-surface-dark">
-            {db.bookings?.map((b) => {
-              const pc = db.pcs.find((p: PC) => p.id === b.pc_id);
-              const pkg = db.pakets.find((p: Paket) => p.id === b.paket_id);
+          {/* Advanced Mobile Cards View */}
+          <div className="lg:hidden grid grid-cols-1 gap-4">
+            {filteredBookings.map((b) => {
+              const pc = db.pcs.find(p => p.id === b.pc_id);
+              const pkg = db.pakets.find(p => p.id === b.paket_id);
+              const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
+              const isPending = b.status === "pending";
 
               return (
-                <div key={b.id} className="p-4 flex flex-col gap-3">
-                  <div className="flex justify-between items-center">
+                <div
+                  key={b.id}
+                  className={`bg-surface border p-4 rounded-xl shadow-lg relative overflow-hidden space-y-3 ${
+                    isPending ? "border-amber-500/40" : "border-hairline"
+                  }`}
+                >
+                  {/* Top Bar */}
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {b.status === "pending" ? (
-                        <Clock size={18} className="text-warning-bright animate-pulse" />
-                      ) : (
-                        <CheckCircle size={18} className="text-nvidia-green" weight="fill" />
-                      )}
-                      <span className="font-bold text-white tracking-tight">{b.player_name}</span>
+                      <div className="w-8 h-8 rounded-lg bg-surface-dark border border-hairline flex items-center justify-center text-nvidia-green font-mono font-bold text-sm">
+                        {b.player_name.slice(0, 1).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-sm">{b.player_name}</h3>
+                        <span className="text-[10px] text-white/40 font-mono">
+                          {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-white/50 text-[10px] tracking-tight">
-                      {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+
+                    {isPending ? (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Clock size={12} className="animate-spin" /> Verifikasi
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle size={12} weight="fill" /> Aktif
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex justify-between items-center text-xs tracking-tight bg-black/40 p-2.5 rounded border border-white/5">
-                    <div className="flex flex-col">
-                      <span className="text-white/40 text-[10px] uppercase">Target PC</span>
-                      <span className="text-nvidia-green font-bold text-sm">{pc?.name || b.pc_id}</span>
+                  {/* Info Box */}
+                  <div className="grid grid-cols-2 gap-2 bg-surface-dark p-3 rounded-lg border border-hairline text-xs">
+                    <div>
+                      <span className="text-[10px] text-white/40 uppercase block">Target PC</span>
+                      <span className="text-nvidia-green font-bold text-sm flex items-center gap-1">
+                        <Desktop size={14} /> {pc?.name || b.pc_id}
+                      </span>
                       {pc?.expected_empty_time && (
-                        <span className="text-[10px] text-amber-400 font-mono mt-0.5">
+                        <span className="text-[10px] text-amber-400 font-mono block mt-0.5">
                           ⏳ Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-col text-right">
-                      <span className="text-white/40 text-[10px] uppercase">Paket / Tarif</span>
-                      <span className="text-white font-bold">{pkg?.name}</span>
-                      <span className="text-white/50 text-[10px] font-mono">Rp {pkg?.price?.toLocaleString("id-ID")}</span>
+                    <div className="text-right">
+                      <span className="text-[10px] text-white/40 uppercase block">Paket & Tarif</span>
+                      <span className="text-white font-bold block">{pkg?.name || 'Paket Kustom'}</span>
+                      <span className="text-nvidia-green font-mono font-bold text-[11px]">
+                        Rp {resolvedPrice.toLocaleString("id-ID")}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    {b.status === "pending" && (
-                      <>
-                        <button 
-                          onClick={() => showBukti(b.ss_bukti)}
-                          className="flex-1 px-3 py-2.5 border border-hairline text-white/70 hover:text-white text-[10px] font-bold uppercase flex items-center justify-center gap-1 rounded transition"
+                  {/* Mobile Actions */}
+                  {isPending ? (
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => showBukti(b.ss_bukti)}
+                        className="flex-1 py-2.5 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
+                      >
+                        <FileImage size={14} /> Bukti
+                      </button>
+                      <button
+                        disabled={loadingId === b.id}
+                        onClick={() => handleAction(b.id, 'approve')}
+                        className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded-lg text-xs uppercase shadow-[0_0_15px_rgba(118,185,0,0.3)]"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        disabled={loadingId === b.id}
+                        onClick={() => handleAction(b.id, 'reject')}
+                        className="p-2.5 bg-error/10 text-error border border-error/30 rounded-lg text-xs font-bold"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 pt-1">
+                      {/* Quick Timers */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleSetTimer(b.pc_id, b.id, 60)}
+                          className="flex-1 py-1.5 bg-surface-dark hover:bg-nvidia-green hover:text-black border border-hairline rounded text-xs font-mono font-bold text-white/70 transition"
                         >
-                          <FileImage size={14} /> Bukti
+                          +1 Jam
                         </button>
-                        <button 
-                          disabled={loadingId === b.id}
-                          onClick={() => handleAction(b.id, 'approve')}
-                          className="flex-1 px-3 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] text-[10px] font-bold uppercase rounded transition"
+                        <button
+                          onClick={() => handleSetTimer(b.pc_id, b.id, 120)}
+                          className="flex-1 py-1.5 bg-surface-dark hover:bg-nvidia-green hover:text-black border border-hairline rounded text-xs font-mono font-bold text-white/70 transition"
                         >
-                          Approve
+                          +2 Jam
                         </button>
-                        <button 
-                          disabled={loadingId === b.id}
-                          onClick={() => handleAction(b.id, 'reject')}
-                          className="flex-1 px-3 py-2.5 text-error-deep border border-error-deep hover:bg-error-deep hover:text-white text-[10px] font-bold uppercase rounded transition"
+                        <button
+                          onClick={() => handleEditClick(b)}
+                          className="px-3 py-1.5 bg-surface-dark text-cyan-400 border border-cyan-500/30 rounded text-xs font-bold"
                         >
-                          Batal
+                          Edit
                         </button>
-                      </>
-                    )}
-                    {b.status === "active" && (
-                      <div className="w-full flex flex-col gap-2">
-                        <div className="flex gap-2">
-                          <span className="flex-1 text-[10px] text-nvidia-green font-bold uppercase px-2 py-2 border border-nvidia-green/30 bg-nvidia-green/10 flex items-center justify-center rounded">
-                            ANTREAN AKTIF
-                          </span>
-                          <button 
-                            disabled={loadingId === b.id}
-                            onClick={() => handleEditClick(b)}
-                            className="px-3 py-2 bg-nvidia-green/10 text-nvidia-green text-[10px] font-bold uppercase border border-nvidia-green/30 rounded transition"
-                          >
-                            EDIT
-                          </button>
-                          <button 
-                            disabled={loadingId === b.id}
-                            onClick={() => handleAction(b.id, 'complete')}
-                            className="px-3 py-2 bg-surface-soft text-white text-[10px] font-bold uppercase border border-hairline rounded transition hover:bg-white hover:text-black"
-                          >
-                            SELESAI
-                          </button>
-                        </div>
-                        <div className="flex items-stretch border border-hairline rounded overflow-hidden w-full">
-                          <input 
-                            type="text"
-                            id={`sync-waktu-mobile-${b.id}`}
-                            placeholder="Set Waktu Kosong (e.g. 1j 30m atau 60)"
-                            className="flex-1 bg-surface-dark px-3 py-2 text-[11px] text-white focus:border-nvidia-green outline-none"
-                          />
-                          <button 
-                            onClick={async () => {
-                              const input = document.getElementById(`sync-waktu-mobile-${b.id}`) as HTMLInputElement;
-                              const query = input.value.toLowerCase().trim();
-                              if (!query) return;
+                      </div>
 
-                              let val = 0;
-                              const timeStr = query.replace(/jam/g, 'j').replace(/menit/g, 'm').replace(/[^0-9jm]/g, '');
-                              if (timeStr.includes('j')) {
-                                const h = parseInt(timeStr.split('j')[0]) || 0;
-                                const m = parseInt(timeStr.split('j')[1]?.split('m')[0]) || 0;
-                                val = (h * 60) + m;
-                              } else if (timeStr.includes('m')) {
-                                val = parseInt(timeStr.split('m')[0]) || 0;
-                              } else {
-                                val = parseInt(timeStr) || 0;
-                              }
-                              
-                              setLoadingId(b.id);
-                              try {
-                                if (val > 0) {
-                                  const newEmptyTime = new Date(Date.now() + val * 60000).toISOString();
-                                  await fetch("/api/pcs", {
-                                    method: "PUT",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                      id: b.pc_id,
-                                      expected_empty_time: newEmptyTime,
-                                      status: 'occupied'
-                                    })
-                                  });
-                                } else {
-                                  await fetch("/api/pcs", {
-                                    method: "PUT",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                      id: b.pc_id,
-                                      expected_empty_time: null,
-                                      status: 'available'
-                                    })
-                                  });
-                                }
-                                input.value = "";
-                                await loadData();
-                              } catch (err) {
-                                console.error("Error setting PC timer on mobile:", err);
-                                alert("Gagal memperbarui timer PC");
-                              }
-                              setLoadingId(null);
+                      {/* Custom Input & Complete Button */}
+                      <div className="flex items-stretch gap-2">
+                        <div className="flex-1 flex items-stretch border border-hairline rounded-lg overflow-hidden bg-surface-dark">
+                          <input
+                            type="text"
+                            id={`mobile-timer-input-${b.id}`}
+                            placeholder="Set waktu: 1j 30m / 60"
+                            className="flex-1 bg-transparent px-3 py-2 text-xs text-white focus:outline-none"
+                          />
+                          <button
+                            onClick={() => {
+                              const input = document.getElementById(`mobile-timer-input-${b.id}`) as HTMLInputElement;
+                              handleCustomTimerSubmit(b.pc_id, b.id, input.value);
+                              input.value = "";
                             }}
-                            disabled={loadingId === b.id}
-                            className="bg-nvidia-green text-black px-4 py-2 text-[10px] font-bold uppercase hover:bg-[#88d600] disabled:opacity-50 transition"
+                            className="px-3 bg-nvidia-green text-black font-bold text-xs uppercase"
                           >
                             SET
                           </button>
                         </div>
+
+                        <button
+                          disabled={loadingId === b.id}
+                          onClick={() => handleAction(b.id, 'complete')}
+                          className="px-4 py-2 bg-surface-dark hover:bg-white hover:text-black border border-hairline rounded-lg text-xs font-bold uppercase transition"
+                        >
+                          Selesai
+                        </button>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
+
+            {filteredBookings.length === 0 && (
+              <div className="p-8 text-center text-white/30 text-xs uppercase tracking-widest font-bold bg-surface border border-hairline rounded-xl">
+                Tidak ada data antrean.
+              </div>
+            )}
           </div>
+
         </div>
-      </div>
-      {/* Manual Booking / Edit Modal */}
-      {showManual && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface border border-hairline p-6 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
-            <h2 className="text-xl font-bold tracking-tight text-white mb-4 uppercase">{editBookingId ? "Ubah Data Booking" : "Booking Kasir (Walk-in)"}</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-[10px] text-white/50 uppercase tracking-tight">Nama Pemain (Opsional)</label>
-                <input 
-                  id="admin-nama"
-                  type="text" 
-                  value={manualData.playerName} 
-                  onChange={e => setManualData({...manualData, playerName: e.target.value})} 
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('admin-pc')?.focus(); } }}
-                  placeholder="e.g. Bang Jago" 
-                  className="w-full bg-surface-dark border border-hairline p-2 text-sm text-white tracking-tight outline-none focus:border-nvidia-green" 
-                />
-              </div>
-              <div className="relative">
-                <label className="text-[10px] text-white/50 uppercase tracking-tight">Cari / Pilih PC</label>
-                <input 
-                  id="admin-pc"
-                  type="text" 
-                  value={manualData.searchPc} 
-                  onChange={e => {
-                     const val = e.target.value;
-                     setManualData({...manualData, searchPc: val, pcId: ""}); // reset pcId when typing
-                     setShowPcList(true);
-                  }}
-                  onKeyDown={e => {
-                     if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const matched = db?.pcs?.find(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase()));
-                        if (matched) {
-                           setManualData({...manualData, pcId: matched.id, searchPc: matched.name});
-                           setShowPcList(false);
-                           document.getElementById('admin-paket')?.focus();
-                        }
-                     }
-                  }}
-                  onFocus={() => setShowPcList(true)}
-                  onBlur={() => setTimeout(() => setShowPcList(false), 200)}
-                  placeholder="Ketik PC, misal PC 01 (Lalu Enter)" 
-                  className="w-full bg-surface-dark border border-hairline p-2 text-sm text-white tracking-tight outline-none focus:border-nvidia-green" 
-                />
-                {showPcList && (
-                  <div className="absolute z-[110] left-0 right-0 top-full mt-1 bg-surface-dark border border-hairline max-h-40 overflow-y-auto custom-scrollbar">
-                    {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => (
-                      <button 
-                        key={pc.id}
-                        onMouseDown={() => {
-                          setManualData({...manualData, pcId: pc.id, searchPc: pc.name});
-                          setShowPcList(false);
-                        }}
-                        className={`w-full text-left p-2 text-sm tracking-tight hover:bg-nvidia-green/20 ${manualData.pcId === pc.id ? 'bg-nvidia-green/10 text-nvidia-green' : 'text-white'}`}
-                      >
-                        {pc.name}
-                      </button>
-                    ))}
+
+        {/* Modal Manual Booking / Edit */}
+        <AnimatePresence>
+          {showManual && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+                className="bg-surface border border-hairline p-6 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl space-y-4"
+              >
+                <h2 className="text-lg font-bold uppercase tracking-tight text-white flex items-center gap-2">
+                  <Plus size={20} className="text-nvidia-green" />
+                  {editBookingId ? "Ubah Data Booking" : "Booking Kasir (Walk-in)"}
+                </h2>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Nama Pemain</label>
+                    <input
+                      type="text"
+                      value={manualData.playerName}
+                      onChange={e => setManualData({...manualData, playerName: e.target.value})}
+                      placeholder="e.g. Bang Jago (Opsional)"
+                      className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                    />
                   </div>
-                )}
-              </div>
-              <div className="flex flex-col h-[280px]">
-                <label className="text-[10px] text-white/50 uppercase tracking-tight mb-1">Cari / Bikin Paket Booking</label>
-                <input
-                  id="admin-paket"
-                  type="text"
-                  value={searchPaket}
-                  onChange={e => setSearchPaket(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('admin-simpan')?.focus(); } }}
-                  placeholder="e.g. 6000 atau Paket Malam"
-                  className="w-full bg-surface-dark border border-hairline p-2 text-sm text-white tracking-tight outline-none focus:border-nvidia-green shrink-0 mb-2"
-                />
-                <div className="flex-1 flex flex-col gap-2 overflow-y-auto pr-2 custom-scrollbar">
-                  {(() => {
-                    const query = debouncedSearch.toLowerCase();
-                    let customPkg = null;
-                    let parsedPrice = 0;
-                    let isTimeInput = false;
 
-                    if (query) {
-                      if (query.includes('jam') || query.includes('menit') || query.includes('m') || query.includes('j')) {
-                        isTimeInput = true;
-                        const timeStr = query.replace(/jam/g, 'j').replace(/menit/g, 'm').replace(/[^0-9jm]/g, '');
-                        let totalMinutes = 0;
-                        if (timeStr.includes('j')) {
-                          const h = parseInt(timeStr.split('j')[0]) || 0;
-                          const m = parseInt(timeStr.split('j')[1]?.split('m')[0]) || 0;
-                          totalMinutes = (h * 60) + m;
-                        } else if (timeStr.includes('m')) {
-                          totalMinutes = parseInt(timeStr.split('m')[0]) || 0;
-                        } else {
-                          totalMinutes = parseInt(timeStr) || 0;
-                        }
-                        if (totalMinutes > 0) {
-                          parsedPrice = Math.ceil(totalMinutes / 60 * 4000);
-                        }
-                      } else {
-                        parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
-                      }
-                    }
+                  <div className="relative">
+                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih Bilik PC</label>
+                    <input
+                      type="text"
+                      value={manualData.searchPc}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setManualData({...manualData, searchPc: val, pcId: ""});
+                        setShowPcList(true);
+                      }}
+                      onFocus={() => setShowPcList(true)}
+                      placeholder="Ketik nama PC (e.g. PC-Iyoo)"
+                      className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                    />
+                    {showPcList && (
+                      <div className="absolute z-[110] left-0 right-0 top-full mt-1 bg-surface-dark border border-hairline max-h-40 overflow-y-auto rounded shadow-xl">
+                        {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => (
+                          <button
+                            key={pc.id}
+                            type="button"
+                            onClick={() => {
+                              setManualData({...manualData, pcId: pc.id, searchPc: pc.name});
+                              setShowPcList(false);
+                            }}
+                            className={`w-full text-left p-2.5 text-xs hover:bg-nvidia-green/20 ${manualData.pcId === pc.id ? 'bg-nvidia-green/10 text-nvidia-green font-bold' : 'text-white'}`}
+                          >
+                            {pc.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                    const filtered = (db?.pakets || []).filter(p =>
-                      !p.is_custom && (p.name.toLowerCase().includes(query) || p.price.toString().includes(query) || (parsedPrice > 0 && p.price === parsedPrice))
-                    );
+                  <div>
+                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih Paket Booking</label>
+                    <input
+                      type="text"
+                      value={searchPaket}
+                      onChange={e => setSearchPaket(e.target.value)}
+                      placeholder="Cari paket atau ketik nominal (e.g. 5000 / Malam)"
+                      className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none mb-2"
+                    />
+                    <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                      {(() => {
+                        const query = debouncedSearch.toLowerCase();
+                        let customPkg = null;
+                        let parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
 
-                    if (query && parsedPrice >= 3000) {
-                        const hasExactMatch = (db?.pakets || []).some(p => !p.is_custom && p.price === parsedPrice);
-                        if (!hasExactMatch) {
-                          const totalMins = Math.floor(parsedPrice / 4000 * 60);
-                          const h = Math.floor(totalMins / 60);
-                          const m = totalMins % 60;
-                          const timeStr = [h > 0 ? `${h}j` : '', m > 0 ? `${m}m` : ''].filter(Boolean).join(' ') || '0m';
+                        const filtered = (db?.pakets || []).filter(p =>
+                          !p.is_custom && (p.name.toLowerCase().includes(query) || p.price.toString().includes(query))
+                        );
+
+                        if (query && parsedPrice >= 3000 && !filtered.some(p => p.price === parsedPrice)) {
                           customPkg = {
                             id: `custom-${parsedPrice}`,
-                            name: `Paket Custom (± ${timeStr})`,
+                            name: `Paket Kustom Rp ${parsedPrice.toLocaleString('id-ID')}`,
                             price: parsedPrice
                           };
                         }
-                      }
 
-                    const displayPkgs = customPkg ? [customPkg, ...filtered] : filtered;
-
-                    if (displayPkgs.length === 0) {
-                      return (
-                        <div className="p-4 text-center text-white/40 tracking-tight text-xs border border-dashed border-white/10">
-                          {(parsedPrice > 0 && parsedPrice < 3000)
-                            ? "Minimal Rp 3.000 boss"
-                            : "Paket nggak ketemu"}
-                        </div>
-                      );
-                    }
-
-                    return displayPkgs.map((pkg) => {
-                      const isSelected = selectedPaket === pkg.id;
-                      const isCustom = pkg.id.startsWith('custom-');
-                      return (
-                        <button
-                          key={pkg.id}
-                          onClick={() => setSelectedPaket(pkg.id)}
-                          className={`
-                              relative group flex items-center justify-between p-3 tracking-tight transition-all duration-300 w-full overflow-hidden outline-none shrink-0 border
-                              ${isSelected
-                              ? "bg-nvidia-green/10 border-nvidia-green/50 shadow-[0_0_15px_rgba(118,185,0,0.15)]"
-                              : isCustom ? "bg-blue-500/10 border-blue-500/30 hover:border-blue-500/50" : "bg-black/40 border-white/5 hover:border-white/20 hover:bg-black/60"
-                            }
-                            `}
-                        >
-                          {isSelected && (
-                            <motion.div
-                              layoutId="admin-paket-highlight"
-                              className="absolute inset-0 bg-nvidia-green/10 pointer-events-none"
-                              initial={false}
-                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            />
-                          )}
-                          <div className="flex flex-col items-start relative z-10">
-                            <span className={`text-[10px] md:text-xs font-bold tracking-tight uppercase ${isSelected ? "text-nvidia-green drop-shadow-[0_0_8px_rgba(118,185,0,0.8)]" : isCustom ? "text-blue-400" : "text-white/70 group-hover:text-white"} transition-all duration-300`}>
-                              {pkg.name}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-3 relative z-10">
-                            <span className={`text-[10px] font-bold ${isSelected ? "text-nvidia-green" : "text-white/40 group-hover:text-white/80"} transition-colors`}>
-                              RP {pkg.price.toLocaleString("id-ID")}
-                            </span>
-                            <div className={`w-3 h-3 rounded-full border flex items-center justify-center transition-all duration-300 ${isSelected ? "border-nvidia-green bg-nvidia-green/20" : "border-white/20 group-hover:border-white/40"}`}>
-                              {isSelected && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="w-1.5 h-1.5 bg-nvidia-green rounded-full shadow-[0_0_8px_rgba(118,185,0,1)]" />}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    });
-                  })()}
+                        const list = customPkg ? [customPkg, ...filtered] : filtered;
+                        return list.map(pkg => {
+                          const isSelected = selectedPaket === pkg.id;
+                          return (
+                            <button
+                              key={pkg.id}
+                              type="button"
+                              onClick={() => setSelectedPaket(pkg.id)}
+                              className={`w-full p-2.5 rounded text-xs flex items-center justify-between border transition ${
+                                isSelected
+                                  ? "bg-nvidia-green/10 border-nvidia-green text-nvidia-green font-bold"
+                                  : "bg-surface-dark border-hairline text-white/70 hover:text-white"
+                              }`}
+                            >
+                              <span>{pkg.name}</span>
+                              <span className="font-mono">Rp {pkg.price.toLocaleString("id-ID")}</span>
+                            </button>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-4 tracking-tight">
-                <button 
-                  disabled={loadingId === 'manual-loading'} 
-                  onClick={() => {
-                    setShowManual(false);
-                    setEditBookingId(null);
-                    setManualData({ playerName: "", pcId: "", searchPc: "" });
-                    setSearchPaket("");
-                    setSelectedPaket(null);
-                  }} 
-                  className="px-4 py-2 border border-hairline text-white/50 hover:text-white text-xs"
-                >
-                  BATAL
-                </button>
-                <button 
-                  id="admin-simpan"
-                  disabled={loadingId === 'manual-loading'} 
-                  onClick={handleManualSubmit} 
-                  className="px-4 py-2 bg-nvidia-green text-black font-bold text-xs hover:bg-[#88d600]"
-                >
-                  {loadingId === 'manual-loading' ? 'LOADING...' : (editBookingId ? 'SIMPAN PERUBAHAN' : 'SIMPAN (LANGSUNG MAIN)')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Modal Bukti Transfer */}
-      {buktiImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-          <div className="relative max-w-[90vw] w-full flex flex-col items-center justify-center">
-            <button 
-              onClick={() => setBuktiImage(null)}
-              className="absolute -top-10 right-0 text-white hover:text-error font-bold uppercase tracking-widest text-xs"
+                <div className="flex gap-2 pt-3">
+                  <button
+                    onClick={() => {
+                      setShowManual(false);
+                      setEditBookingId(null);
+                    }}
+                    className="flex-1 py-2.5 bg-surface-dark hover:bg-white/10 rounded text-xs font-bold uppercase text-white/60"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleManualSubmit}
+                    disabled={loadingId === 'manual-loading'}
+                    className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded text-xs uppercase hover:bg-[#88d600]"
+                  >
+                    {loadingId === 'manual-loading' ? 'Menyimpan...' : (editBookingId ? 'Simpan' : 'Simpan & Main')}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal Bukti Transfer */}
+        <AnimatePresence>
+          {buktiImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 p-4"
             >
-              [ TUTUP ]
-            </button>
-            <img src={buktiImage} alt="Bukti Transfer" className="max-w-full max-h-[90vh] object-contain border border-nvidia-green/30 rounded-[2px]" />
-          </div>
-        </div>
-      )}
-    </div>
+              <div className="relative max-w-lg w-full flex flex-col items-center justify-center space-y-4">
+                <button
+                  onClick={() => setBuktiImage(null)}
+                  className="self-end px-3 py-1 bg-surface border border-hairline text-white hover:text-error text-xs font-bold uppercase rounded"
+                >
+                  Tutup [✕]
+                </button>
+                <img
+                  src={buktiImage}
+                  alt="Bukti Transfer"
+                  className="max-w-full max-h-[80vh] object-contain border border-nvidia-green/40 rounded-xl shadow-2xl"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>
+    </PinGuard>
   );
 }
