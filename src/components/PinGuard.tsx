@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { LockKey, CheckCircle } from "@phosphor-icons/react";
+import { Lock, Check } from "lucide-react";
 
 export default function PinGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -52,7 +52,7 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
     <div className="flex-1 min-h-screen bg-surface-dark flex items-center justify-center p-4">
       <div className="nvidia-card p-8 w-full max-w-sm relative overflow-hidden">
         <div className="absolute -right-4 -top-4 opacity-5">
-          <LockKey size={120} weight="fill" />
+          <Lock size={120} />
         </div>
         <div className="nvidia-corner"></div>
         <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase">Akses Terkunci</h2>
@@ -76,7 +76,7 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
           />
           <label className="flex items-center gap-2 cursor-pointer mt-2 group">
             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${rememberMe ? 'border-nvidia-green bg-nvidia-green' : 'border-hairline bg-surface-dark group-hover:border-nvidia-green'}`}>
-              {rememberMe && <CheckCircle size={12} weight="bold" className="text-black" />}
+              {rememberMe && <Check size={12} className="text-black" />}
             </div>
             <input 
               type="checkbox" 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X } from "@phosphor-icons/react";
+import { X } from "lucide-react";
 
 export default function AuthButton() {
   const [showLogin, setShowLogin] = useState(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, PencilSimple, Trash, WarningCircle, Desktop, Cpu, HardDrives } from "@phosphor-icons/react";
+import { Plus, Pencil, Trash2, AlertCircle, Monitor, Cpu, HardDrive } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { DatabaseSchema, PC } from "@/lib/db";
 
@@ -113,7 +113,7 @@ export default function DataPC() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-nvidia-green uppercase tracking-widest flex items-center gap-3">
-            <Desktop size={28} />
+            <Monitor size={28} />
             Data PC & Spek
           </h1>
           <p className="text-sm text-white/50 tracking-tight mt-1">Manajemen unit PC, status, dan spesifikasi hardware.</p>
@@ -122,7 +122,7 @@ export default function DataPC() {
           onClick={openAdd}
           className="nvidia-button text-xs gap-2 shrink-0 w-full md:w-auto"
         >
-          <Plus size={16} weight="bold" />
+          <Plus size={16} />
           TAMBAH PC
         </button>
       </div>
@@ -160,13 +160,13 @@ export default function DataPC() {
                       onClick={() => openEdit(pc)}
                       className="p-2 hover:bg-nvidia-green hover:text-black rounded-[2px] transition-colors text-nvidia-green"
                     >
-                      <PencilSimple size={16} />
+                      <Pencil size={16} />
                     </button>
                     <button 
                       onClick={() => handleDelete(pc.id)}
                       className="p-2 hover:bg-error hover:text-white rounded-[2px] transition-colors text-error"
                     >
-                      <Trash size={16} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </td>
@@ -197,13 +197,13 @@ export default function DataPC() {
                   onClick={() => openEdit(pc)}
                   className="p-2 bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30 rounded-[2px]"
                 >
-                  <PencilSimple size={16} />
+                  <Pencil size={16} />
                 </button>
                 <button 
                   onClick={() => handleDelete(pc.id)}
                   className="p-2 border border-error/50 text-error rounded-[2px]"
                 >
-                  <Trash size={16} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>

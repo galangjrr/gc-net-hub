@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash } from "@phosphor-icons/react";
+import { Plus, Trash2 } from "lucide-react";
 import type { DatabaseSchema, InventoryItem } from "@/lib/db";
 
 export default function StokKasirPage() {
@@ -88,7 +88,7 @@ export default function StokKasirPage() {
             <option value="other">Lainnya</option>
           </select>
           <button onClick={addInv} className="nvidia-button shrink-0 flex items-center gap-2">
-            <Plus weight="bold" /> Tambah Stok
+            <Plus size={16} /> Tambah Stok
           </button>
         </div>
 
@@ -104,13 +104,13 @@ export default function StokKasirPage() {
                 <th className="p-4 font-bold border-b border-hairline text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-hairline bg-surface-dark">
+            <tbody className="divide-y divide-hairline">
               {db.inventory?.filter(i => i.category !== 'staff_account').map((inv: InventoryItem) => (
                 <tr key={inv.id} className="hover:bg-white/[0.02]">
-                  <td className="p-4 font-bold text-white">{inv.name}</td>
-                  <td className="p-4 text-white/50 uppercase text-[10px]">{inv.category}</td>
+                  <td className="p-4 font-bold uppercase">{inv.name}</td>
+                  <td className="p-4 text-white/50 uppercase text-xs">{inv.category}</td>
                   <td className="p-4">
-                    <span className={`px-2 py-1 rounded-[2px] font-bold text-[11px] ${inv.stock < 5 ? 'bg-error-deep text-white' : 'bg-surface-soft text-white/70'}`}>
+                    <span className={`px-2 py-1 rounded-[2px] font-bold text-xs ${inv.stock < 5 ? 'bg-error-deep text-white' : 'bg-surface-soft text-white/70'}`}>
                       {inv.stock} PCS
                     </span>
                   </td>
@@ -124,7 +124,7 @@ export default function StokKasirPage() {
                         +10 STOK
                       </button>
                       <button onClick={() => deleteInv(inv.id)} className="text-white/30 hover:text-error transition-colors">
-                        <Trash size={20} />
+                        <Trash2 size={20} />
                       </button>
                     </div>
                   </td>
@@ -159,7 +159,7 @@ export default function StokKasirPage() {
                   +10
                 </button>
                 <button onClick={() => deleteInv(inv.id)} className="text-white/30 hover:text-error p-1">
-                  <Trash size={18} />
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>

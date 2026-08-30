@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Monitor, Circle, Timer, User } from "@phosphor-icons/react";
+import { Monitor, Circle, Timer, User } from "lucide-react";
 
 /* ── Mock Data — 10 PC with mixed status ── */
 const MOCK_PCS = Array.from({ length: 10 }, (_, i) => {
@@ -39,13 +39,13 @@ export default function StatusPage() {
         </div>
         <div className="glass-panel rounded-xl p-4">
           <div className="text-xs text-zinc-500 mb-2 flex items-center gap-1.5">
-            <Circle size={8} weight="fill" className="text-cyan-500" /> Tersedia
+            <Circle size={8} className="fill-cyan-500 text-cyan-500" /> Tersedia
           </div>
           <div className="text-2xl font-semibold tracking-tight text-cyan-400">{availableCount}</div>
         </div>
         <div className="glass-panel rounded-xl p-4">
           <div className="text-xs text-zinc-500 mb-2 flex items-center gap-1.5">
-            <Circle size={8} weight="fill" className="text-amber-500" /> Dipakai
+            <Circle size={8} className="fill-amber-500 text-amber-500" /> Dipakai
           </div>
           <div className="text-2xl font-semibold tracking-tight text-amber-400">{occupiedCount}</div>
         </div>
@@ -82,18 +82,18 @@ export default function StatusPage() {
                 >
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2.5">
-                      <Monitor size={16} weight="duotone" className="text-zinc-600" />
+                      <Monitor size={16} className="text-zinc-600" />
                       <span className="tracking-tight text-sm">{pc.name}</span>
                     </div>
                   </td>
                   <td className="px-5 py-4">
                     {pc.status === "available" ? (
                       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-lg">
-                        <Circle size={6} weight="fill" /> Tersedia
+                        <Circle size={6} className="fill-cyan-400 text-cyan-400" /> Tersedia
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg">
-                        <Circle size={6} weight="fill" /> Dipakai
+                        <Circle size={6} className="fill-amber-400 text-amber-400" /> Dipakai
                       </span>
                     )}
                   </td>
@@ -130,7 +130,7 @@ export default function StatusPage() {
           {MOCK_PCS.map((pc) => (
             <div key={pc.id} className="px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Monitor size={20} weight="duotone" className={pc.status === "available" ? "text-cyan-500" : "text-zinc-600"} />
+                <Monitor size={20} className={pc.status === "available" ? "text-cyan-500" : "text-zinc-600"} />
                 <div>
                   <div className="tracking-tight text-sm">{pc.name}</div>
                   {pc.player && <div className="text-xs text-zinc-500">{pc.player}</div>}

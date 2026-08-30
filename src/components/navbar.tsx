@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { List, X } from "@phosphor-icons/react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const NAV_ITEMS = [
@@ -63,7 +63,7 @@ export default function Navbar() {
           onClick={() => setMobileOpen(!mobileOpen)}
           className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors"
         >
-          {mobileOpen ? <X size={20} weight="bold" /> : <List size={20} weight="bold" />}
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 

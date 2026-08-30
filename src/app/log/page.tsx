@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BookOpenText, CheckCircle, XCircle, SortDescending, MagnifyingGlass, ArrowClockwise, Desktop, ShoppingCart } from "@phosphor-icons/react";
+import { BookOpen, CheckCircle2, XCircle, ArrowDownWideNarrow, Search, RotateCw, Monitor, ShoppingCart } from "lucide-react";
 import type { DatabaseSchema, LogEntry } from "@/lib/db";
 import PinGuard from "@/components/PinGuard";
 
@@ -53,7 +53,7 @@ export default function LogAktivitasPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-hairline">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green">
-                <BookOpenText size={32} weight="fill" />
+                <BookOpen size={32} />
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tight">Log Aktivitas & Transaksi</h1>
@@ -67,7 +67,7 @@ export default function LogAktivitasPage() {
               onClick={loadData}
               className="flex items-center gap-2 px-3.5 py-2 bg-surface hover:bg-white/10 border border-hairline rounded-lg text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white transition w-fit"
             >
-              <ArrowClockwise size={16} />
+              <RotateCw size={16} />
               Segarkan Log
             </button>
           </div>
@@ -116,7 +116,7 @@ export default function LogAktivitasPage() {
                 placeholder="Cari nama, PC, item..."
                 className="w-full bg-surface border border-hairline p-2.5 pl-9 rounded-lg text-xs text-white placeholder:text-white/40 focus:border-nvidia-green outline-none"
               />
-              <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
             </div>
           </div>
 
@@ -160,11 +160,11 @@ export default function LogAktivitasPage() {
                       <td className="p-4 pr-6 text-right">
                         {isSelesai ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">
-                            <CheckCircle weight="fill" size={12} /> Selesai
+                            <CheckCircle2 size={12} /> Selesai
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-error/10 text-error border border-error/30 text-[10px] font-bold uppercase tracking-wider">
-                            <XCircle weight="fill" size={12} /> Batal
+                            <XCircle size={12} /> Batal
                           </span>
                         )}
                       </td>
@@ -206,11 +206,11 @@ export default function LogAktivitasPage() {
 
                     {isSelesai ? (
                       <span className="text-emerald-400 text-[10px] font-bold uppercase flex items-center gap-1">
-                        <CheckCircle weight="fill" size={12} /> Selesai
+                        <CheckCircle2 size={12} /> Selesai
                       </span>
                     ) : (
                       <span className="text-error text-[10px] font-bold uppercase flex items-center gap-1">
-                        <XCircle weight="fill" size={12} /> Batal
+                        <XCircle size={12} /> Batal
                       </span>
                     )}
                   </div>

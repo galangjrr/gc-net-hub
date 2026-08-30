@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShoppingCart, Coffee, BowlFood, Package, Trash, Check } from "@phosphor-icons/react";
+import { ShoppingCart, Coffee, Utensils, Package, Trash2, Check } from "lucide-react";
 import { motion } from "motion/react";
 import type { DatabaseSchema, InventoryItem } from "@/lib/db";
 
@@ -73,7 +73,7 @@ export default function KasirPage() {
         <div className="flex-1 w-full">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-hairline">
             <div className="flex items-center gap-4">
-              <ShoppingCart size={32} className="text-nvidia-green" weight="fill" />
+              <ShoppingCart size={32} className="text-nvidia-green" />
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight">Meja Kasir / Warung</h1>
                 <p className="text-white/60 tracking-tight text-xs md:text-sm mt-1">&gt; PENJUALAN F&B & BARANG KASIR</p>
@@ -128,7 +128,7 @@ export default function KasirPage() {
                     <div className="nvidia-corner"></div>
                     <div className="flex justify-between items-start mb-auto">
                       <div className="flex items-center gap-2">
-                        {p.category === 'food' ? <BowlFood size={20} className="text-white/50" /> : p.category === 'drink' ? <Coffee size={20} className="text-white/50" /> : <Package size={20} className="text-white/50" />}
+                        {p.category === 'food' ? <Utensils size={18} className="text-white/50" /> : p.category === 'drink' ? <Coffee size={18} className="text-white/50" /> : <Package size={18} className="text-white/50" />}
                         <span className="text-[10px] uppercase tracking-tight font-bold text-white/40">{p.category}</span>
                       </div>
                       <div className={`text-[10px] uppercase font-bold tracking-tight px-2 py-0.5 rounded-[2px] ${p.stock <= 5 ? 'bg-error-deep text-white' : 'bg-surface-soft text-white/60'}`}>
@@ -153,40 +153,49 @@ export default function KasirPage() {
           </div>
         </div>
 
-        {/* Right: Cart Sidebar */}
-        <div className="w-full xl:w-[400px] shrink-0 mt-4 xl:mt-0 mb-20 xl:mb-0">
-          <div className="nvidia-card p-4 md:p-6 xl:sticky top-8 min-h-[300px] xl:min-h-[500px] flex flex-col">
+        {/* Right Cart Section */}
+        <div className="w-full lg:w-96 flex flex-col gap-6">
+          <div className="nvidia-card p-6 flex flex-col h-[550px] relative">
             <div className="nvidia-corner"></div>
-            <h2 className="text-xl font-bold text-white uppercase tracking-tight border-b border-hairline pb-4 mb-4">Keranjang Belanja</h2>
-            
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-hairline">
+              <h2 className="font-bold tracking-tight text-white flex items-center gap-2 uppercase">
+                <ShoppingCart size={18} /> Keranjang Kasir
+              </h2>
+              {cart.length > 0 && (
+                <button onClick={() => setCart([])} className="text-[10px] text-error uppercase font-bold hover:underline">
+                  KOSONGKAN
+                </button>
+              )}
+            </div>
+
             {cart.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center text-white/40 tracking-tight text-sm uppercase">
-                &gt; BELUM ADA PESANAN BRO
+              <div className="flex-1 flex flex-col items-center justify-center text-white/30 text-xs tracking-tight uppercase">
+                <ShoppingCart size={32} className="mb-2 opacity-50" />
+                Keranjang Kosong
               </div>
             ) : (
-              <div className="flex-1 flex flex-col overflow-y-auto pr-2">
+              <div className="flex-1 overflow-y-auto divide-y divide-hairline pr-1 space-y-3">
                 {cart.map((item) => (
-                  <div key={item.product.id} className="flex items-start justify-between py-3 border-b border-hairline">
+                  <div key={item.product.id} className="pt-3 flex items-center justify-between tracking-tight">
                     <div className="flex-1 pr-2">
-                      <h4 className="text-xs font-bold text-white tracking-tight uppercase">{item.product.name}</h4>
-                      <p className="text-nvidia-green tracking-tight text-xs mt-1">
-                        {item.qty} x RP {item.product.price.toLocaleString("id-ID")}
-                      </p>
+                      <h4 className="font-bold text-white text-xs uppercase line-clamp-1">{item.product.name}</h4>
+                      <p className="text-nvidia-green font-bold text-xs mt-0.5">RP {(item.product.price * item.qty).toLocaleString("id-ID")}</p>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => decrementCart(item.product.id)}
-                        className="w-7 h-7 flex items-center justify-center border border-hairline text-white/50 hover:text-white hover:border-white/40 font-bold text-sm transition-colors rounded-[2px]"
+                        className="w-7 h-7 flex items-center justify-center border border-hairline text-white/70 hover:bg-white/10 font-bold text-sm transition-colors rounded-[2px]"
                       >−</button>
+                      <span className="w-6 text-center font-bold text-xs text-white">{item.qty}</span>
                       <button
                         onClick={() => addToCart(item.product)}
-                        className="w-7 h-7 flex items-center justify-center border border-nvidia-green/50 text-nvidia-green hover:bg-nvidia-green hover:text-black font-bold text-sm transition-colors rounded-[2px]"
+                        className="w-7 h-7 flex items-center justify-center border border-hairline text-white/70 hover:bg-white/10 font-bold text-sm transition-colors rounded-[2px]"
                       >+</button>
                       <button 
                         onClick={() => removeFromCart(item.product.id)}
                         className="w-7 h-7 flex items-center justify-center text-white/30 hover:text-red-500 transition-colors ml-1"
                       >
-                        <Trash size={14} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
@@ -230,7 +239,7 @@ export default function KasirPage() {
             <div className="flex gap-3">
               <button onClick={() => setShowConfirm(false)} className="flex-1 py-3 border border-hairline text-white/50 hover:text-white tracking-tight font-bold text-xs uppercase transition-colors">BATAL</button>
               <button onClick={handleCheckout} className="flex-1 py-3 nvidia-button text-xs uppercase flex items-center justify-center gap-1.5">
-                <Check weight="bold" size={16} /> LUNAS
+                <Check size={16} /> LUNAS
               </button>
             </div>
           </div>

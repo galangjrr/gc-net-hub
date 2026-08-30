@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Sparkle, Bell } from "@phosphor-icons/react";
+import { Sparkles, Bell } from "lucide-react";
 
 export default function MemberPage() {
   return (
@@ -17,7 +17,7 @@ export default function MemberPage() {
           transition={{ type: "spring", stiffness: 150, damping: 15 }}
           className="w-20 h-20 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8"
         >
-          <Sparkle size={32} weight="duotone" className="text-cyan-400 animate-float" />
+          <Sparkles size={32} className="text-cyan-400 animate-float" />
         </motion.div>
 
         {/* Title */}
@@ -52,7 +52,7 @@ export default function MemberPage() {
             onClick={() => alert("Mock: Notifikasi akan dikirim saat fitur ini siap.")}
             className="glass-panel px-6 py-3 rounded-xl text-sm font-medium hover:bg-white/[0.08] active:scale-[0.97] transition-all inline-flex items-center gap-2"
           >
-            <Bell size={16} weight="duotone" className="text-cyan-400" />
+            <Bell size={16} className="text-cyan-400" />
             Notify Me
           </button>
         </motion.div>

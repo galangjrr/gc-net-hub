@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, Variants } from "motion/react";
-import { Monitor, ArrowRight, GameController, WarningCircle, CheckCircle, Crosshair, UploadSimple, CaretLeft, CaretRight, Sparkle, Clock, User, Package, Crown, Hamburger, CigaretteSlash, Money, Warning, Star, Check, X, HourglassMedium, Play } from "@phosphor-icons/react";
+import { Monitor, ArrowRight, Gamepad2, AlertCircle, CheckCircle2, Crosshair, Upload, ChevronLeft, ChevronRight, Sparkles, Clock, User, Package, Crown, UtensilsCrossed, Ban, Banknote, AlertTriangle, Star, Check, X, Hourglass, Play } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { DatabaseSchema, PC, Paket } from "@/lib/db";
@@ -518,15 +518,15 @@ export default function Home() {
 
             <div className="text-white/60 text-base md:text-lg leading-relaxed mb-8 tracking-tight max-w-[45ch] space-y-2">
               <div className="flex items-center gap-2">
-                <Check weight="bold" className="text-nvidia-green shrink-0" size={18} />
+                <Check className="text-nvidia-green shrink-0" size={18} />
                 <span>Kalo PC penuh, wajib booking buat antre.</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check weight="bold" className="text-nvidia-green shrink-0" size={18} />
+                <Check className="text-nvidia-green shrink-0" size={18} />
                 <span>Datang langsung ke lokasi tetap prioritas utama.</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check weight="bold" className="text-nvidia-green shrink-0" size={18} />
+                <Check className="text-nvidia-green shrink-0" size={18} />
                 <span>Admin Acc, pantau antrean, tunggu giliran!</span>
               </div>
             </div>
@@ -539,7 +539,7 @@ export default function Home() {
                 onClick={scrollToBooking}
                 className="nvidia-button gap-2 w-max"
               >
-                Booking Sekarang! <ArrowRight weight="bold" />
+                Booking Sekarang! <ArrowRight size={16} />
               </motion.a>
 
               <button
@@ -655,7 +655,7 @@ export default function Home() {
                     ? "bg-black/20 border-white/10 text-white/20 cursor-not-allowed"
                     : `bg-black/50 ${CAROUSEL_THEMES[activeCategory].border30} ${CAROUSEL_THEMES[activeCategory].text} hover:bg-white/10`}`}
               >
-                <CaretLeft size={24} weight="bold" />
+                <ChevronLeft size={24} />
               </button>
               <button
                 onClick={() => setActiveCategory(prev => Math.min(prev + 1, 2))}
@@ -665,7 +665,7 @@ export default function Home() {
                     ? "bg-black/20 border-white/10 text-white/20 cursor-not-allowed"
                     : `bg-black/50 ${CAROUSEL_THEMES[activeCategory].border30} ${CAROUSEL_THEMES[activeCategory].text} hover:bg-white/10`}`}
               >
-                <CaretRight size={24} weight="bold" />
+                <ChevronRight size={24} />
               </button>
 
               {/* Carousel Track */}
@@ -728,7 +728,7 @@ export default function Home() {
                                   <div key={p.id} className={`group relative flex justify-between items-center p-3 border border-white/5 bg-black/40 ${theme.hoverBgGlow} ${theme.hoverBorder} transition-all rounded-[2px] overflow-hidden`}>
                                     <div className="relative z-10 flex items-center gap-2">
                                       <span className={`${theme.text}/50 group-hover:${theme.text} transition-colors flex items-center`}>
-                                        {category.type === "spesial" ? <Star weight="fill" size={12} className="text-amber-400" /> : <CaretRight weight="bold" size={12} />}
+                                        {category.type === "spesial" ? <Star size={12} className="text-amber-400 fill-amber-400" /> : <ChevronRight size={12} />}
                                       </span>
                                       <div className="flex flex-col">
                                         <span className="tracking-tight text-white font-bold text-sm">
@@ -815,7 +815,7 @@ export default function Home() {
                         {isPending ? (
                           <Clock size={24} className="text-warning-bright animate-pulse" />
                         ) : (
-                          <CheckCircle size={24} className="text-nvidia-green" weight="fill" />
+                          <CheckCircle2 size={24} className="text-nvidia-green" />
                         )}
                         <span className="font-bold text-white text-base md:text-lg uppercase tracking-tight">{b.player_name}</span>
                       </div>
@@ -922,7 +922,7 @@ export default function Home() {
 
                             {/* Watermark Icon */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-                              <Monitor size={80} weight="duotone" className={isSelected ? "text-nvidia-green" : "text-white"} />
+                              <Monitor size={80} className={isSelected ? "text-nvidia-green" : "text-white"} />
                             </div>
 
                             <div className="flex justify-between w-full relative z-10 mb-2 items-start gap-2">
@@ -932,7 +932,6 @@ export default function Home() {
                               <div className="flex flex-col items-end gap-1.5 shrink-0">
                                 <Monitor
                                   size={18}
-                                  weight={isSelected ? "fill" : "regular"}
                                   className={`md:w-[20px] md:h-[20px] mb-1 ${isSelected ? "text-nvidia-green" : "text-white/30 group-hover:text-white/60"}`}
                                 />
                                 {pcBookings.length > 0 && (
@@ -961,11 +960,11 @@ export default function Home() {
                                     return (
                                       <div key={b.id} className="flex flex-col justify-center gap-1.5 w-full">
                                         <div className="flex items-start gap-2">
-                                          <User size={14} weight="fill" className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
+                                          <User size={14} className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
                                           <span className="text-[12px] uppercase font-bold text-white/90 line-clamp-2 leading-tight">{b.player_name || "Guest"}</span>
                                         </div>
                                         <div className="flex items-start gap-2">
-                                          <Package size={14} weight="fill" className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
+                                          <Package size={14} className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
                                           <span className="text-[12px] font-bold text-white/70 line-clamp-2 leading-tight">{pName}</span>
                                         </div>
                                       </div>
@@ -979,7 +978,7 @@ export default function Home() {
                                 </div>
                               ) : (
                                 <div className={`text-sm md:text-base h-full tracking-tight font-bold uppercase flex items-center justify-center gap-2 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/30'}`}>
-                                  {isSelected ? <><CheckCircle size={20} weight="fill" /> DIPILIH</> : "READY TO BOOK"}
+                                  {isSelected ? <><CheckCircle2 size={20} /> DIPILIH</> : "READY TO BOOK"}
                                 </div>
                               )}
                             </div>
@@ -1000,7 +999,7 @@ export default function Home() {
                     >
                       {selectedPc ? (
                         <span className="flex items-center gap-2">
-                          Lanjut ke Pembayaran <ArrowRight weight="bold" size={16} />
+                          Lanjut ke Pembayaran <ArrowRight size={16} />
                         </span>
                       ) : (
                         "Pilih PC Dulu Bro"
@@ -1027,7 +1026,7 @@ export default function Home() {
                       }}
                       className="w-10 h-10 flex items-center justify-center bg-surface-dark border border-hairline rounded-[2px] text-white hover:border-nvidia-green hover:text-nvidia-green transition-colors shrink-0"
                     >
-                      <CaretLeft size={20} weight="bold" />
+                      <ChevronLeft size={20} />
                     </button>
                     <div>
                       <h3 className="text-xl font-bold text-white uppercase tracking-tight tracking-tight">Step 2: Identitas & Pembayaran</h3>
@@ -1210,7 +1209,7 @@ export default function Home() {
                               Tampilkan QRIS (DANA)
                             </button>
                             <label className="nvidia-button w-full flex justify-center items-center gap-2 cursor-pointer text-xs">
-                              <UploadSimple weight="bold" size={16} />
+                              <Upload size={16} />
                               {ssFile ? "Bukti Ter-Upload!" : "Upload Bukti Transfer"}
                               <input
                                 type="file"
@@ -1336,35 +1335,35 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar tracking-tight text-sm text-white/70 space-y-4">
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} weight="fill" className="text-purple-400 shrink-0" /> Dateng On-Time Yuk!</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} className="text-purple-400 shrink-0" /> Dateng On-Time Yuk!</h3>
                     <p>Kalo kamu udah <em>booking</em>, usahain on-time ya! Kita kasih toleransi telat maksimal <strong>5 menit</strong>. Lewat dari itu, argometernya otomatis jalan atau PC-nya bakal kita oper ke <em>player</em> lain yang udah standby duluan. Hargain waktu sesama <em>gamers</em> yuk!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Crown size={20} weight="fill" className="text-purple-400 shrink-0" /> Prioritas Walk-in & Antrean</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Crown size={20} className="text-purple-400 shrink-0" /> Prioritas Walk-in & Antrean</h3>
                     <p>Booking web ini gunanya buat <strong>masuk ke dalam antrean</strong>. <em>Gamers</em> yang datang langsung (<em>walk-in</em>) ke warnet tetep dapet prioritas utama kalau ada PC kosong. Kalau kamu <em>booking</em> buat main setelah sesi orang lain, pastiin kamu udah <em>standby</em> di lokasi sebelum durasinya habis biar bisa langsung sambung main!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Hamburger size={20} weight="fill" className="text-purple-400 shrink-0" /> Urusan Makanan dan Minuman</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><UtensilsCrossed size={20} className="text-purple-400 shrink-0" /> Urusan Makanan dan Minuman</h3>
                     <p>Dilarang keras bawa <em>F&B</em> dari luar yang gampang tumpah, berminyak, apalagi berpotensi merusak <em>gear</em> warnet kita. Gak usah repot, <em>order</em> aja langsung di kantin GC Net! Variannya banyak, harga cincai, dan wadahnya dijamin aman buat nge-game.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><CigaretteSlash size={20} weight="fill" className="text-purple-400 shrink-0" /> Area Bebas Asap</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Ban size={20} className="text-purple-400 shrink-0" /> Area Bebas Asap</h3>
                     <p>Seluruh ruangan GC Net itu 100% bebas asap ya, <em>guys</em>. Buat kamu yang mau sebat atau nge-<em>vape</em>, silakan <em>melipir</em> ke area luar warnet. Biar tetep adem dan wangi buat semua <em>user</em>.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Money size={20} weight="fill" className="text-purple-400 shrink-0" /> No Refund Ya</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Banknote size={20} className="text-purple-400 shrink-0" /> No Refund Ya</h3>
                     <p>Buat paket <em>booking</em> atau waktu <em>custom</em> yang udah sukses di-<em>checkout</em> dan aktif, otomatis <strong>gak bisa di-refund</strong> atau dibatalin. Jadi pastiin lagi semuanya udah pas sebelum bayar!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Warning size={20} weight="fill" className="text-purple-400 shrink-0" /> Anti-Cheat & Fair Play</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20} className="text-purple-400 shrink-0" /> Anti-Cheat & Fair Play</h3>
                     <p>Main bersih itu keren! Kalo sampai ketahuan pake <em>cheat</em>, aplikasi ilegal, atau <em>browsing</em> yang aneh-aneh, sanksinya auto <strong>diomelin</strong> sama abang-abangan GC Net. <em>Play fair, play safe!</em></p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Sparkle size={20} weight="fill" className="text-purple-400 shrink-0" /> Jaga Kebersihan Bareng</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Sparkles size={20} className="text-purple-400 shrink-0" /> Jaga Kebersihan Bareng</h3>
                     <p>Biar mainnya makin <em>pewe</em>, yuk sama-sama jaga kebersihan area dan <em>gear</em> yang kamu pake. Jangan lupa buang sisa sampahmu pada tempatnya ya!</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Monitor size={20} weight="fill" className="text-purple-400 shrink-0" /> Request Install Game?</h3>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Monitor size={20} className="text-purple-400 shrink-0" /> Request Install Game?</h3>
                     <p>Jangan sembarangan nge-<em>install</em> aplikasi pihak ketiga yang berisiko bikin sistem PC kita <em>ngambek</em>. Kalo butuh <em>request game</em> atau <em>software</em> tertentu, <em>bilang</em> aja sama Operator kita yang lagi <em>jaga</em>!</p>
                   </div>
                 </div>
@@ -1399,7 +1398,7 @@ export default function Home() {
               className="bg-surface-dark border border-hairline p-6 max-w-sm w-full rounded-[2px]"
             >
               <div className="flex items-center gap-3 mb-4">
-                <WarningCircle size={32} weight="fill" className="text-warning shrink-0" />
+                <AlertCircle size={32} className="text-warning shrink-0" />
                 <h3 className="text-warning font-bold uppercase tracking-widest tracking-tight text-sm">PC SEDANG DALAM ANTREAN</h3>
               </div>
               <p className="text-white/70 tracking-tight text-xs mb-6 leading-relaxed">
@@ -1443,7 +1442,7 @@ export default function Home() {
               className="bg-surface-dark border border-hairline p-6 max-w-sm w-full rounded-[2px]"
             >
               <div className="flex items-center gap-3 mb-4">
-                <CheckCircle size={32} weight="fill" className="text-nvidia-green shrink-0" />
+                <CheckCircle2 size={32} className="text-nvidia-green shrink-0" />
                 <h3 className="text-nvidia-green font-bold uppercase tracking-widest tracking-tight text-sm">BOOKING BERHASIL</h3>
               </div>
               <p className="text-white/70 tracking-tight text-xs mb-6 leading-relaxed">

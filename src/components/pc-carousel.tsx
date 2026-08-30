@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { CaretLeft, CaretRight, X } from "@phosphor-icons/react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { PC } from "@/lib/db";
 
 interface PCCarouselProps {
@@ -119,7 +119,7 @@ export default function PCCarousel({ pcs }: PCCarouselProps) {
             ? "bg-black/20 border-white/10 text-white/20 cursor-not-allowed" 
             : `bg-black/50 ${activeTheme.border50} ${activeTheme.text} ${activeTheme.hoverBg} hover:text-black`}`}
       >
-        <CaretLeft size={24} weight="bold" />
+        <ChevronLeft size={24} />
       </button>
       <button 
         onClick={handleNext}
@@ -129,7 +129,7 @@ export default function PCCarousel({ pcs }: PCCarouselProps) {
             ? "bg-black/20 border-white/10 text-white/20 cursor-not-allowed" 
             : `bg-black/50 ${activeTheme.border50} ${activeTheme.text} ${activeTheme.hoverBg} hover:text-black`}`}
       >
-        <CaretRight size={24} weight="bold" />
+        <ChevronRight size={24} />
       </button>
 
       {/* Carousel Track */}

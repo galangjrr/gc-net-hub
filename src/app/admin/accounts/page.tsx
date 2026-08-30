@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Key, ShieldCheck, Plus, Trash, PencilSimple, CheckCircle, XCircle, ArrowLeft, Lock } from "@phosphor-icons/react";
+import { User, Key, ShieldCheck, Plus, Trash2, Pencil, CheckCircle2, XCircle, ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import PinGuard from "@/components/PinGuard";
@@ -182,7 +182,7 @@ export default function AccountsManagementPage() {
               }}
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-nvidia-green/10 border border-nvidia-green/50 text-nvidia-green hover:bg-nvidia-green hover:text-black rounded-lg transition font-bold text-xs uppercase tracking-wider"
             >
-              <Plus size={18} weight="bold" />
+              <Plus size={18} />
               Tambah Akun Staff
             </button>
           </div>
@@ -241,7 +241,7 @@ export default function AccountsManagementPage() {
                       onClick={() => openEdit(acc)}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-surface-dark hover:bg-white/10 text-white text-xs font-semibold rounded transition"
                     >
-                      <PencilSimple size={14} />
+                      <Pencil size={14} />
                       Ubah / Password
                     </button>
                     {acc.username.toLowerCase() !== "gcnet" && (
@@ -250,7 +250,7 @@ export default function AccountsManagementPage() {
                         className="p-2 bg-error/10 hover:bg-error text-error hover:text-white rounded transition"
                         title="Hapus Akun"
                       >
-                        <Trash size={16} />
+                        <Trash2 size={16} />
                       </button>
                     )}
                   </div>
@@ -368,7 +368,7 @@ export default function AccountsManagementPage() {
                   className="bg-surface border border-hairline p-6 rounded-xl max-w-md w-full space-y-4"
                 >
                   <h2 className="text-lg font-bold uppercase tracking-tight text-white flex items-center gap-2">
-                    <PencilSimple size={20} className="text-cyan-400" />
+                    <Pencil size={20} className="text-cyan-400" />
                     Ubah Akun @{selectedAcc.username}
                   </h2>
 

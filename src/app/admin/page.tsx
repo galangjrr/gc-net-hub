@@ -5,16 +5,16 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Monitor,
   ShoppingCart,
-  ChartLine,
-  ClipboardText,
+  TrendingUp,
+  ClipboardList,
   Circle,
   Plus,
   Minus,
-  Trash,
-  MagnifyingGlass,
-  Sparkle,
-  CurrencyDollar,
-} from "@phosphor-icons/react";
+  Trash2,
+  Search,
+  Sparkles,
+  DollarSign,
+} from "lucide-react";
 import { useDebounce } from "use-debounce";
 
 /* ── Mock Data ── */
@@ -38,10 +38,10 @@ const MOCK_ITEMS = [
 ];
 
 const MOCK_DAILY = {
-  totalWarnet: 375000,
-  totalFnb: 128000,
-  totalTrx: 18,
-  pcUsageHours: 42,
+  totalWarnet: 450000,
+  totalFnb: 230000,
+  totalTrx: 48,
+  pcUsageHours: 64,
 };
 
 type CartItem = { id: number; name: string; price: number; qty: number };
@@ -49,8 +49,8 @@ type CartItem = { id: number; name: string; price: number; qty: number };
 const TABS = [
   { key: "warnet", label: "Warnet", icon: Monitor },
   { key: "pos", label: "POS F&B", icon: ShoppingCart },
-  { key: "analytics", label: "AI Analytics", icon: ChartLine },
-  { key: "report", label: "Laporan", icon: ClipboardText },
+  { key: "analytics", label: "AI Analytics", icon: TrendingUp },
+  { key: "report", label: "Laporan", icon: ClipboardList },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -108,7 +108,7 @@ export default function AdminPage() {
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">
-                  <Icon size={14} weight={isActive ? "fill" : "regular"} />
+                  <Icon size={14} />
                   {tab.label}
                 </span>
               </button>
@@ -157,8 +157,7 @@ export default function AdminPage() {
                       <span className="tracking-tight text-xs text-zinc-400">{pc.name}</span>
                       <Circle
                         size={8}
-                        weight="fill"
-                        className={isOccupied ? "text-amber-500" : "text-cyan-500 animate-pulse-glow"}
+                        className={isOccupied ? "text-amber-500 fill-amber-500" : "text-cyan-500 fill-cyan-500 animate-pulse-glow"}
                       />
                     </div>
                     {isOccupied && pc.player && (
@@ -195,7 +194,7 @@ export default function AdminPage() {
                 <h2 className="text-lg font-medium mb-3">Menu F&B</h2>
                 {/* Search */}
                 <div className="relative">
-                  <MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
                   <input
                     type="text"
                     value={searchText}
@@ -263,7 +262,7 @@ export default function AdminPage() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded-md bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.08] transition-colors">
-                          {item.qty === 1 ? <Trash size={10} className="text-red-400" /> : <Minus size={10} className="text-zinc-400" />}
+                          {item.qty === 1 ? <Trash2 size={10} className="text-red-400" /> : <Minus size={10} className="text-zinc-400" />}
                         </button>
                         <span className="text-xs tracking-tight w-6 text-center">{item.qty}</span>
                         <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded-md bg-white/[0.04] flex items-center justify-center hover:bg-white/[0.08] transition-colors">
@@ -288,7 +287,7 @@ export default function AdminPage() {
                     }}
                     className="w-full bg-cyan-500 text-zinc-950 font-semibold rounded-xl py-3 text-sm hover:bg-cyan-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                   >
-                    <CurrencyDollar weight="bold" size={16} />
+                    <DollarSign size={16} />
                     Bayar
                   </button>
                 </div>
@@ -308,7 +307,7 @@ export default function AdminPage() {
             className="glass-panel p-6 md:p-8 rounded-2xl min-h-[400px] flex flex-col items-center justify-center text-center"
           >
             <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-6">
-              <Sparkle size={28} weight="duotone" className="text-cyan-400 animate-float" />
+              <Sparkles size={28} className="text-cyan-400 animate-float" />
             </div>
             <h2 className="text-lg font-medium mb-2">Gemini AI Analytics</h2>
             <p className="text-sm text-zinc-500 max-w-sm">

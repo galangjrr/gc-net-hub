@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LockKey, ShieldCheck, CheckCircle, ArrowRight, Eye, EyeSlash } from "@phosphor-icons/react";
+import { Lock, ShieldCheck, Check, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 
@@ -68,7 +68,7 @@ export default function LoginPage() {
       >
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-xl bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center mx-auto text-nvidia-green">
-            <LockKey size={24} weight="duotone" />
+            <Lock size={24} />
           </div>
           <h1 className="text-xl font-bold uppercase tracking-tight text-white">Login Admin & Kasir</h1>
           <p className="text-xs text-white/50 uppercase tracking-wider">
@@ -121,7 +121,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition"
               >
-                {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function LoginPage() {
                   : "border-hairline bg-surface-dark group-hover:border-nvidia-green"
               }`}
             >
-              {rememberMe && <CheckCircle size={14} weight="bold" />}
+              {rememberMe && <Check size={14} />}
             </div>
             <input
               type="checkbox"
@@ -157,7 +157,7 @@ export default function LoginPage() {
             ) : (
               <>
                 <span>Masuk Sekarang</span>
-                <ArrowRight size={16} weight="bold" />
+                <ArrowRight size={16} />
               </>
             )}
           </button>

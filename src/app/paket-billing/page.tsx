@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash } from "@phosphor-icons/react";
+import { Plus, Trash2 } from "lucide-react";
 import type { DatabaseSchema, Paket } from "@/lib/db";
 
 export default function PaketBillingPage() {
@@ -61,7 +61,7 @@ export default function PaketBillingPage() {
             onChange={(e) => setNewPaket({...newPaket, price: e.target.value})}
           />
           <button onClick={addPaket} className="nvidia-button shrink-0 flex items-center gap-2">
-            <Plus weight="bold" /> Tambah Paket
+            <Plus size={16} /> Tambah Paket
           </button>
         </div>
 
@@ -81,7 +81,7 @@ export default function PaketBillingPage() {
                   <td className="p-4 text-nvidia-green font-bold">Rp {p.price.toLocaleString("id-ID")}</td>
                   <td className="p-4 text-right">
                     <button onClick={() => deletePaket(p.id)} className="text-white/30 hover:text-error transition-colors">
-                      <Trash size={20} />
+                      <Trash2 size={20} />
                     </button>
                   </td>
                 </tr>

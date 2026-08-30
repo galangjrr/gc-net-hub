@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChartLineUp, Money, Users, Coins, ArrowClockwise, Receipt, Desktop, ShoppingCart } from "@phosphor-icons/react";
+import { TrendingUp, Banknote, Users, Coins, RotateCw, Receipt, Monitor, ShoppingCart } from "lucide-react";
 import type { DatabaseSchema, LogEntry, Booking, Paket } from "@/lib/db";
 import PinGuard from "@/components/PinGuard";
 
@@ -49,54 +49,57 @@ export default function RekapKeuanganPage() {
         alert("Gagal menemukan angka total di PDF.");
       }
     } catch (err) {
-      alert("Error membaca PDF.");
+      alert("Terjadi kesalahan saat memproses PDF.");
     } finally {
       setIsUploading(false);
       if (e.target) e.target.value = "";
     }
   };
 
-  if (!db) return <div className="p-8 tracking-tight text-white/50 text-xs">MEMUAT DATA KEUANGAN...</div>;
+  if (!db) return <div className="p-8 tracking-tight text-white/50 uppercase text-xs animate-pulse">Memuat data rekap...</div>;
 
-  // Date helper for today (local time)
-  const isToday = (dateStr: string) => {
-    if (!dateStr) return false;
-    const d = new Date(dateStr);
-    const now = new Date();
-    return (
-      d.getDate() === now.getDate() &&
-      d.getMonth() === now.getMonth() &&
-      d.getFullYear() === now.getFullYear()
-    );
-  };
+  const todayStr = new Date().toDateString();
 
-  // Today's completed transactions
-  const todaysLogs = (db.logs || []).filter(l => isToday(l.end_time) && l.status === 'Selesai');
-  
-  // Breakdown Revenues
-  const fnbRevenue = todaysLogs
-    .filter(l => l.pc_name === "KASIR")
-    .reduce((sum, log) => sum + (Number(log.price) || 0), 0);
-
-  const bookingRevenue = todaysLogs
-    .filter(l => l.pc_name !== "KASIR")
-    .reduce((sum, log) => sum + (Number(log.price) || 0), 0);
-
-  const totalRevenueToday = fnbRevenue + bookingRevenue + pdfRevenue;
-  const totalTransactions = todaysLogs.length;
-
-  // Active Pooling: Money currently held in active/pending bookings
-  const activeBookings = (db.bookings || []).filter(b => b.status === 'active' || b.status === 'pending');
-  
-  const getBookingPrice = (b: Booking): number => {
+  // Helper to extract booking price reliably
+  const getBookingPrice = (b: Booking) => {
     const pkg = db.pakets?.find(p => p.id === b.paket_id);
     if (pkg && pkg.price) return pkg.price;
-    if (b.paket_id?.startsWith("custom-")) {
-      return parseInt(b.paket_id.replace("custom-", "")) || 0;
+    if (b.paket_id?.startsWith('custom-')) {
+      return parseInt(b.paket_id.replace('custom-', '')) || 0;
     }
     return 0;
   };
 
+  // 1. Selesai Booking PC (From logs status 'Selesai' today, excluding KASIR)
+  const completedBookingLogsToday = (db.logs || []).filter(l => 
+    l.status === 'Selesai' && 
+    l.pc_name !== 'KASIR' &&
+    new Date(l.end_time).toDateString() === todayStr
+  );
+  const bookingRevenue = completedBookingLogsToday.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+
+  // 2. Selesai Kasir F&B (From logs pc_name === 'KASIR' and status === 'Selesai' today)
+  const completedFnbLogsToday = (db.logs || []).filter(l =>
+    l.pc_name === 'KASIR' &&
+    l.status === 'Selesai' &&
+    new Date(l.end_time).toDateString() === todayStr
+  );
+  const fnbRevenue = completedFnbLogsToday.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+
+  // All completed transactions today
+  const todaysLogs = (db.logs || []).filter(l =>
+    l.status === 'Selesai' &&
+    new Date(l.end_time).toDateString() === todayStr
+  );
+
+  // Total Revenue Today (F&B + Bookings + PDF)
+  const totalRevenueToday = fnbRevenue + bookingRevenue + pdfRevenue;
+
+  // Total Completed Transactions Today
+  const totalTransactions = completedBookingLogsToday.length + completedFnbLogsToday.length;
+
+  // Active / Ongoing Booking Pooling (Real money collected from QRIS/Cash held in current queue/active sessions)
+  const activeBookings = (db.bookings || []).filter(b => b.status === 'active' || b.status === 'pending');
   const activePooling = activeBookings.reduce((sum, b) => sum + getBookingPrice(b), 0);
 
   return (
@@ -108,7 +111,7 @@ export default function RekapKeuanganPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-hairline">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green">
-                <ChartLineUp size={32} weight="fill" />
+                <TrendingUp size={32} />
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tight">Rekap & Pooling</h1>
@@ -122,7 +125,7 @@ export default function RekapKeuanganPage() {
               onClick={loadData}
               className="flex items-center gap-2 px-3 py-2 bg-surface hover:bg-white/10 border border-hairline rounded text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white transition w-fit"
             >
-              <ArrowClockwise size={16} />
+              <RotateCw size={16} />
               Segarkan Data
             </button>
           </div>
@@ -133,7 +136,7 @@ export default function RekapKeuanganPage() {
             {/* Total Revenue Card */}
             <div className="nvidia-card p-6 border-nvidia-green/40 relative overflow-hidden bg-surface">
               <div className="absolute -right-4 -top-4 opacity-10">
-                <Money size={120} weight="fill" />
+                <Banknote size={120} />
               </div>
               <div className="nvidia-corner"></div>
               <h3 className="text-white/50 font-bold tracking-wider text-xs uppercase mb-2">
@@ -148,7 +151,7 @@ export default function RekapKeuanganPage() {
                   <span className="text-white font-mono font-bold">Rp {fnbRevenue.toLocaleString("id-ID")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="flex items-center gap-1.5"><Desktop size={13} className="text-nvidia-green" /> Booking PC Selesai:</span>
+                  <span className="flex items-center gap-1.5"><Monitor size={13} className="text-nvidia-green" /> Booking PC Selesai:</span>
                   <span className="text-white font-mono font-bold">Rp {bookingRevenue.toLocaleString("id-ID")}</span>
                 </div>
                 {pdfRevenue > 0 && (
@@ -163,7 +166,7 @@ export default function RekapKeuanganPage() {
             {/* Total Transactions Card */}
             <div className="nvidia-card p-6 relative overflow-hidden bg-surface">
               <div className="absolute -right-4 -top-4 opacity-5">
-                <Users size={120} weight="fill" />
+                <Users size={120} />
               </div>
               <div className="nvidia-corner"></div>
               <h3 className="text-white/50 font-bold tracking-wider text-xs uppercase mb-2">
@@ -180,7 +183,7 @@ export default function RekapKeuanganPage() {
             {/* Money Pooling Card */}
             <div className="nvidia-card p-6 bg-nvidia-green/5 border-nvidia-green relative overflow-hidden">
               <div className="absolute -right-4 -top-4 opacity-10 text-nvidia-green">
-                <Coins size={120} weight="fill" />
+                <Coins size={120} />
               </div>
               <div className="nvidia-corner"></div>
               <h3 className="text-white/50 font-bold tracking-wider text-xs uppercase mb-2">
@@ -238,7 +241,7 @@ export default function RekapKeuanganPage() {
               disabled={isUploading}
             />
             <div className="pointer-events-none">
-              <ChartLineUp size={32} className={`mx-auto mb-3 ${isUploading ? 'text-nvidia-green animate-bounce' : 'text-white/20'}`} />
+              <TrendingUp size={32} className={`mx-auto mb-3 ${isUploading ? 'text-nvidia-green animate-bounce' : 'text-white/20'}`} />
               <h3 className="tracking-tight font-bold text-white uppercase text-sm">
                 {isUploading ? "Membaca Laporan PDF..." : "Upload PDF Laporan Billing PC"}
               </h3>

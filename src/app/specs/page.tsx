@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Monitor, Cpu, Memory, HardDrive, GameController, Desktop } from "@phosphor-icons/react";
+import { Monitor, Cpu, HardDrive, Gamepad2 } from "lucide-react";
 
 import { useState, useEffect } from "react";
 import type { DatabaseSchema } from "@/lib/db";
@@ -39,7 +39,7 @@ export default function SpecsPage() {
             {/* PC Header */}
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                <Monitor size={20} weight="duotone" className="text-cyan-400" />
+                <Monitor size={20} className="text-cyan-400" />
               </div>
               <div>
                 <div className="tracking-tight text-sm font-medium">{pc.name}</div>
@@ -58,7 +58,7 @@ export default function SpecsPage() {
               </div>
 
               <div className="flex items-start gap-2">
-                <Desktop size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Monitor size={14} className="text-zinc-600 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-zinc-600 uppercase tracking-wider">GPU</div>
                   <div className="text-xs tracking-tight font-medium">{s.gpu}</div>
@@ -74,7 +74,7 @@ export default function SpecsPage() {
               </div>
               
               <div className="flex items-start gap-2">
-                <Memory size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Cpu size={14} className="text-zinc-600 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-zinc-600 uppercase tracking-wider">RAM</div>
                   <div className="text-xs tracking-tight font-medium">{s.ram || "-"}</div>
@@ -90,7 +90,7 @@ export default function SpecsPage() {
               </div>
 
               <div className="flex items-start gap-2">
-                <GameController size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Gamepad2 size={14} className="text-zinc-600 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Keyboard</div>
                   <div className="text-xs tracking-tight font-medium">{s.keyboard || "-"}</div>
@@ -98,7 +98,7 @@ export default function SpecsPage() {
               </div>
 
               <div className="flex items-start gap-2">
-                <GameController size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Gamepad2 size={14} className="text-zinc-600 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Mouse</div>
                   <div className="text-xs tracking-tight font-medium">{s.mouse || "-"}</div>
@@ -106,7 +106,7 @@ export default function SpecsPage() {
               </div>
               
               <div className="flex items-start gap-2 col-span-2">
-                <GameController size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Gamepad2 size={14} className="text-zinc-600 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Headset</div>
                   <div className="text-xs tracking-tight font-medium">{s.headset || "-"}</div>
@@ -117,7 +117,7 @@ export default function SpecsPage() {
             {/* Games Tags */}
             <div className="mt-4 pt-4 border-t border-white/[0.05]">
               <div className="flex items-center gap-1.5 mb-2">
-                <GameController size={14} className="text-cyan-500" />
+                <Gamepad2 size={14} className="text-cyan-500" />
                 <span className="text-[10px] text-zinc-500 tracking-tight">INSTALLED GAMES</span>
               </div>
               <div className="flex flex-wrap gap-1.5">

@@ -3,19 +3,19 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, Database, Desktop, ChartLineUp, Monitor, Package, Sliders, BookOpenText, List, X, SignOut, LockKey, ShieldCheck } from "@phosphor-icons/react";
+import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, BookOpen, Menu, X, LogOut, Lock, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const NAV_ITEMS = [
   { href: "/data-booking", label: "ANTREAN", icon: Database, admin: true },
   { href: "/kasir", label: "KASIR", icon: ShoppingCart, admin: true },
   { href: "/data-pc", label: "DATA PC & SPEK", icon: Monitor, admin: true },
-  { href: "/log", label: "LOG AKTIVITAS", icon: BookOpenText, admin: true },
-  { href: "/rekap", label: "REKAP & POOLING", icon: ChartLineUp, admin: true },
+  { href: "/log", label: "LOG AKTIVITAS", icon: BookOpen, admin: true },
+  { href: "/rekap", label: "REKAP & POOLING", icon: TrendingUp, admin: true },
   { href: "/paket-billing", label: "PAKET BOOKING", icon: Sliders, admin: true },
   { href: "/stok-kasir", label: "STOK KASIR", icon: Package, admin: true },
   { href: "/admin/accounts", label: "AKUN STAFF", icon: ShieldCheck, admin: true },
-  { href: "/", label: "PORTAL DEPAN", icon: Desktop, admin: false },
+  { href: "/", label: "PORTAL DEPAN", icon: Monitor, admin: false },
 ];
 
 export default function Sidebar() {
@@ -73,7 +73,7 @@ export default function Sidebar() {
               href="/login"
               className="px-3 py-1 bg-black text-nvidia-green text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1"
             >
-              <LockKey size={12} weight="bold" />
+              <Lock size={12} />
               LOGIN
             </Link>
           )}
@@ -81,7 +81,7 @@ export default function Sidebar() {
             onClick={() => setMobileOpen(!mobileOpen)}
             className="text-black hover:text-black/70 z-10 p-1.5"
           >
-            {mobileOpen ? <X size={24} weight="bold" /> : <List size={24} weight="bold" />}
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function Sidebar() {
                       : "text-white/50 hover:text-white hover:bg-white/[0.04]"
                   }`}
                 >
-                  <item.icon size={18} weight={isActive ? "fill" : "regular"} />
+                  <item.icon size={18} />
                   {item.label}
                 </Link>
               );
@@ -156,7 +156,7 @@ export default function Sidebar() {
                           : "text-white/50 hover:text-white hover:bg-white/[0.04]"
                       }`}
                     >
-                      <item.icon size={18} weight={isActive ? "fill" : "regular"} />
+                      <item.icon size={18} />
                       {item.label}
                     </Link>
                   );
@@ -171,7 +171,7 @@ export default function Sidebar() {
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase text-error hover:bg-error/10 transition-all"
                     >
-                      <SignOut size={18} />
+                      <LogOut size={18} />
                       LOGOUT ADMIN
                     </button>
                   ) : (
@@ -180,7 +180,7 @@ export default function Sidebar() {
                       onClick={() => setMobileOpen(false)}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase text-nvidia-green hover:bg-nvidia-green/10 transition-all"
                     >
-                      <LockKey size={18} />
+                      <Lock size={18} />
                       LOGIN ADMIN
                     </Link>
                   )}

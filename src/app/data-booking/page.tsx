@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Database, CheckCircle, Clock, XCircle, FileImage, Plus, MagnifyingGlass, Desktop, Sparkle, ArrowClockwise, PencilSimple, Check, Trash, HourglassMedium, User, Play, X } from "@phosphor-icons/react";
+import { Database, CheckCircle2, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
 import PinGuard from "@/components/PinGuard";
@@ -234,7 +234,7 @@ export default function DataBookingPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green">
-                <Database size={32} weight="duotone" />
+                <Database size={32} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export default function DataBookingPage() {
                 className="p-2.5 bg-surface hover:bg-white/10 border border-hairline rounded-lg text-white/70 hover:text-white transition"
                 title="Segarkan Data"
               >
-                <ArrowClockwise size={18} />
+                <RotateCw size={18} />
               </button>
               <button
                 onClick={() => {
@@ -268,7 +268,7 @@ export default function DataBookingPage() {
                 }}
                 className="flex items-center gap-2 px-5 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-[0_0_20px_rgba(118,185,0,0.25)]"
               >
-                <Plus size={16} weight="bold" />
+                <Plus size={16} />
                 Tambah Booking Manual
               </button>
             </div>
@@ -322,7 +322,7 @@ export default function DataBookingPage() {
                 placeholder="Cari pemain atau PC..."
                 className="w-full bg-surface border border-hairline p-2.5 pl-9 rounded-lg text-xs text-white placeholder:text-white/40 focus:border-nvidia-green outline-none"
               />
-              <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
             </div>
           </div>
 
@@ -356,7 +356,7 @@ export default function DataBookingPage() {
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                            <CheckCircle size={12} weight="fill" />
+                            <CheckCircle2 size={12} />
                             Antrean Terkonfirmasi
                           </span>
                         )}
@@ -374,12 +374,12 @@ export default function DataBookingPage() {
                       <td className="p-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-nvidia-green text-sm flex items-center gap-1.5">
-                            <Desktop size={14} />
+                            <Monitor size={14} />
                             {pc?.name || b.pc_id}
                           </span>
                           {pc?.expected_empty_time ? (
                             <span className="text-[11px] font-mono text-amber-400 flex items-center gap-1 mt-0.5">
-                              <HourglassMedium size={12} />
+                              <Hourglass size={12} />
                               Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           ) : (
@@ -409,14 +409,14 @@ export default function DataBookingPage() {
                                 onClick={() => showBukti(b.ss_bukti)}
                                 className="px-3 py-1.5 bg-surface-dark hover:bg-white/10 border border-hairline text-white/70 hover:text-white rounded text-[11px] font-bold uppercase transition flex items-center gap-1"
                               >
-                                <FileImage size={14} /> Cek Bukti
+                                <ImageIcon size={14} /> Cek Bukti
                               </button>
                               <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'approve')}
                                 className="px-4 py-1.5 bg-nvidia-green hover:bg-[#88d600] text-black font-bold text-[11px] uppercase rounded transition shadow-[0_0_10px_rgba(118,185,0,0.3)] flex items-center gap-1.5"
                               >
-                                <Check weight="bold" size={13} /> Konfirmasi
+                                <Check size={13} /> Konfirmasi
                               </button>
                               <button
                                 disabled={loadingId === b.id}
@@ -475,7 +475,7 @@ export default function DataBookingPage() {
                                 className="p-2 bg-surface-dark hover:bg-white/10 text-cyan-400 border border-cyan-500/30 rounded transition"
                                 title="Edit Booking"
                               >
-                                <PencilSimple size={14} />
+                                <Pencil size={14} />
                               </button>
 
                               <button
@@ -483,7 +483,7 @@ export default function DataBookingPage() {
                                 onClick={() => handleAction(b.id, 'complete')}
                                 className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded text-[11px] uppercase transition flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                               >
-                                <Play weight="fill" size={12} /> Mulai Main ke PC
+                                <Play size={12} /> Mulai Main ke PC
                               </button>
                             </>
                           )}
@@ -539,7 +539,7 @@ export default function DataBookingPage() {
                       </span>
                     ) : (
                       <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle size={12} weight="fill" /> Terkonfirmasi
+                        <CheckCircle2 size={12} /> Terkonfirmasi
                       </span>
                     )}
                   </div>
@@ -549,11 +549,11 @@ export default function DataBookingPage() {
                     <div>
                       <span className="text-[10px] text-white/40 uppercase block">Target PC</span>
                       <span className="text-nvidia-green font-bold text-sm flex items-center gap-1">
-                        <Desktop size={14} /> {pc?.name || b.pc_id}
+                        <Monitor size={14} /> {pc?.name || b.pc_id}
                       </span>
                       {pc?.expected_empty_time && (
                         <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 mt-0.5">
-                          <HourglassMedium size={12} />
+                          <Hourglass size={12} />
                           Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       )}
@@ -574,14 +574,14 @@ export default function DataBookingPage() {
                         onClick={() => showBukti(b.ss_bukti)}
                         className="flex-1 py-2.5 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
                       >
-                        <FileImage size={14} /> Bukti
+                        <ImageIcon size={14} /> Bukti
                       </button>
                       <button
                         disabled={loadingId === b.id}
                         onClick={() => handleAction(b.id, 'approve')}
                         className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded-lg text-xs uppercase shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center justify-center gap-1.5"
                       >
-                        <Check weight="bold" size={14} /> Konfirmasi
+                        <Check size={14} /> Konfirmasi
                       </button>
                       <button
                         disabled={loadingId === b.id}
@@ -641,7 +641,7 @@ export default function DataBookingPage() {
                           onClick={() => handleAction(b.id, 'complete')}
                           className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                         >
-                          <Play weight="fill" size={12} /> Mulai Main
+                          <Play size={12} /> Mulai Main
                         </button>
                       </div>
                     </div>
@@ -812,7 +812,7 @@ export default function DataBookingPage() {
                   onClick={() => setBuktiImage(null)}
                   className="self-end px-3 py-1.5 bg-surface border border-hairline text-white hover:text-error text-xs font-bold uppercase rounded flex items-center gap-1.5 transition"
                 >
-                  <X size={14} weight="bold" /> Tutup
+                  <X size={14} /> Tutup
                 </button>
                 <img
                   src={buktiImage}
