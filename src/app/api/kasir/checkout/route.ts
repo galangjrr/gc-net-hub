@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(req: Request) {
   if (!isAdminRequest(req)) {
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     
     // Check stock first
     for (const item of cart) {
-      const { data: inv } = await supabase.from('inventory').select('*').eq('id', item.product.id).single();
+      const { data: inv } = await supabaseAdmin.from('inventory').select('*').eq('id', item.product.id).single();
       if (!inv || inv.stock < item.qty) {
         return NextResponse.json({ error: `Stok ${item.product.name} tidak cukup (sisa: ${inv?.stock || 0})` }, { status: 400 });
       }
@@ -19,9 +19,9 @@ export async function POST(req: Request) {
 
     // Deduct stock
     for (const item of cart) {
-      const { data: inv } = await supabase.from('inventory').select('stock').eq('id', item.product.id).single();
+      const { data: inv } = await supabaseAdmin.from('inventory').select('stock').eq('id', item.product.id).single();
       if (inv) {
-        await supabase.from('inventory').update({ stock: inv.stock - item.qty }).eq('id', item.product.id);
+        await supabaseAdmin.from('inventory').update({ stock: inv.stock - item.qty }).eq('id', item.product.id);
       }
     }
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       status: 'Selesai'
     }));
 
-    await supabase.from('logs').insert(logEntries);
+    await supabaseAdmin.from('logs').insert(logEntries);
 
     return NextResponse.json({ success: true, total });
   } catch (error) {
