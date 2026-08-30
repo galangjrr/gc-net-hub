@@ -999,7 +999,7 @@ export default function Home() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="w-full max-w-2xl mx-auto flex-1 nvidia-card p-8 flex flex-col"
+                  className="w-full max-w-2xl mx-auto flex-1 nvidia-card p-4 sm:p-8 flex flex-col"
                 >
                   <div className="nvidia-corner"></div>
 

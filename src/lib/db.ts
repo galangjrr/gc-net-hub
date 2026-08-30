@@ -39,7 +39,7 @@ export type InventoryItem = {
   name: string;
   price: number;
   stock: number;
-  category: 'food' | 'drink' | 'other';
+  category: 'food' | 'drink' | 'other' | 'staff_account';
 };
 
 export type Booking = {
@@ -100,7 +100,7 @@ export async function getDB(): Promise<DatabaseSchema> {
     { data: logs }
   ] = await Promise.all([
     supabaseAdmin.from('settings').select('*').limit(1).single(),
-    supabaseAdmin.from('inventory').select('*'),
+    supabaseAdmin.from('inventory').select('*').neq('category', 'staff_account'),
     supabaseAdmin.from('pcs').select('*'),
     supabaseAdmin.from('pakets').select('*'),
     supabaseAdmin.from('bookings').select('*'),

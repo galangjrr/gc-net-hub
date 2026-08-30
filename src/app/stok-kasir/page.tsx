@@ -105,7 +105,7 @@ export default function StokKasirPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline bg-surface-dark">
-              {db.inventory?.map((inv: InventoryItem) => (
+              {db.inventory?.filter(i => i.category !== 'staff_account').map((inv: InventoryItem) => (
                 <tr key={inv.id} className="hover:bg-white/[0.02]">
                   <td className="p-4 font-bold text-white">{inv.name}</td>
                   <td className="p-4 text-white/50 uppercase text-[10px]">{inv.category}</td>
@@ -139,7 +139,7 @@ export default function StokKasirPage() {
 
         {/* Mobile View */}
         <div className="md:hidden flex flex-col gap-3">
-          {db.inventory?.map((inv: InventoryItem) => (
+          {db.inventory?.filter(i => i.category !== 'staff_account').map((inv: InventoryItem) => (
             <div key={inv.id} className="bg-surface-dark border border-hairline p-4 rounded-[2px] flex items-center justify-between">
               <div>
                 <h4 className="font-bold text-white text-sm uppercase">{inv.name}</h4>

@@ -243,7 +243,7 @@ export default function DataPC() {
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-surface border border-hairline p-6 w-full max-w-lg relative"
+              className="bg-surface border border-hairline p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl relative"
             >
               <h2 className="text-xl font-bold tracking-tight text-white mb-6 uppercase">
                 {editMode ? "Edit PC" : "Tambah PC Baru"}

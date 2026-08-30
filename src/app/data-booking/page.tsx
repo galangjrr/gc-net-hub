@@ -390,14 +390,20 @@ export default function DataBookingPage() {
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center text-xs tracking-tight bg-black/40 p-2 rounded-[2px] border border-white/5">
+                  <div className="flex justify-between items-center text-xs tracking-tight bg-black/40 p-2.5 rounded border border-white/5">
                     <div className="flex flex-col">
                       <span className="text-white/40 text-[10px] uppercase">Target PC</span>
-                      <span className="text-nvidia-green font-bold">{pc?.name || b.pc_id}</span>
+                      <span className="text-nvidia-green font-bold text-sm">{pc?.name || b.pc_id}</span>
+                      {pc?.expected_empty_time && (
+                        <span className="text-[10px] text-amber-400 font-mono mt-0.5">
+                          ⏳ Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-col text-right">
                       <span className="text-white/40 text-[10px] uppercase">Paket / Tarif</span>
-                      <span className="text-white/80">{pkg?.name}</span>
+                      <span className="text-white font-bold">{pkg?.name}</span>
+                      <span className="text-white/50 text-[10px] font-mono">Rp {pkg?.price?.toLocaleString("id-ID")}</span>
                     </div>
                   </div>
 
@@ -406,21 +412,21 @@ export default function DataBookingPage() {
                       <>
                         <button 
                           onClick={() => showBukti(b.ss_bukti)}
-                          className="flex-1 px-3 py-2 border border-hairline text-white/70 text-[10px] font-bold uppercase flex items-center justify-center gap-1"
+                          className="flex-1 px-3 py-2.5 border border-hairline text-white/70 hover:text-white text-[10px] font-bold uppercase flex items-center justify-center gap-1 rounded transition"
                         >
                           <FileImage size={14} /> Bukti
                         </button>
                         <button 
                           disabled={loadingId === b.id}
                           onClick={() => handleAction(b.id, 'approve')}
-                          className="flex-1 px-3 py-2 bg-nvidia-green text-black text-[10px] font-bold uppercase"
+                          className="flex-1 px-3 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] text-[10px] font-bold uppercase rounded transition"
                         >
                           Approve
                         </button>
                         <button 
                           disabled={loadingId === b.id}
                           onClick={() => handleAction(b.id, 'reject')}
-                          className="flex-1 px-3 py-2 text-error-deep border border-error-deep text-[10px] font-bold uppercase"
+                          className="flex-1 px-3 py-2.5 text-error-deep border border-error-deep hover:bg-error-deep hover:text-white text-[10px] font-bold uppercase rounded transition"
                         >
                           Batal
                         </button>
@@ -429,30 +435,30 @@ export default function DataBookingPage() {
                     {b.status === "active" && (
                       <div className="w-full flex flex-col gap-2">
                         <div className="flex gap-2">
-                          <span className="flex-1 text-[10px] text-nvidia-green font-bold uppercase px-2 py-2 border border-nvidia-green/30 bg-nvidia-green/10 flex items-center justify-center">
-                            AKTIF
+                          <span className="flex-1 text-[10px] text-nvidia-green font-bold uppercase px-2 py-2 border border-nvidia-green/30 bg-nvidia-green/10 flex items-center justify-center rounded">
+                            ANTREAN AKTIF
                           </span>
                           <button 
                             disabled={loadingId === b.id}
                             onClick={() => handleEditClick(b)}
-                            className="px-4 py-2 bg-nvidia-green/10 text-nvidia-green text-[10px] font-bold uppercase border border-nvidia-green/30"
+                            className="px-3 py-2 bg-nvidia-green/10 text-nvidia-green text-[10px] font-bold uppercase border border-nvidia-green/30 rounded transition"
                           >
                             EDIT
                           </button>
                           <button 
                             disabled={loadingId === b.id}
                             onClick={() => handleAction(b.id, 'complete')}
-                            className="px-4 py-2 bg-surface-soft text-white text-[10px] font-bold uppercase border border-hairline"
+                            className="px-3 py-2 bg-surface-soft text-white text-[10px] font-bold uppercase border border-hairline rounded transition hover:bg-white hover:text-black"
                           >
                             SELESAI
                           </button>
                         </div>
-                        <div className="flex items-stretch border border-hairline rounded-[2px] overflow-hidden w-full">
+                        <div className="flex items-stretch border border-hairline rounded overflow-hidden w-full">
                           <input 
                             type="text"
                             id={`sync-waktu-mobile-${b.id}`}
-                            placeholder="Set Sisa Waktu (1j 30m)"
-                            className="flex-1 bg-surface-dark px-3 py-2 text-[10px] text-white focus:border-nvidia-green outline-none"
+                            placeholder="Set Waktu Kosong (e.g. 1j 30m atau 60)"
+                            className="flex-1 bg-surface-dark px-3 py-2 text-[11px] text-white focus:border-nvidia-green outline-none"
                           />
                           <button 
                             onClick={async () => {
@@ -473,26 +479,39 @@ export default function DataBookingPage() {
                               }
                               
                               setLoadingId(b.id);
-                              const newDb = { ...db };
-                              const pcIndex = newDb.pcs.findIndex(p => p.id === b.pc_id);
-                              if (pcIndex !== -1) {
+                              try {
                                 if (val > 0) {
-                                  newDb.pcs[pcIndex].expected_empty_time = new Date(Date.now() + val * 60000).toISOString();
+                                  const newEmptyTime = new Date(Date.now() + val * 60000).toISOString();
+                                  await fetch("/api/pcs", {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      id: b.pc_id,
+                                      expected_empty_time: newEmptyTime,
+                                      status: 'occupied'
+                                    })
+                                  });
                                 } else {
-                                  newDb.pcs[pcIndex].expected_empty_time = "";
+                                  await fetch("/api/pcs", {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      id: b.pc_id,
+                                      expected_empty_time: null,
+                                      status: 'available'
+                                    })
+                                  });
                                 }
-                                await fetch("/api/data", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify(newDb)
-                                });
                                 input.value = "";
                                 await loadData();
+                              } catch (err) {
+                                console.error("Error setting PC timer on mobile:", err);
+                                alert("Gagal memperbarui timer PC");
                               }
                               setLoadingId(null);
                             }}
                             disabled={loadingId === b.id}
-                            className="bg-nvidia-green text-black px-4 py-2 text-[10px] font-bold uppercase disabled:opacity-50"
+                            className="bg-nvidia-green text-black px-4 py-2 text-[10px] font-bold uppercase hover:bg-[#88d600] disabled:opacity-50 transition"
                           >
                             SET
                           </button>
@@ -509,7 +528,7 @@ export default function DataBookingPage() {
       {/* Manual Booking / Edit Modal */}
       {showManual && (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface border border-hairline p-6 w-full max-w-sm">
+          <div className="bg-surface border border-hairline p-6 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
             <h2 className="text-xl font-bold tracking-tight text-white mb-4 uppercase">{editBookingId ? "Ubah Data Booking" : "Booking Kasir (Walk-in)"}</h2>
             <div className="space-y-4">
               <div>

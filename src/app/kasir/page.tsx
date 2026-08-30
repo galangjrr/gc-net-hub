@@ -110,6 +110,7 @@ export default function KasirPage() {
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {db.inventory
               ?.filter((p: InventoryItem) => {
+                if (p.category === 'staff_account') return false;
                 const matchCat = selectedCategory === 'all' || p.category === selectedCategory;
                 const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
                 return matchCat && matchSearch;
