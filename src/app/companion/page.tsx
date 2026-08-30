@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import type { DatabaseSchema, PC } from "@/lib/db";
 import PinGuard from "@/components/PinGuard";
+import { supabase } from "@/lib/supabase";
 
 export default function CompanionPage() {
   const [db, setDb] = useState<DatabaseSchema | null>(null);
@@ -23,7 +24,10 @@ export default function CompanionPage() {
 
   const loadData = async () => {
     try {
-      const res = await fetch("/api/data", { cache: "no-store" });
+      const res = await fetch(`/api/data?t=${Date.now()}`, { 
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" }
+      });
       if (res.ok) {
         const data = await res.json();
         setDb(data);
@@ -33,8 +37,22 @@ export default function CompanionPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 3000);
-    return () => clearInterval(interval);
+    const interval = setInterval(loadData, 2500);
+
+    const channel = supabase
+      .channel("companion-realtime-pcs")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pcs" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
+        loadData();
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Set default package selection when pakets load
