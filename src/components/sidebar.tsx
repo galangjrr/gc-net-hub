@@ -24,6 +24,7 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -36,9 +37,25 @@ export default function Sidebar() {
       }
     };
 
+    const fetchPending = async () => {
+      try {
+        const res = await fetch("/api/data", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          const count = (data?.bookings || []).filter((b: any) => b.status === "pending").length;
+          setPendingCount(count);
+        }
+      } catch (_) {}
+    };
+
     checkAuth();
-    // Re-check periodically (30s is plenty for session auth)
-    const interval = setInterval(checkAuth, 30000);
+    fetchPending();
+
+    const interval = setInterval(() => {
+      checkAuth();
+      fetchPending();
+    }, 5000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -113,18 +130,26 @@ export default function Sidebar() {
           <nav className="flex-1 px-4 space-y-1">
             {visibleNavs.map((item) => {
               const isActive = pathname === item.href;
+              const isBookingTab = item.href === "/data-booking";
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase transition-all ${
+                  className={`flex items-center justify-between px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase transition-all ${
                     isActive
                       ? "bg-nvidia-green text-black shadow-[0_0_15px_rgba(118,185,0,0.2)]"
                       : "text-white/50 hover:text-white hover:bg-white/[0.04]"
                   }`}
                 >
-                  <item.icon size={18} />
-                  {item.label}
+                  <div className="flex items-center gap-3">
+                    <item.icon size={18} />
+                    {item.label}
+                  </div>
+                  {isBookingTab && pendingCount > 0 && (
+                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full animate-bounce">
+                      {pendingCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -146,19 +171,27 @@ export default function Sidebar() {
               <div className="px-6 py-4 space-y-2 flex flex-col min-h-[calc(100vh-65px)]">
                 {visibleNavs.map((item) => {
                   const isActive = pathname === item.href;
+                  const isBookingTab = item.href === "/data-booking";
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase transition-all ${
+                      className={`flex items-center justify-between px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase transition-all ${
                         isActive
                           ? "bg-nvidia-green text-black shadow-[0_0_15px_rgba(118,185,0,0.2)]"
                           : "text-white/50 hover:text-white hover:bg-white/[0.04]"
                       }`}
                     >
-                      <item.icon size={18} />
-                      {item.label}
+                      <div className="flex items-center gap-3">
+                        <item.icon size={18} />
+                        {item.label}
+                      </div>
+                      {isBookingTab && pendingCount > 0 && (
+                        <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full animate-bounce">
+                          {pendingCount}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
