@@ -30,13 +30,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
       }
 
+      let resolvedPrice = paket?.price || 0;
+      let resolvedName = paket?.name || 'Paket Booking';
+      if (!resolvedPrice && booking.paket_id?.startsWith('custom-')) {
+        resolvedPrice = parseInt(booking.paket_id.replace('custom-', '')) || 0;
+        resolvedName = `Paket Custom Rp ${resolvedPrice.toLocaleString('id-ID')}`;
+      }
+
       // Add to logs
       const log = {
         id: `log-batal-${crypto.randomUUID()}`,
         player_name: booking.player_name,
         pc_name: pc?.name || booking.pc_id,
-        paket_name: paket?.name || 'Unknown',
-        price: paket?.price || 0,
+        paket_name: resolvedName,
+        price: resolvedPrice,
         start_time: booking.created_at,
         end_time: new Date().toISOString(),
         status: 'Batal'
@@ -52,13 +59,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
       }
 
+      let resolvedPrice = paket?.price || 0;
+      let resolvedName = paket?.name || 'Paket Booking';
+      if (!resolvedPrice && booking.paket_id?.startsWith('custom-')) {
+        resolvedPrice = parseInt(booking.paket_id.replace('custom-', '')) || 0;
+        resolvedName = `Paket Custom Rp ${resolvedPrice.toLocaleString('id-ID')}`;
+      }
+
       // Add to logs
       const log = {
         id: `log-selesai-${crypto.randomUUID()}`,
         player_name: booking.player_name,
         pc_name: pc?.name || booking.pc_id,
-        paket_name: paket?.name || 'Unknown',
-        price: paket?.price || 0,
+        paket_name: resolvedName,
+        price: resolvedPrice,
         start_time: booking.created_at,
         end_time: new Date().toISOString(),
         status: 'Selesai'

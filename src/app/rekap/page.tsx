@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChartLineUp, Money, Users, Coins } from "@phosphor-icons/react";
+import { ChartLineUp, Money, Users, Coins, ArrowClockwise, Receipt, Desktop, ShoppingCart } from "@phosphor-icons/react";
 import type { DatabaseSchema, LogEntry, Booking, Paket } from "@/lib/db";
+import PinGuard from "@/components/PinGuard";
 
 export default function RekapKeuanganPage() {
   const [db, setDb] = useState<DatabaseSchema | null>(null);
@@ -10,9 +11,13 @@ export default function RekapKeuanganPage() {
   const [isUploading, setIsUploading] = useState(false);
 
   const loadData = async () => {
-    const res = await fetch("/api/data");
-    const data = await res.json();
-    setDb(data);
+    try {
+      const res = await fetch("/api/data");
+      if (res.ok) {
+        const data = await res.json();
+        setDb(data);
+      }
+    } catch (_) {}
   };
 
   useEffect(() => {
@@ -51,111 +56,251 @@ export default function RekapKeuanganPage() {
     }
   };
 
-  if (!db) return <div className="p-8 tracking-tight text-white/50 text-xs">LOADING DATA...</div>;
+  if (!db) return <div className="p-8 tracking-tight text-white/50 text-xs">MEMUAT DATA KEUANGAN...</div>;
 
-  // Calculations
-  const today = new Date().toDateString();
-  const todaysLogs = db.logs?.filter(l => new Date(l.end_time).toDateString() === today && l.status === 'Selesai') || [];
+  // Date helper for today (local time)
+  const isToday = (dateStr: string) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    const now = new Date();
+    return (
+      d.getDate() === now.getDate() &&
+      d.getMonth() === now.getMonth() &&
+      d.getFullYear() === now.getFullYear()
+    );
+  };
+
+  // Today's completed transactions
+  const todaysLogs = (db.logs || []).filter(l => isToday(l.end_time) && l.status === 'Selesai');
   
-  const fnbRevenue = todaysLogs.filter(l => l.pc_name === "KASIR").reduce((sum, log) => sum + log.price, 0);
-  const revenueToday = fnbRevenue + pdfRevenue;
-  const totalTransactions = db.logs?.filter(l => new Date(l.end_time).toDateString() === today && l.status === 'Selesai').length || 0;
+  // Breakdown Revenues
+  const fnbRevenue = todaysLogs
+    .filter(l => l.pc_name === "KASIR")
+    .reduce((sum, log) => sum + (Number(log.price) || 0), 0);
+
+  const bookingRevenue = todaysLogs
+    .filter(l => l.pc_name !== "KASIR")
+    .reduce((sum, log) => sum + (Number(log.price) || 0), 0);
+
+  const totalRevenueToday = fnbRevenue + bookingRevenue + pdfRevenue;
+  const totalTransactions = todaysLogs.length;
 
   // Active Pooling: Money currently held in active/pending bookings
-  const activeBookings = db.bookings || [];
-  const activePooling = activeBookings.reduce((sum, b) => {
-    const pkg = db.pakets.find(p => p.id === b.paket_id);
-    return sum + (pkg?.price || 0);
-  }, 0);
+  const activeBookings = (db.bookings || []).filter(b => b.status === 'active' || b.status === 'pending');
+  
+  const getBookingPrice = (b: Booking): number => {
+    const pkg = db.pakets?.find(p => p.id === b.paket_id);
+    if (pkg && pkg.price) return pkg.price;
+    if (b.paket_id?.startsWith("custom-")) {
+      return parseInt(b.paket_id.replace("custom-", "")) || 0;
+    }
+    return 0;
+  };
+
+  const activePooling = activeBookings.reduce((sum, b) => sum + getBookingPrice(b), 0);
 
   return (
-    <div className="bg-surface-dark p-4 md:p-8">
-      <div className="max-w-[1400px] mx-auto">
-        <div className="flex items-center gap-4 mb-8 pb-6 border-b border-hairline">
-          <ChartLineUp size={32} className="text-nvidia-green" weight="fill" />
-          <div>
-            <h1 className="text-3xl font-bold text-white uppercase tracking-tight tracking-tight">Rekap & Pooling</h1>
-            <p className="text-white/60 tracking-tight text-sm mt-1">&gt; ANALITIK PENDAPATAN HARIAN</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <PinGuard>
+      <div className="bg-surface-dark min-h-screen p-4 md:p-8 pt-16 md:pt-8 text-white">
+        <div className="max-w-[1400px] mx-auto space-y-8">
           
-          {/* Revenue Card */}
-          <div className="nvidia-card p-6 border-nvidia-green/30 relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-10">
-              <Money size={120} weight="fill" />
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-hairline">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green">
+                <ChartLineUp size={32} weight="fill" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tight">Rekap & Pooling</h1>
+                <p className="text-white/60 tracking-wider text-xs uppercase mt-1">
+                  &gt; ANALITIK PENDAPATAN HARIAN & MONEY POOLING
+                </p>
+              </div>
             </div>
-            <div className="nvidia-corner"></div>
-            <h3 className="text-white/50 font-bold tracking-tight text-xs uppercase mb-2">Total Pendapatan (F&B + PC)</h3>
-            <p className="text-3xl font-bold text-nvidia-green tracking-tight">
-              Rp {revenueToday.toLocaleString("id-ID")}
-            </p>
-            <div className="mt-4 pt-4 border-t border-hairline flex flex-col gap-1 text-[10px] tracking-tight text-white/50 uppercase">
-              <div className="flex justify-between"><span>Kasir F&B:</span> <span className="text-white">Rp {fnbRevenue.toLocaleString("id-ID")}</span></div>
-              <div className="flex justify-between"><span>Billing PC (PDF):</span> <span className="text-white">Rp {pdfRevenue.toLocaleString("id-ID")}</span></div>
+
+            <button
+              onClick={loadData}
+              className="flex items-center gap-2 px-3 py-2 bg-surface hover:bg-white/10 border border-hairline rounded text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white transition w-fit"
+            >
+              <ArrowClockwise size={16} />
+              Segarkan Data
+            </button>
+          </div>
+
+          {/* KPI Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Total Revenue Card */}
+            <div className="nvidia-card p-6 border-nvidia-green/40 relative overflow-hidden bg-surface">
+              <div className="absolute -right-4 -top-4 opacity-10">
+                <Money size={120} weight="fill" />
+              </div>
+              <div className="nvidia-corner"></div>
+              <h3 className="text-white/50 font-bold tracking-wider text-xs uppercase mb-2">
+                Total Pendapatan (Hari Ini)
+              </h3>
+              <p className="text-3xl font-bold text-nvidia-green tracking-tight font-mono">
+                Rp {totalRevenueToday.toLocaleString("id-ID")}
+              </p>
+              <div className="mt-4 pt-4 border-t border-hairline flex flex-col gap-1.5 text-[11px] tracking-tight text-white/60 uppercase">
+                <div className="flex justify-between">
+                  <span className="flex items-center gap-1.5"><ShoppingCart size={13} className="text-cyan-400" /> Kasir F&B:</span>
+                  <span className="text-white font-mono font-bold">Rp {fnbRevenue.toLocaleString("id-ID")}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="flex items-center gap-1.5"><Desktop size={13} className="text-nvidia-green" /> Booking PC Selesai:</span>
+                  <span className="text-white font-mono font-bold">Rp {bookingRevenue.toLocaleString("id-ID")}</span>
+                </div>
+                {pdfRevenue > 0 && (
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-1.5"><Receipt size={13} className="text-amber-400" /> Billing PC (PDF):</span>
+                    <span className="text-white font-mono font-bold">Rp {pdfRevenue.toLocaleString("id-ID")}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Total Transactions Card */}
+            <div className="nvidia-card p-6 relative overflow-hidden bg-surface">
+              <div className="absolute -right-4 -top-4 opacity-5">
+                <Users size={120} weight="fill" />
+              </div>
+              <div className="nvidia-corner"></div>
+              <h3 className="text-white/50 font-bold tracking-wider text-xs uppercase mb-2">
+                Total Transaksi Selesai
+              </h3>
+              <p className="text-3xl font-bold text-white tracking-tight font-mono">
+                {totalTransactions} <span className="text-sm font-sans text-white/40 font-normal">transaksi</span>
+              </p>
+              <p className="text-[11px] text-white/40 tracking-wider mt-4 uppercase">
+                Termasuk penjualan F&B kasir dan sewa PC yang telah dituntaskan hari ini
+              </p>
+            </div>
+
+            {/* Money Pooling Card */}
+            <div className="nvidia-card p-6 bg-nvidia-green/5 border-nvidia-green relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 opacity-10 text-nvidia-green">
+                <Coins size={120} weight="fill" />
+              </div>
+              <div className="nvidia-corner"></div>
+              <h3 className="text-white/50 font-bold tracking-wider text-xs uppercase mb-2">
+                Money Pooling (Live Antrean)
+              </h3>
+              <p className="text-3xl font-bold text-white tracking-tight flex items-center gap-2 font-mono">
+                <span className="relative flex h-3 w-3 mr-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-nvidia-green"></span>
+                </span>
+                Rp {activePooling.toLocaleString("id-ID")}
+              </p>
+              <p className="text-[11px] text-white/50 tracking-wider mt-4 uppercase">
+                Uang tertahan di <span className="text-nvidia-green font-bold">{activeBookings.length} booking</span> aktif & antrean
+              </p>
+            </div>
+
+          </div>
+
+          {/* Active Pooling Breakdown */}
+          {activeBookings.length > 0 && (
+            <div className="bg-surface border border-hairline p-5 rounded-lg space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                <Coins size={16} className="text-nvidia-green" />
+                Rincian Money Pooling Berjalan ({activeBookings.length} Antrean)
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {activeBookings.map(b => {
+                  const pc = db.pcs?.find(p => p.id === b.pc_id);
+                  const pkg = db.pakets?.find(p => p.id === b.paket_id);
+                  const price = getBookingPrice(b);
+                  return (
+                    <div key={b.id} className="p-3 bg-surface-dark border border-hairline rounded flex justify-between items-center text-xs">
+                      <div>
+                        <div className="font-bold text-white tracking-tight">{b.player_name}</div>
+                        <div className="text-[10px] text-nvidia-green">{pc?.name || b.pc_id} &bull; {pkg?.name || 'Paket'}</div>
+                      </div>
+                      <div className="font-mono font-bold text-white">
+                        Rp {price.toLocaleString("id-ID")}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* PDF Uploader Area */}
+          <div className="p-6 border border-hairline border-dashed bg-surface-dark relative text-center rounded-lg">
+            <input 
+              type="file" 
+              accept="application/pdf"
+              onChange={handleFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+              disabled={isUploading}
+            />
+            <div className="pointer-events-none">
+              <ChartLineUp size={32} className={`mx-auto mb-3 ${isUploading ? 'text-nvidia-green animate-bounce' : 'text-white/20'}`} />
+              <h3 className="tracking-tight font-bold text-white uppercase text-sm">
+                {isUploading ? "Membaca Laporan PDF..." : "Upload PDF Laporan Billing PC"}
+              </h3>
+              <p className="tracking-tight text-xs text-white/40 mt-2">
+                Klik atau drag & drop file .pdf dari sistem billing server ke sini untuk menggabungkan pendapatan offline.
+              </p>
             </div>
           </div>
 
-          {/* Transactions Card */}
-          <div className="nvidia-card p-6 relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-5">
-              <Users size={120} weight="fill" />
+          {/* Today's Transactions Log Table */}
+          <div className="bg-surface border border-hairline rounded-lg overflow-hidden">
+            <div className="p-4 border-b border-hairline flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                <Receipt size={16} className="text-nvidia-green" />
+                Daftar Transaksi Selesai Hari Ini ({todaysLogs.length})
+              </h3>
             </div>
-            <div className="nvidia-corner"></div>
-            <h3 className="text-white/50 font-bold tracking-tight text-xs uppercase mb-2">Total Transaksi Selesai (Hari Ini)</h3>
-            <p className="text-3xl font-bold text-white tracking-tight">
-              {totalTransactions} <span className="text-lg text-white/40">trx</span>
-            </p>
-          </div>
-
-          {/* Money Pooling Card */}
-          <div className="nvidia-card p-6 bg-nvidia-green/5 border-nvidia-green relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-10 text-nvidia-green">
-              <Coins size={120} weight="fill" />
-            </div>
-            <div className="nvidia-corner"></div>
-            <h3 className="text-white/50 font-bold tracking-tight text-xs uppercase mb-2">Money Pooling (Live)</h3>
-            <p className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="relative flex h-3 w-3 mr-1">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-nvidia-green"></span>
-              </span>
-              Rp {activePooling.toLocaleString("id-ID")}
-            </p>
-            <p className="text-[10px] text-white/40 tracking-tight mt-2 uppercase">
-              Uang tertahan di {activeBookings.length} booking aktif/pending
-            </p>
+            
+            {todaysLogs.length === 0 ? (
+              <div className="p-8 text-center text-white/40 text-xs uppercase tracking-widest">
+                Belum ada transaksi selesai hari ini.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-surface-dark border-b border-hairline text-white/50 text-[10px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-3 pl-4">Waktu</th>
+                      <th className="p-3">Pelanggan / Pemain</th>
+                      <th className="p-3">Tipe / Target</th>
+                      <th className="p-3">Item / Paket</th>
+                      <th className="p-3 pr-4 text-right">Nominal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-hairline">
+                    {todaysLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-white/[0.02]">
+                        <td className="p-3 pl-4 font-mono text-white/50">
+                          {new Date(log.end_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="p-3 font-bold text-white">{log.player_name}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            log.pc_name === "KASIR" ? "bg-cyan-500/10 text-cyan-400" : "bg-nvidia-green/10 text-nvidia-green"
+                          }`}>
+                            {log.pc_name}
+                          </span>
+                        </td>
+                        <td className="p-3 text-white/70">{log.paket_name}</td>
+                        <td className="p-3 pr-4 text-right font-mono font-bold text-nvidia-green">
+                          Rp {Number(log.price).toLocaleString("id-ID")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
         </div>
-
-        {/* PDF Uploader Area */}
-        <div className="mt-8 p-6 border border-hairline border-dashed bg-surface-dark relative text-center">
-          <input 
-            type="file" 
-            accept="application/pdf"
-            onChange={handleFileUpload}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-            disabled={isUploading}
-          />
-          <div className="pointer-events-none">
-            <ChartLineUp size={32} className={`mx-auto mb-3 ${isUploading ? 'text-nvidia-green animate-bounce' : 'text-white/20'}`} />
-            <h3 className="tracking-tight font-bold text-white uppercase text-sm">
-              {isUploading ? "Membaca Laporan PDF..." : "Upload PDF Laporan Billing PC"}
-            </h3>
-            <p className="tracking-tight text-xs text-white/40 mt-2">
-              Klik atau drag & drop file .pdf dari sistem billing utama ke sini untuk menggabungkan pendapatan.
-            </p>
-          </div>
-        </div>
-
-        {pdfRevenue > 0 && (
-          <p className="mt-3 text-center text-[10px] tracking-tight text-amber-400/70 uppercase">
-            ⚠ Data PDF bersifat sementara — akan hilang jika halaman di-refresh.
-          </p>
-        )}
       </div>
-    </div>
+    </PinGuard>
   );
 }
