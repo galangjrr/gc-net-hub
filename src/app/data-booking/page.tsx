@@ -225,8 +225,15 @@ export default function DataBookingPage() {
                       <td className="p-4 border-r border-hairline text-white font-bold">
                         {b.player_name}
                       </td>
-                      <td className="p-4 border-r border-hairline text-nvidia-green font-bold">
-                        {pc?.name || b.pc_id}
+                      <td className="p-4 border-r border-hairline font-bold text-nvidia-green">
+                        <div className="flex flex-col">
+                          <span>{pc?.name || b.pc_id}</span>
+                          {pc?.expected_empty_time && (
+                            <span className="text-[10px] text-amber-400 font-mono font-normal mt-0.5">
+                              ⏳ Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 border-r border-hairline text-white/70">
                         {pkg?.name} <span className="text-[10px] ml-2 font-bold text-white/40">RP {pkg?.price?.toLocaleString("id-ID")}</span>
@@ -306,21 +313,34 @@ export default function DataBookingPage() {
                                     }
                                     
                                     setLoadingId(b.id);
-                                    const newDb = { ...db };
-                                    const pcIndex = newDb.pcs.findIndex(p => p.id === b.pc_id);
-                                    if (pcIndex !== -1) {
+                                    try {
                                       if (val > 0) {
-                                        newDb.pcs[pcIndex].expected_empty_time = new Date(Date.now() + val * 60000).toISOString();
+                                        const newEmptyTime = new Date(Date.now() + val * 60000).toISOString();
+                                        await fetch("/api/pcs", {
+                                          method: "PUT",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({
+                                            id: b.pc_id,
+                                            expected_empty_time: newEmptyTime,
+                                            status: 'occupied'
+                                          })
+                                        });
                                       } else {
-                                        newDb.pcs[pcIndex].expected_empty_time = "";
+                                        await fetch("/api/pcs", {
+                                          method: "PUT",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({
+                                            id: b.pc_id,
+                                            expected_empty_time: null,
+                                            status: 'available'
+                                          })
+                                        });
                                       }
-                                      await fetch("/api/data", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify(newDb)
-                                      });
                                       input.value = "";
                                       await loadData();
+                                    } catch (err) {
+                                      console.error("Error setting PC timer:", err);
+                                      alert("Gagal memperbarui timer PC");
                                     }
                                     setLoadingId(null);
                                   }}

@@ -36,10 +36,8 @@ export default function DataPC() {
   }, []);
 
   const handleSave = async () => {
-    if (!db) return;
     if (!form.id.trim()) return alert("ID PC harus diisi!");
 
-    const newDb = { ...db };
     const p = { ...form };
     // Preserve expected_empty_time if we are editing
     if (editMode && db) {
@@ -51,46 +49,43 @@ export default function DataPC() {
     
     // @ts-ignore
     delete p.remainingMinutes;
-    
-    if (editMode) {
-      const idx = newDb.pcs.findIndex(pc => pc.id === form.id);
-      if (idx !== -1) {
-        newDb.pcs[idx] = p as PC;
-      }
-    } else {
-      if (newDb.pcs.find(pc => pc.id === form.id)) return alert("ID PC sudah ada!");
-      newDb.pcs.push(p as PC);
-    }
 
     try {
-      await fetch("/api/data", {
-        method: "POST",
+      const method = editMode ? "PUT" : "POST";
+      const res = await fetch("/api/pcs", {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newDb)
+        body: JSON.stringify(p)
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.error || "Gagal menyimpan PC");
+      }
       setShowModal(false);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Gagal menyimpan data PC");
+      alert(error?.message || "Gagal menyimpan data PC");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!db) return;
     if (!confirm(`Hapus PC ${id}?`)) return;
 
-    const newDb = { ...db, pcs: db.pcs.filter(p => p.id !== id) };
     try {
-      await fetch("/api/data", {
-        method: "POST",
+      const res = await fetch("/api/pcs", {
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newDb)
+        body: JSON.stringify({ id })
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err?.error || "Gagal menghapus PC");
+      }
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Gagal menghapus PC");
+      alert(error?.message || "Gagal menghapus PC");
     }
   };
 
