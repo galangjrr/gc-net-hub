@@ -55,15 +55,35 @@ export default function Sidebar() {
     <>
       {/* Mobile Topbar */}
       <div className="md:hidden flex items-center justify-between px-4 h-14 bg-nvidia-green sticky top-0 z-50 shadow-[0_4px_20px_rgba(118,185,0,0.3)]">
-        {/* Logo left-aligned */}
-        <div className="w-16"></div>
-        {/* Hamburger right-aligned */}
-        <button 
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="text-black hover:text-black/70 z-10 p-1.5"
-        >
-          {mobileOpen ? <X size={24} weight="bold" /> : <List size={24} weight="bold" />}
-        </button>
+        {/* Brand left */}
+        <Link href="/" className="flex items-center gap-2 text-black font-black tracking-tight text-sm uppercase">
+          <span>GC NET HUB</span>
+        </Link>
+        {/* Quick action + Hamburger */}
+        <div className="flex items-center gap-2">
+          {isUnlocked ? (
+            <button 
+              onClick={handleLogout}
+              className="px-3 py-1 bg-black/10 hover:bg-black text-black hover:text-white border border-black/20 text-[10px] font-bold uppercase rounded transition"
+            >
+              LOGOUT
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="px-3 py-1 bg-black text-nvidia-green text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1"
+            >
+              <LockKey size={12} weight="bold" />
+              LOGIN
+            </Link>
+          )}
+          <button 
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="text-black hover:text-black/70 z-10 p-1.5"
+          >
+            {mobileOpen ? <X size={24} weight="bold" /> : <List size={24} weight="bold" />}
+          </button>
+        </div>
       </div>
 
       <div className="flex z-40">
@@ -156,7 +176,7 @@ export default function Sidebar() {
                     </button>
                   ) : (
                     <Link
-                      href="/"
+                      href="/login"
                       onClick={() => setMobileOpen(false)}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase text-nvidia-green hover:bg-nvidia-green/10 transition-all"
                     >
