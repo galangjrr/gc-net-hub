@@ -733,28 +733,60 @@ export default function DataBookingPage() {
                       value={manualData.searchPc}
                       onChange={e => {
                         const val = e.target.value;
-                        setManualData({...manualData, searchPc: val, pcId: ""});
+                        const cleanVal = val.toLowerCase().trim();
+                        // Auto-match exact or single candidate
+                        const matched = db?.pcs?.find(p => p.name.toLowerCase() === cleanVal || p.id.toLowerCase() === cleanVal);
+                        if (matched) {
+                          setManualData({ ...manualData, searchPc: matched.name, pcId: matched.id });
+                        } else {
+                          const partials = (db?.pcs || []).filter(p => p.name.toLowerCase().includes(cleanVal) || p.id.toLowerCase().includes(cleanVal));
+                          setManualData({ ...manualData, searchPc: val, pcId: partials.length === 1 ? partials[0].id : "" });
+                        }
                         setShowPcList(true);
                       }}
+                      onKeyDown={e => {
+                        if (e.key === "Enter" || e.key === "Tab") {
+                          const cleanVal = manualData.searchPc.toLowerCase().trim();
+                          const matches = (db?.pcs || []).filter(p => p.name.toLowerCase().includes(cleanVal) || p.id.toLowerCase().includes(cleanVal));
+                          if (matches.length > 0) {
+                            setManualData({ ...manualData, searchPc: matches[0].name, pcId: matches[0].id });
+                            setShowPcList(false);
+                          }
+                        }
+                      }}
                       onFocus={() => setShowPcList(true)}
-                      placeholder="Ketik nama PC (e.g. PC-Iyoo)"
+                      placeholder="Ketik nama PC (e.g. MOYA / TOM / IYOO)"
                       className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
                     />
                     {showPcList && (
-                      <div className="absolute z-[110] left-0 right-0 top-full mt-1 bg-surface-dark border border-hairline max-h-40 overflow-y-auto rounded shadow-xl">
-                        {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => (
-                          <button
-                            key={pc.id}
-                            type="button"
-                            onClick={() => {
-                              setManualData({...manualData, pcId: pc.id, searchPc: pc.name});
-                              setShowPcList(false);
-                            }}
-                            className={`w-full text-left p-2.5 text-xs hover:bg-nvidia-green/20 ${manualData.pcId === pc.id ? 'bg-nvidia-green/10 text-nvidia-green font-bold' : 'text-white'}`}
-                          >
-                            {pc.name}
-                          </button>
-                        ))}
+                      <div className="absolute z-[110] left-0 right-0 top-full mt-1 bg-surface border border-hairline max-h-48 overflow-y-auto rounded-xl shadow-2xl divide-y divide-white/[0.05]">
+                        {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase()) || p.id.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => {
+                          const isOccupied = pc.status === "occupied" || (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > Date.now());
+                          const isSelected = manualData.pcId === pc.id || manualData.searchPc.toLowerCase() === pc.name.toLowerCase();
+                          return (
+                            <button
+                              key={pc.id}
+                              type="button"
+                              onClick={() => {
+                                setManualData({ ...manualData, pcId: pc.id, searchPc: pc.name });
+                                setShowPcList(false);
+                              }}
+                              className={`w-full text-left px-3 py-2.5 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
+                                isSelected ? "bg-nvidia-green/15 text-nvidia-green font-bold" : "text-white"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span>{pc.name}</span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                                  isOccupied ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                }`}>
+                                  {isOccupied ? "Main" : "Kosong"}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-white/40 font-mono uppercase">Enter ↵</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -764,7 +796,30 @@ export default function DataBookingPage() {
                     <input
                       type="text"
                       value={searchPaket}
-                      onChange={e => setSearchPaket(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setSearchPaket(val);
+                        const q = val.toLowerCase().trim();
+                        const parsed = parseInt(q.replace(/\D/g, '')) || 0;
+                        const exact = (db?.pakets || []).find(p => !p.is_custom && (p.name.toLowerCase() === q || p.price === parsed));
+                        if (exact) {
+                          setSelectedPaket(exact.id);
+                        } else if (parsed >= 3000) {
+                          setSelectedPaket(`custom-${parsed}`);
+                        }
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          const q = searchPaket.toLowerCase().trim();
+                          const parsed = parseInt(q.replace(/\D/g, '')) || 0;
+                          const filtered = (db?.pakets || []).filter(p => !p.is_custom && (p.name.toLowerCase().includes(q) || p.price.toString().includes(q)));
+                          if (filtered.length > 0) {
+                            setSelectedPaket(filtered[0].id);
+                          } else if (parsed >= 3000) {
+                            setSelectedPaket(`custom-${parsed}`);
+                          }
+                        }
+                      }}
                       placeholder="Cari paket atau ketik nominal (e.g. 5000 / Malam)"
                       className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none mb-2"
                     />
@@ -787,6 +842,13 @@ export default function DataBookingPage() {
                         }
 
                         const list = customPkg ? [customPkg, ...filtered] : filtered;
+                        
+                        // Auto select first match if current selected is invalid
+                        if (list.length === 1 && selectedPaket !== list[0].id) {
+                          // Safe async select
+                          setTimeout(() => setSelectedPaket(list[0].id), 0);
+                        }
+
                         return list.map(pkg => {
                           const isSelected = selectedPaket === pkg.id;
                           return (
@@ -794,13 +856,16 @@ export default function DataBookingPage() {
                               key={pkg.id}
                               type="button"
                               onClick={() => setSelectedPaket(pkg.id)}
-                              className={`w-full p-2.5 rounded text-xs flex items-center justify-between border transition ${
+                              className={`w-full p-2.5 rounded-xl text-xs flex items-center justify-between border transition ${
                                 isSelected
-                                  ? "bg-nvidia-green/10 border-nvidia-green text-nvidia-green font-bold"
-                                  : "bg-surface-dark border-hairline text-white/70 hover:text-white"
+                                  ? "bg-nvidia-green/10 border-nvidia-green text-nvidia-green font-bold shadow-[0_0_10px_rgba(118,185,0,0.15)]"
+                                  : "bg-surface-dark border-hairline text-white/70 hover:text-white hover:border-white/20"
                               }`}
                             >
-                              <span>{pkg.name}</span>
+                              <div className="flex items-center gap-2">
+                                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green" />}
+                                <span>{pkg.name}</span>
+                              </div>
                               <span className="font-mono">Rp {pkg.price.toLocaleString("id-ID")}</span>
                             </button>
                           );
