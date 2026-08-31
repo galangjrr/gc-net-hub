@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Database, CheckCircle2, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X } from "lucide-react";
+import { Database, CheckCircle2, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X, Volume2, VolumeX } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import useSound from "use-sound";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import PinGuard from "@/components/PinGuard";
@@ -13,7 +14,27 @@ export default function DataBookingPage() {
   const [editBookingId, setEditBookingId] = useState<string | null>(null);
   const [filterTab, setFilterTab] = useState<'all' | 'pending' | 'active'>('all');
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAlarmPlaying, setIsAlarmPlaying] = useState(false);
   const prevPendingCount = useRef<number>(0);
+  const triggeredExpiredPcIds = useRef<Set<string>>(new Set());
+
+  // 10-second buzzer alarm via use-sound
+  const [playAlarm, { stop: stopAlarm }] = useSound('/sounds/timer-alarm-10s.wav', {
+    volume: 0.85,
+    onend: () => setIsAlarmPlaying(false)
+  });
+
+  const triggerAlarm = () => {
+    try {
+      playAlarm();
+      setIsAlarmPlaying(true);
+    } catch (_) {}
+  };
+
+  const handleStopAlarm = () => {
+    stopAlarm();
+    setIsAlarmPlaying(false);
+  };
 
   const [showManual, setShowManual] = useState(false);
   const [manualData, setManualData] = useState({ playerName: "", pcId: "", searchPc: "" });
@@ -67,6 +88,25 @@ export default function DataBookingPage() {
     loadData();
     const interval = setInterval(loadData, 10000);
 
+    // Fast 1-second ticker to check countdown expiry and trigger 10s buzzer alarm
+    const timerTicker = setInterval(() => {
+      if (!db?.pcs || !db?.bookings) return;
+      const now = Date.now();
+      
+      db.bookings.forEach((b: Booking) => {
+        if (b.status !== "active") return;
+        const pc = db.pcs.find((p: PC) => p.id === b.pc_id);
+        if (pc?.expected_empty_time) {
+          const expTime = new Date(pc.expected_empty_time).getTime();
+          // If expired within the last 15 seconds and haven't triggered yet
+          if (expTime <= now && now - expTime < 20000 && !triggeredExpiredPcIds.current.has(pc.id)) {
+            triggeredExpiredPcIds.current.add(pc.id);
+            triggerAlarm();
+          }
+        }
+      });
+    }, 1000);
+
     const channel = supabase
       .channel('public:gc-booking-admin')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
@@ -80,8 +120,9 @@ export default function DataBookingPage() {
     return () => {
       supabase.removeChannel(channel);
       clearInterval(interval);
+      clearInterval(timerTicker);
     };
-  }, []);
+  }, [db]);
 
   const handleAction = async (id: string, action: 'approve' | 'reject' | 'complete') => {
     let reason = "";
@@ -299,6 +340,15 @@ export default function DataBookingPage() {
             </div>
 
             <div className="flex items-center gap-3">
+              {isAlarmPlaying && (
+                <button
+                  onClick={handleStopAlarm}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition animate-bounce shadow-[0_0_20px_rgba(239,68,68,0.5)]"
+                >
+                  <VolumeX size={16} />
+                  Matikan Alarm (10s)
+                </button>
+              )}
               <button
                 onClick={loadData}
                 className="p-2.5 bg-surface hover:bg-white/10 border border-hairline rounded-lg text-white/70 hover:text-white transition"
@@ -393,14 +443,28 @@ export default function DataBookingPage() {
                   const pkg = db.pakets.find(p => p.id === b.paket_id);
                   const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
                   const isPending = b.status === "pending";
+                  const now = Date.now();
+                  const isExpired = !isPending && pc?.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= now;
 
                   return (
-                    <tr key={b.id} className="hover:bg-white/[0.02] transition-colors group">
+                    <motion.tr
+                      key={b.id}
+                      animate={isExpired ? {
+                        backgroundColor: ["rgba(239, 68, 68, 0.04)", "rgba(239, 68, 68, 0.18)", "rgba(239, 68, 68, 0.04)"],
+                      } : {}}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      className={`transition-colors group ${isExpired ? "border-l-4 border-l-red-500" : "hover:bg-white/[0.02]"}`}
+                    >
                       <td className="p-4 pl-6">
                         {isPending ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
                             <Clock size={12} className="animate-spin" />
                             Menunggu Verifikasi
+                          </span>
+                        ) : isExpired ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                            <Hourglass size={12} />
+                            Waktu Habis!
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
@@ -426,9 +490,9 @@ export default function DataBookingPage() {
                             {pc?.name || b.pc_id}
                           </span>
                           {pc?.expected_empty_time ? (
-                            <span className="text-[11px] font-mono text-amber-400 flex items-center gap-1 mt-0.5">
-                              <Hourglass size={12} />
-                              Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                            <span className={`text-[11px] font-mono flex items-center gap-1 mt-0.5 ${isExpired ? "text-red-400 font-bold" : "text-amber-400"}`}>
+                              <Hourglass size={12} className={isExpired ? "animate-spin" : ""} />
+                              {isExpired ? "WAKTU HABIS" : `Kosong: ${new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}`}
                             </span>
                           ) : (
                             <span className="text-[10px] text-white/30 uppercase mt-0.5">Siap Main / Standby</span>
@@ -522,7 +586,7 @@ export default function DataBookingPage() {
                           )}
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
 

@@ -12,6 +12,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/supabase-js": "^2.112.3",
     "clsx": "^2.1.1",
+    "howler": "^2.2.4",
     "lucide-react": "^1.37.0",
     "motion": "^13.0.0",
     "next": "16.3.0",
@@ -20,10 +21,12 @@
     "react-dom": "19.2.8",
     "screenshot-desktop": "^1.15.4",
     "tailwind-merge": "^3.6.0",
-    "use-debounce": "^10.1.1"
+    "use-debounce": "^10.1.1",
+    "use-sound": "^5.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/howler": "^2.2.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
