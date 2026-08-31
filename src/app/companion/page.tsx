@@ -157,10 +157,10 @@ export default function CompanionPage() {
               </div>
               <div>
                 <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
-                  GC-HUB COMPANION
+                  GC HUB MOBILE
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </h1>
-                <p className="text-[10px] text-zinc-400">Kasir Saku & Remote Billing Bilik</p>
+                <p className="text-[10px] text-zinc-400">Monitoring & Kontrol PC Warnet</p>
               </div>
             </div>
 
@@ -207,7 +207,20 @@ export default function CompanionPage() {
         </AnimatePresence>
 
         {/* Main Content Area: Pure PC Cards Grid */}
-        <main className="max-w-md mx-auto px-4 mt-4">
+        <main className="max-w-md mx-auto px-4 mt-4 space-y-3">
+          {/* Polishing Notice Banner */}
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex items-start gap-2.5">
+            <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0 animate-ping" />
+            <div>
+              <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                Under Development
+              </div>
+              <p className="text-[11px] text-zinc-400 leading-tight mt-0.5">
+                Halaman ini akan aktif otomatis setelah software <b>GC Hub Billing</b> dirilis.
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-2.5">
             {pcs.map((pc: any) => {
               const now = Date.now();

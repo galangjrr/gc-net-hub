@@ -7,7 +7,7 @@ import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, BookOpen
 import { motion, AnimatePresence } from "motion/react";
 
 const NAV_ITEMS = [
-  { href: "/companion", label: "COMPANION HP", icon: Smartphone, admin: true },
+  { href: "/companion", label: "GC HUB MOBILE", icon: Smartphone, admin: true },
   { href: "/data-booking", label: "ANTREAN", icon: Database, admin: true },
   { href: "/kasir", label: "KASIR", icon: ShoppingCart, admin: true },
   { href: "/data-pc", label: "DATA PC & SPEK", icon: Monitor, admin: true },
