@@ -23,6 +23,19 @@ export default function DataBookingPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPaket, setSelectedPaket] = useState<string | null>(null);
 
+  const pcInputRef = useRef<HTMLInputElement | null>(null);
+  const paketInputRef = useRef<HTMLInputElement | null>(null);
+  const submitBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  // Auto focus PC input whenever modal opens
+  useEffect(() => {
+    if (showManual) {
+      setTimeout(() => {
+        pcInputRef.current?.focus();
+      }, 50);
+    }
+  }, [showManual]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchPaket);
@@ -729,6 +742,7 @@ export default function DataBookingPage() {
                   <div className="relative">
                     <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih Bilik PC</label>
                     <input
+                      ref={pcInputRef}
                       type="text"
                       value={manualData.searchPc}
                       onChange={e => {
@@ -746,12 +760,17 @@ export default function DataBookingPage() {
                       }}
                       onKeyDown={e => {
                         if (e.key === "Enter" || e.key === "Tab") {
+                          e.preventDefault();
                           const cleanVal = manualData.searchPc.toLowerCase().trim();
                           const matches = (db?.pcs || []).filter(p => p.name.toLowerCase().includes(cleanVal) || p.id.toLowerCase().includes(cleanVal));
                           if (matches.length > 0) {
                             setManualData({ ...manualData, searchPc: matches[0].name, pcId: matches[0].id });
-                            setShowPcList(false);
                           }
+                          setShowPcList(false);
+                          // Auto move focus to Paket input
+                          setTimeout(() => {
+                            paketInputRef.current?.focus();
+                          }, 10);
                         }
                       }}
                       onFocus={() => setShowPcList(true)}
@@ -770,6 +789,7 @@ export default function DataBookingPage() {
                               onClick={() => {
                                 setManualData({ ...manualData, pcId: pc.id, searchPc: pc.name });
                                 setShowPcList(false);
+                                paketInputRef.current?.focus();
                               }}
                               className={`w-full text-left px-3 py-2.5 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
                                 isSelected ? "bg-nvidia-green/15 text-nvidia-green font-bold" : "text-white"
@@ -794,6 +814,7 @@ export default function DataBookingPage() {
                   <div>
                     <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih Paket Booking</label>
                     <input
+                      ref={paketInputRef}
                       type="text"
                       value={searchPaket}
                       onChange={e => {
@@ -809,7 +830,8 @@ export default function DataBookingPage() {
                         }
                       }}
                       onKeyDown={e => {
-                        if (e.key === "Enter") {
+                        if (e.key === "Enter" || e.key === "Tab") {
+                          e.preventDefault();
                           const q = searchPaket.toLowerCase().trim();
                           const parsed = parseInt(q.replace(/\D/g, '')) || 0;
                           const filtered = (db?.pakets || []).filter(p => !p.is_custom && (p.name.toLowerCase().includes(q) || p.price.toString().includes(q)));
@@ -818,6 +840,10 @@ export default function DataBookingPage() {
                           } else if (parsed >= 3000) {
                             setSelectedPaket(`custom-${parsed}`);
                           }
+                          // Auto move focus to submit button
+                          setTimeout(() => {
+                            submitBtnRef.current?.focus();
+                          }, 10);
                         }
                       }}
                       placeholder="Cari paket atau ketik nominal (e.g. 5000 / Malam)"
@@ -845,7 +871,6 @@ export default function DataBookingPage() {
                         
                         // Auto select first match if current selected is invalid
                         if (list.length === 1 && selectedPaket !== list[0].id) {
-                          // Safe async select
                           setTimeout(() => setSelectedPaket(list[0].id), 0);
                         }
 
@@ -855,7 +880,10 @@ export default function DataBookingPage() {
                             <button
                               key={pkg.id}
                               type="button"
-                              onClick={() => setSelectedPaket(pkg.id)}
+                              onClick={() => {
+                                setSelectedPaket(pkg.id);
+                                submitBtnRef.current?.focus();
+                              }}
                               className={`w-full p-2.5 rounded-xl text-xs flex items-center justify-between border transition ${
                                 isSelected
                                   ? "bg-nvidia-green/10 border-nvidia-green text-nvidia-green font-bold shadow-[0_0_10px_rgba(118,185,0,0.15)]"
@@ -886,9 +914,10 @@ export default function DataBookingPage() {
                     Batal
                   </button>
                   <button
+                    ref={submitBtnRef}
                     onClick={handleManualSubmit}
                     disabled={loadingId === 'manual-loading'}
-                    className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded text-xs uppercase hover:bg-[#88d600]"
+                    className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded text-xs uppercase hover:bg-[#88d600] focus:ring-2 focus:ring-nvidia-green/50 focus:outline-none"
                   >
                     {loadingId === 'manual-loading' ? 'Menyimpan...' : (editBookingId ? 'Simpan' : 'Simpan & Main')}
                   </button>
