@@ -476,27 +476,12 @@ export default function DataBookingPage() {
                             </>
                           ) : (
                             <>
-                              {/* Quick Timer Chips */}
-                              <div className="flex items-center gap-1 bg-surface-dark p-1 rounded-lg border border-hairline">
-                                <button
-                                  onClick={() => handleSetTimer(b.pc_id, b.id, 60)}
-                                  className="px-2 py-1 bg-surface hover:bg-nvidia-green hover:text-black rounded text-[10px] font-mono font-bold text-white/70 transition"
-                                  title="Set 1 Jam"
-                                >
-                                  +1j
-                                </button>
-                                <button
-                                  onClick={() => handleSetTimer(b.pc_id, b.id, 120)}
-                                  className="px-2 py-1 bg-surface hover:bg-nvidia-green hover:text-black rounded text-[10px] font-mono font-bold text-white/70 transition"
-                                  title="Set 2 Jam"
-                                >
-                                  +2j
-                                </button>
-                                
+                              {/* Custom Timer Input Only */}
+                              <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-lg border border-hairline">
                                 <input
                                   type="text"
                                   id={`timer-input-${b.id}`}
-                                  placeholder="e.g. 1j 30m"
+                                  placeholder="e.g. 1j 30m / 60"
                                   onKeyDown={e => {
                                     if (e.key === 'Enter') {
                                       const input = document.getElementById(`timer-input-${b.id}`) as HTMLInputElement;
@@ -504,7 +489,7 @@ export default function DataBookingPage() {
                                       input.value = "";
                                     }
                                   }}
-                                  className="w-20 bg-black/40 border border-hairline px-2 py-1 rounded text-[10px] text-white focus:border-nvidia-green outline-none"
+                                  className="w-24 bg-transparent border-0 px-2 py-1 text-[11px] text-white focus:outline-none placeholder:text-white/30"
                                 />
                                 <button
                                   onClick={() => {
@@ -641,35 +626,13 @@ export default function DataBookingPage() {
                     </div>
                   ) : (
                     <div className="space-y-2 pt-1">
-                      {/* Quick Timers */}
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleSetTimer(b.pc_id, b.id, 60)}
-                          className="flex-1 py-1.5 bg-surface-dark hover:bg-nvidia-green hover:text-black border border-hairline rounded text-xs font-mono font-bold text-white/70 transition"
-                        >
-                          +1j
-                        </button>
-                        <button
-                          onClick={() => handleSetTimer(b.pc_id, b.id, 120)}
-                          className="flex-1 py-1.5 bg-surface-dark hover:bg-nvidia-green hover:text-black border border-hairline rounded text-xs font-mono font-bold text-white/70 transition"
-                        >
-                          +2j
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(b)}
-                          className="px-3 py-1.5 bg-surface-dark text-cyan-400 border border-cyan-500/30 rounded text-xs font-bold"
-                        >
-                          Edit
-                        </button>
-                      </div>
-
-                      {/* Custom Input & Complete Button */}
-                      <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                      {/* Custom Input & Action Button */}
+                      <div className="flex items-center gap-2">
                         <div className="flex-1 flex items-stretch border border-hairline rounded-lg overflow-hidden bg-surface-dark">
                           <input
                             type="text"
                             id={`mobile-timer-input-${b.id}`}
-                            placeholder="Set waktu: 1j 30m / 60"
+                            placeholder="Set durasi: 1j 30m / 60"
                             className="flex-1 bg-transparent px-3 py-2 text-xs text-white focus:outline-none"
                           />
                           <button
@@ -683,15 +646,21 @@ export default function DataBookingPage() {
                             SET
                           </button>
                         </div>
-
                         <button
-                          disabled={loadingId === b.id}
-                          onClick={() => handleAction(b.id, 'complete')}
-                          className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                          onClick={() => handleEditClick(b)}
+                          className="px-3 py-2 bg-surface-dark text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-bold"
                         >
-                          <Play size={12} /> Mulai Main
+                          Edit
                         </button>
                       </div>
+
+                      <button
+                        disabled={loadingId === b.id}
+                        onClick={() => handleAction(b.id, 'complete')}
+                        className="w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                      >
+                        <Play size={12} /> Mulai Main
+                      </button>
                     </div>
                   )}
                 </div>
