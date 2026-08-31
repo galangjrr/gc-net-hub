@@ -778,7 +778,7 @@ export default function DataBookingPage() {
                       className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
                     />
                     {showPcList && (
-                      <div className="absolute z-[110] left-0 right-0 top-full mt-1 bg-surface border border-hairline max-h-48 overflow-y-auto rounded-xl shadow-2xl divide-y divide-white/[0.05]">
+                      <div className="absolute z-[150] left-0 right-0 top-full mt-1 bg-[#141416] border border-white/15 max-h-48 overflow-y-auto rounded-xl shadow-2xl divide-y divide-white/[0.08]">
                         {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase()) || p.id.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => {
                           const isOccupied = pc.status === "occupied" || (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > Date.now());
                           const isSelected = manualData.pcId === pc.id || manualData.searchPc.toLowerCase() === pc.name.toLowerCase();
@@ -791,14 +791,14 @@ export default function DataBookingPage() {
                                 setShowPcList(false);
                                 paketInputRef.current?.focus();
                               }}
-                              className={`w-full text-left px-3 py-2.5 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
-                                isSelected ? "bg-nvidia-green/15 text-nvidia-green font-bold" : "text-white"
+                              className={`w-full text-left px-3 py-2.5 text-xs flex items-center justify-between transition hover:bg-white/[0.1] ${
+                                isSelected ? "bg-nvidia-green/20 text-nvidia-green font-bold" : "text-white"
                               }`}
                             >
                               <div className="flex items-center gap-2">
                                 <span>{pc.name}</span>
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-                                  isOccupied ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                  isOccupied ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                                 }`}>
                                   {isOccupied ? "Main" : "Kosong"}
                                 </span>
