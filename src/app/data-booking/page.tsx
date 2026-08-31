@@ -813,93 +813,100 @@ export default function DataBookingPage() {
 
                   <div>
                     <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih Paket Booking</label>
-                    <input
-                      ref={paketInputRef}
-                      type="text"
-                      value={searchPaket}
-                      onChange={e => {
-                        const val = e.target.value;
-                        setSearchPaket(val);
-                        const q = val.toLowerCase().trim();
-                        const parsed = parseInt(q.replace(/\D/g, '')) || 0;
-                        const exact = (db?.pakets || []).find(p => !p.is_custom && (p.name.toLowerCase() === q || p.price === parsed));
-                        if (exact) {
-                          setSelectedPaket(exact.id);
-                        } else if (parsed >= 3000) {
-                          setSelectedPaket(`custom-${parsed}`);
-                        }
-                      }}
-                      onKeyDown={e => {
-                        if (e.key === "Enter" || e.key === "Tab") {
-                          e.preventDefault();
-                          const q = searchPaket.toLowerCase().trim();
-                          const parsed = parseInt(q.replace(/\D/g, '')) || 0;
-                          const filtered = (db?.pakets || []).filter(p => !p.is_custom && (p.name.toLowerCase().includes(q) || p.price.toString().includes(q)));
-                          if (filtered.length > 0) {
-                            setSelectedPaket(filtered[0].id);
-                          } else if (parsed >= 3000) {
-                            setSelectedPaket(`custom-${parsed}`);
-                          }
-                          // Auto move focus to submit button
-                          setTimeout(() => {
-                            submitBtnRef.current?.focus();
-                          }, 10);
-                        }
-                      }}
-                      placeholder="Cari paket atau ketik nominal (e.g. 5000 / Malam)"
-                      className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none mb-2"
-                    />
-                    <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
-                      {(() => {
-                        const query = debouncedSearch.toLowerCase();
-                        let customPkg = null;
-                        let parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
+                    {(() => {
+                      const query = searchPaket.toLowerCase().trim();
+                      let customPkg = null;
+                      let parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
 
-                        const filtered = (db?.pakets || []).filter(p =>
-                          !p.is_custom && (p.name.toLowerCase().includes(query) || p.price.toString().includes(query))
-                        );
+                      const filtered = (db?.pakets || []).filter(p =>
+                        !p.is_custom && (p.name.toLowerCase().includes(query) || p.price.toString().includes(query))
+                      );
 
-                        if (query && parsedPrice >= 3000 && !filtered.some(p => p.price === parsedPrice)) {
-                          customPkg = {
-                            id: `custom-${parsedPrice}`,
-                            name: `Paket Kustom Rp ${parsedPrice.toLocaleString('id-ID')}`,
-                            price: parsedPrice
-                          };
-                        }
+                      if (query && parsedPrice >= 3000 && !filtered.some(p => p.price === parsedPrice)) {
+                        customPkg = {
+                          id: `custom-${parsedPrice}`,
+                          name: `Paket Kustom Rp ${parsedPrice.toLocaleString('id-ID')}`,
+                          price: parsedPrice
+                        };
+                      }
 
-                        const list = customPkg ? [customPkg, ...filtered] : filtered;
-                        
-                        // Auto select first match if current selected is invalid
-                        if (list.length === 1 && selectedPaket !== list[0].id) {
-                          setTimeout(() => setSelectedPaket(list[0].id), 0);
-                        }
+                      const currentList = customPkg ? [customPkg, ...filtered] : filtered;
 
-                        return list.map(pkg => {
-                          const isSelected = selectedPaket === pkg.id;
-                          return (
-                            <button
-                              key={pkg.id}
-                              type="button"
-                              onClick={() => {
-                                setSelectedPaket(pkg.id);
-                                submitBtnRef.current?.focus();
-                              }}
-                              className={`w-full p-2.5 rounded-xl text-xs flex items-center justify-between border transition ${
-                                isSelected
-                                  ? "bg-nvidia-green/10 border-nvidia-green text-nvidia-green font-bold shadow-[0_0_10px_rgba(118,185,0,0.15)]"
-                                  : "bg-surface-dark border-hairline text-white/70 hover:text-white hover:border-white/20"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green" />}
-                                <span>{pkg.name}</span>
-                              </div>
-                              <span className="font-mono">Rp {pkg.price.toLocaleString("id-ID")}</span>
-                            </button>
-                          );
-                        });
-                      })()}
-                    </div>
+                      return (
+                        <>
+                          <input
+                            ref={paketInputRef}
+                            type="text"
+                            value={searchPaket}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setSearchPaket(val);
+                              const q = val.toLowerCase().trim();
+                              const parsed = parseInt(q.replace(/\D/g, '')) || 0;
+                              const matches = (db?.pakets || []).filter(p => !p.is_custom && (p.name.toLowerCase().includes(q) || p.price.toString().includes(q)));
+                              
+                              if (matches.length > 0) {
+                                setSelectedPaket(matches[0].id); // Auto highlight paket teratas
+                              } else if (parsed >= 3000) {
+                                setSelectedPaket(`custom-${parsed}`);
+                              }
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === "ArrowDown") {
+                                e.preventDefault();
+                                const idx = currentList.findIndex(p => p.id === selectedPaket);
+                                if (idx < currentList.length - 1) {
+                                  setSelectedPaket(currentList[idx + 1].id);
+                                }
+                              } else if (e.key === "ArrowUp") {
+                                e.preventDefault();
+                                const idx = currentList.findIndex(p => p.id === selectedPaket);
+                                if (idx > 0) {
+                                  setSelectedPaket(currentList[idx - 1].id);
+                                }
+                              } else if (e.key === "Enter" || e.key === "Tab") {
+                                e.preventDefault();
+                                // Select current highlighted or first item in list
+                                if (!selectedPaket && currentList.length > 0) {
+                                  setSelectedPaket(currentList[0].id);
+                                }
+                                setTimeout(() => {
+                                  submitBtnRef.current?.focus();
+                                }, 10);
+                              }
+                            }}
+                            placeholder="Cari paket atau ketik nominal (e.g. 5000 / Malam)"
+                            className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none mb-2"
+                          />
+                          <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                            {currentList.map(pkg => {
+                              const isSelected = selectedPaket === pkg.id;
+                              return (
+                                <button
+                                  key={pkg.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedPaket(pkg.id);
+                                    submitBtnRef.current?.focus();
+                                  }}
+                                  className={`w-full p-2.5 rounded-xl text-xs flex items-center justify-between border transition ${
+                                    isSelected
+                                      ? "bg-nvidia-green/15 border-nvidia-green text-nvidia-green font-bold shadow-[0_0_10px_rgba(118,185,0,0.2)] scale-[1.01]"
+                                      : "bg-surface-dark border-hairline text-white/70 hover:text-white hover:border-white/20"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green animate-pulse" />}
+                                    <span>{pkg.name}</span>
+                                  </div>
+                                  <span className="font-mono">Rp {pkg.price.toLocaleString("id-ID")}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 
