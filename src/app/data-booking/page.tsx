@@ -475,7 +475,7 @@ export default function DataBookingPage() {
                     >
                       {/* 1. TARGET PC & STATUS (Primary Operator Eye Target) */}
                       <td className="p-4 pl-6">
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex flex-col items-start gap-1.5">
                           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-nvidia-green/15 border-2 border-nvidia-green/50 shadow-[0_0_12px_rgba(118,185,0,0.15)] shrink-0">
                             <Monitor size={16} className="text-nvidia-green shrink-0 stroke-[2.5]" />
                             <span className="font-mono font-black text-sm md:text-base text-white tracking-wider">
@@ -483,7 +483,7 @@ export default function DataBookingPage() {
                             </span>
                           </div>
                           {pc?.expected_empty_time ? (
-                            <span className={`text-[10px] font-mono font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shrink-0 ${
+                            <span className={`text-[10px] font-mono font-bold inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shrink-0 ${
                               isExpired 
                                 ? "bg-red-500/20 border-red-500/50 text-red-400 animate-pulse" 
                                 : isWarning 
