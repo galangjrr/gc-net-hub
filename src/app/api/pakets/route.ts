@@ -36,8 +36,9 @@ export async function PUT(req: Request) {
 
     if (error) throw error;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Update paket error:', error);
+    return NextResponse.json({ error: error?.message || 'Failed' }, { status: 500 });
   }
 }
 
@@ -47,10 +48,16 @@ export async function DELETE(req: Request) {
   }
   try {
     const { id } = await req.json();
+    if (!id) return NextResponse.json({ error: 'ID Paket wajib diisi' }, { status: 400 });
+
+    // Clean up dependent bookings first
+    await supabaseAdmin.from('bookings').delete().eq('paket_id', id);
+
     const { error } = await supabaseAdmin.from('pakets').delete().eq('id', id);
     if (error) throw error;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Delete paket error:', error);
+    return NextResponse.json({ error: error?.message || 'Failed' }, { status: 500 });
   }
 }

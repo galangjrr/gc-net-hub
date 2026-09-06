@@ -41,8 +41,9 @@ export async function PUT(req: Request) {
 
     if (error) throw error;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Update inventory error:', error);
+    return NextResponse.json({ error: error?.message || 'Failed' }, { status: 500 });
   }
 }
 
@@ -55,7 +56,8 @@ export async function DELETE(req: Request) {
     const { error } = await supabaseAdmin.from('inventory').delete().eq('id', id);
     if (error) throw error;
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Delete inventory error:', error);
+    return NextResponse.json({ error: error?.message || 'Failed' }, { status: 500 });
   }
 }

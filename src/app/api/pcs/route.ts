@@ -74,7 +74,8 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ success: true, pc: updated });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to update PC' }, { status: 500 });
+    console.error('Update PC error:', err);
+    return NextResponse.json({ error: err?.message || 'Failed to update PC' }, { status: 500 });
   }
 }
 
@@ -88,11 +89,15 @@ export async function DELETE(req: Request) {
     const cleanId = (id || '').trim().toLowerCase();
     if (!cleanId) return NextResponse.json({ error: 'ID PC wajib diisi' }, { status: 400 });
 
+    // Clean up dependent bookings first to avoid foreign key conflict
+    await supabaseAdmin.from('bookings').delete().eq('pc_id', cleanId);
+
     const { error } = await supabaseAdmin.from('pcs').delete().eq('id', cleanId);
     if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to delete PC' }, { status: 500 });
+    console.error('Delete PC error:', err);
+    return NextResponse.json({ error: err?.message || 'Failed to delete PC' }, { status: 500 });
   }
 }

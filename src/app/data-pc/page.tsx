@@ -93,15 +93,32 @@ export default function DataPC() {
     setForm({
       id: "",
       name: "",
+      status: "available",
       expected_empty_time: "",
-      specs: { cpu: "", gpu: "", ram: "", storage: "", monitor: "", keyboard: "", mouse: "", headset: "", koneksi: "", games: [] }
+      specs: { cpu: "", gpu: "", mainboard: "", ram: "", storage: "", monitor: "", keyboard: "", mouse: "", headset: "", koneksi: "", games: [] }
     });
     setEditMode(false);
     setShowModal(true);
   };
 
   const openEdit = (pc: PC) => {
-    setForm({ ...pc, remainingMinutes: "" });
+    setForm({
+      ...pc,
+      status: (pc.status as any) || "available",
+      specs: {
+        cpu: pc.specs?.cpu || "",
+        gpu: pc.specs?.gpu || "",
+        mainboard: pc.specs?.mainboard || "",
+        ram: pc.specs?.ram || "",
+        storage: pc.specs?.storage || "",
+        monitor: pc.specs?.monitor || "",
+        keyboard: pc.specs?.keyboard || "",
+        mouse: pc.specs?.mouse || "",
+        headset: pc.specs?.headset || "",
+        koneksi: pc.specs?.koneksi || "",
+        games: pc.specs?.games || []
+      }
+    });
     setEditMode(true);
     setShowModal(true);
   };
@@ -155,16 +172,18 @@ export default function DataPC() {
                 <td className="p-4 text-white/70">{pc.specs?.monitor || "-"}</td>
                 <td className="p-4 text-white/70">{pc.specs?.koneksi || "-"}</td>
                 <td className="p-4 text-right">
-                  <div className="flex justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  <div className="flex justify-end gap-2">
                     <button 
                       onClick={() => openEdit(pc)}
-                      className="p-2 hover:bg-nvidia-green hover:text-black rounded-[2px] transition-colors text-nvidia-green"
+                      className="p-2 bg-surface hover:bg-nvidia-green hover:text-black border border-hairline rounded-[2px] transition-colors text-nvidia-green"
+                      title="Edit PC"
                     >
                       <Pencil size={16} />
                     </button>
                     <button 
                       onClick={() => handleDelete(pc.id)}
-                      className="p-2 hover:bg-error hover:text-white rounded-[2px] transition-colors text-error"
+                      className="p-2 bg-surface hover:bg-error hover:text-white border border-hairline rounded-[2px] transition-colors text-error"
+                      title="Hapus PC"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -268,6 +287,30 @@ export default function DataPC() {
                     value={form.name} 
                     onChange={e => setForm({...form, name: e.target.value})}
                     placeholder="e.g. PC-Lyra"
+                    className="w-full bg-surface-dark border border-hairline p-2 text-sm text-white focus:border-nvidia-green outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-white/50 uppercase">Status PC</label>
+                  <select
+                    value={form.status || 'available'}
+                    onChange={e => setForm({...form, status: e.target.value as any})}
+                    className="w-full bg-surface-dark border border-hairline p-2 text-sm text-white focus:border-nvidia-green outline-none"
+                  >
+                    <option value="available">Tersedia (Ready)</option>
+                    <option value="occupied">Sedang Digunakan</option>
+                    <option value="maintenance">Maintenance (Perbaikan)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-white/50 uppercase">Mainboard</label>
+                  <input 
+                    type="text" 
+                    value={form.specs?.mainboard || ""} 
+                    onChange={e => setForm({...form, specs: {...form.specs!, mainboard: e.target.value}})}
+                    placeholder="e.g. ASRock B450M-HDV"
                     className="w-full bg-surface-dark border border-hairline p-2 text-sm text-white focus:border-nvidia-green outline-none"
                   />
                 </div>

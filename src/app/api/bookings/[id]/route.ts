@@ -147,3 +147,28 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isAdminRequest(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  try {
+    const { id } = await params;
+    const { data: booking } = await supabaseAdmin.from('bookings').select('*').eq('id', id).single();
+    if (booking) {
+      if (booking.paket_id?.startsWith('paket-custom-')) {
+        await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
+      }
+      await supabaseAdmin.from('bookings').delete().eq('id', id);
+
+      const { data: rem } = await supabaseAdmin.from('bookings').select('id').eq('pc_id', booking.pc_id);
+      if (!rem || rem.length === 0) {
+        await supabaseAdmin.from('pcs').update({ expected_empty_time: null, status: 'available' }).eq('id', booking.pc_id);
+      }
+    }
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('Delete booking error:', err);
+    return NextResponse.json({ error: err?.message || 'Failed' }, { status: 500 });
+  }
+}

@@ -207,6 +207,20 @@ export default function DataBookingPage() {
     setShowManual(true);
   };
 
+  const handleDeleteBooking = async (id: string, name: string) => {
+    if (!confirm(`Hapus antrean / booking pemain "${name}"?`)) return;
+    setLoadingId(id);
+    try {
+      const res = await fetch(`/api/bookings/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Gagal menghapus antrean");
+      await loadData();
+    } catch (err: any) {
+      alert(err?.message || "Gagal menghapus antrean");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   const handleManualSubmit = async () => {
     let finalPcId = manualData.pcId;
     if (!finalPcId && manualData.searchPc) {
@@ -242,9 +256,10 @@ export default function DataBookingPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'edit_paket',
-          customName: db?.pakets?.find(p => p.id === finalPaketId)?.name,
-          customPrice: db?.pakets?.find(p => p.id === finalPaketId)?.price
+          action: 'edit_booking',
+          pc_id: finalPcId,
+          player_name: manualData.playerName,
+          paket_id: finalPaketId
         })
       });
     } else {
@@ -602,6 +617,15 @@ export default function DataBookingPage() {
 
                               <button
                                 disabled={loadingId === b.id}
+                                onClick={() => handleDeleteBooking(b.id, b.player_name)}
+                                className="p-2 bg-surface-dark hover:bg-error/20 text-error border border-error/30 rounded transition"
+                                title="Hapus Antrean"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+
+                              <button
+                                disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'complete')}
                                 className={`px-3.5 py-1.5 font-black text-[11px] uppercase rounded transition flex items-center gap-1.5 ${
                                   isExpired
@@ -782,6 +806,12 @@ export default function DataBookingPage() {
                           className="px-3 py-2 bg-surface-dark text-cyan-400 border border-cyan-500/30 rounded-lg text-xs font-bold"
                         >
                           Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBooking(b.id, b.player_name)}
+                          className="px-3 py-2 bg-surface-dark text-error border border-error/30 rounded-lg text-xs font-bold"
+                        >
+                          Hapus
                         </button>
                       </div>
 
