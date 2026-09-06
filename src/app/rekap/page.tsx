@@ -9,10 +9,11 @@ export default function RekapKeuanganPage() {
   const [db, setDb] = useState<DatabaseSchema | null>(null);
   const [pdfRevenue, setPdfRevenue] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [filterPeriod, setFilterPeriod] = useState<"today" | "all">("today");
 
   const loadData = async () => {
     try {
-      const res = await fetch("/api/data");
+      const res = await fetch("/api/data", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setDb(data);
@@ -67,36 +68,37 @@ export default function RekapKeuanganPage() {
     if (b.paket_id?.startsWith('custom-')) {
       return parseInt(b.paket_id.replace('custom-', '')) || 0;
     }
+    if (b.paket_id?.startsWith('paket-custom-')) {
+      const parsed = parseInt(b.paket_id.replace('paket-custom-', ''));
+      if (!isNaN(parsed)) return parsed;
+    }
     return 0;
   };
 
-  // 1. Selesai Booking PC (From logs status 'Selesai' today, excluding KASIR)
-  const completedBookingLogsToday = (db.logs || []).filter(l => 
-    l.status === 'Selesai' && 
-    l.pc_name !== 'KASIR' &&
-    new Date(l.end_time).toDateString() === todayStr
-  );
-  const bookingRevenue = completedBookingLogsToday.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+  // Filter logs by period
+  const allLogs = db.logs || [];
+  const completedLogs = allLogs.filter(l => {
+    if (l.status !== 'Selesai') return false;
+    if (filterPeriod === 'today') {
+      const logDate = l.end_time ? new Date(l.end_time).toDateString() : "";
+      return logDate === todayStr;
+    }
+    return true;
+  });
 
-  // 2. Selesai Kasir F&B (From logs pc_name === 'KASIR' and status === 'Selesai' today)
-  const completedFnbLogsToday = (db.logs || []).filter(l =>
-    l.pc_name === 'KASIR' &&
-    l.status === 'Selesai' &&
-    new Date(l.end_time).toDateString() === todayStr
-  );
-  const fnbRevenue = completedFnbLogsToday.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+  // 1. Booking PC Logs
+  const completedBookingLogs = completedLogs.filter(l => l.pc_name !== 'KASIR');
+  const bookingRevenue = completedBookingLogs.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
 
-  // All completed transactions today
-  const todaysLogs = (db.logs || []).filter(l =>
-    l.status === 'Selesai' &&
-    new Date(l.end_time).toDateString() === todayStr
-  );
+  // 2. F&B Logs
+  const completedFnbLogs = completedLogs.filter(l => l.pc_name === 'KASIR');
+  const fnbRevenue = completedFnbLogs.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
 
-  // Total Revenue Today (F&B + Bookings + PDF)
-  const totalRevenueToday = fnbRevenue + bookingRevenue + pdfRevenue;
+  // Total Revenue (F&B + Bookings + PDF)
+  const totalRevenue = fnbRevenue + bookingRevenue + (filterPeriod === 'today' ? pdfRevenue : 0);
 
-  // Total Completed Transactions Today
-  const totalTransactions = completedBookingLogsToday.length + completedFnbLogsToday.length;
+  // Total Completed Transactions
+  const totalTransactions = completedBookingLogs.length + completedFnbLogs.length;
 
   // Active / Ongoing Booking Pooling (Real money collected from QRIS/Cash held in current queue/active sessions)
   const activeBookings = (db.bookings || []).filter(b => b.status === 'active' || b.status === 'pending');
@@ -116,18 +118,34 @@ export default function RekapKeuanganPage() {
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tight">Rekap & Pooling</h1>
                 <p className="text-white/60 tracking-wider text-xs uppercase mt-1">
-                  &gt; ANALITIK PENDAPATAN HARIAN & MONEY POOLING
+                  &gt; ANALITIK PENDAPATAN & MONEY POOLING
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={loadData}
-              className="flex items-center gap-2 px-3 py-2 bg-surface hover:bg-white/10 border border-hairline rounded text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white transition w-fit"
-            >
-              <RotateCw size={16} />
-              Segarkan Data
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex bg-surface border border-hairline rounded-lg p-0.5 text-xs">
+                {(["today", "all"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilterPeriod(f)}
+                    className={`px-3 py-1.5 font-bold uppercase rounded text-[11px] transition ${
+                      filterPeriod === f ? "bg-nvidia-green text-black shadow-sm" : "text-white/50 hover:text-white"
+                    }`}
+                  >
+                    {f === "today" ? "Hari Ini" : "Semua Riwayat"}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={loadData}
+                className="flex items-center gap-2 px-3 py-2 bg-surface hover:bg-white/10 border border-hairline rounded-lg text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white transition w-fit"
+              >
+                <RotateCw size={16} />
+                Segarkan Data
+              </button>
+            </div>
           </div>
 
           {/* KPI Summary Cards */}
@@ -140,10 +158,10 @@ export default function RekapKeuanganPage() {
               </div>
               <div className="nvidia-corner"></div>
               <h3 className="text-white/50 font-bold tracking-wider text-xs uppercase mb-2">
-                Total Pendapatan (Hari Ini)
+                Total Pendapatan ({filterPeriod === "today" ? "Hari Ini" : "Semua Riwayat"})
               </h3>
               <p className="text-3xl font-bold text-nvidia-green tracking-tight font-mono">
-                Rp {totalRevenueToday.toLocaleString("id-ID")}
+                Rp {totalRevenue.toLocaleString("id-ID")}
               </p>
               <div className="mt-4 pt-4 border-t border-hairline flex flex-col gap-1.5 text-[11px] tracking-tight text-white/60 uppercase">
                 <div className="flex justify-between">
@@ -251,18 +269,18 @@ export default function RekapKeuanganPage() {
             </div>
           </div>
 
-          {/* Today's Transactions Log Table */}
+          {/* Completed Transactions Log Table */}
           <div className="bg-surface border border-hairline rounded-lg overflow-hidden">
             <div className="p-4 border-b border-hairline flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
                 <Receipt size={16} className="text-nvidia-green" />
-                Daftar Transaksi Selesai Hari Ini ({todaysLogs.length})
+                Daftar Transaksi Selesai ({filterPeriod === "today" ? "Hari Ini" : "Semua Riwayat"}) ({completedLogs.length})
               </h3>
             </div>
             
-            {todaysLogs.length === 0 ? (
+            {completedLogs.length === 0 ? (
               <div className="p-8 text-center text-white/40 text-xs uppercase tracking-widest">
-                Belum ada transaksi selesai hari ini.
+                Belum ada transaksi selesai {filterPeriod === "today" ? "hari ini" : "yang tercatat"}.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -277,10 +295,12 @@ export default function RekapKeuanganPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-hairline">
-                    {todaysLogs.map((log) => (
+                    {completedLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-white/[0.02]">
                         <td className="p-3 pl-4 font-mono text-white/50">
-                          {new Date(log.end_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                          {filterPeriod === "today"
+                            ? (log.end_time ? new Date(log.end_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' }) : "-")
+                            : (log.end_time ? `${new Date(log.end_time).toLocaleDateString("id-ID", { day: "2-digit", month: "short" })} ${new Date(log.end_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}` : "-")}
                         </td>
                         <td className="p-3 font-bold text-white">{log.player_name}</td>
                         <td className="p-3">

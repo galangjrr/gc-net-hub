@@ -57,8 +57,7 @@ export async function POST(req: Request) {
         price: payload?.price || 4000,
         start_time: new Date().toISOString(),
         end_time: emptyTime,
-        status: 'Selesai',
-        reason: 'Aktivasi Remote Companion HP'
+        status: 'Selesai'
       });
 
       return NextResponse.json({ success: true, data });

@@ -95,20 +95,27 @@ const DEFAULT_INVENTORY: InventoryItem[] = [
 
 export async function getDB(): Promise<DatabaseSchema> {
   const [
-    { data: settings },
-    { data: inventory },
-    { data: pcs },
-    { data: pakets },
-    { data: bookings },
-    { data: logs }
+    settingsRes,
+    inventoryRes,
+    pcsRes,
+    paketsRes,
+    bookingsRes,
+    logsRes
   ] = await Promise.all([
-    supabaseAdmin.from('settings').select('id, user_counter, daily_pdf_revenue').limit(1).single(),
+    supabaseAdmin.from('settings').select('id, user_counter, daily_pdf_revenue').limit(1).maybeSingle(),
     supabaseAdmin.from('inventory').select('id, name, price, stock, category').neq('category', 'staff_account'),
     supabaseAdmin.from('pcs').select('id, name, status, expected_empty_time, image, specs').order('id', { ascending: true }),
     supabaseAdmin.from('pakets').select('id, name, price, duration_minutes, fixed_start_time, fixed_end_time, days, is_custom').order('price', { ascending: true }),
-    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at').order('created_at', { ascending: false }).limit(50),
-    supabaseAdmin.from('logs').select('id, player_name, pc_name, paket_name, price, start_time, end_time, status, reason').order('end_time', { ascending: false }).limit(100)
+    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at').order('created_at', { ascending: false }).limit(100),
+    supabaseAdmin.from('logs').select('*').order('end_time', { ascending: false }).limit(200)
   ]);
+
+  const settings = settingsRes.data;
+  const inventory = inventoryRes.data;
+  const pcs = pcsRes.data;
+  const pakets = paketsRes.data;
+  const bookings = bookingsRes.data;
+  const logs = logsRes.data;
 
   const now = Date.now();
   const activeBookingsMap = new Map<string, any>();

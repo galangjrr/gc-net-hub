@@ -155,6 +155,26 @@ export default function Sidebar() {
             })}
           </nav>
 
+          {/* Desktop Auth Footer */}
+          <div className="p-4 border-t border-hairline mt-auto">
+            {isUnlocked ? (
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[2px] text-xs font-bold uppercase tracking-wider text-error hover:bg-error/10 border border-error/20 transition-all"
+              >
+                <LogOut size={16} />
+                LOGOUT ADMIN
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[2px] text-xs font-bold uppercase tracking-wider text-nvidia-green hover:bg-nvidia-green/10 border border-nvidia-green/30 transition-all"
+              >
+                <Lock size={16} />
+                LOGIN ADMIN
+              </Link>
+            )}
+          </div>
 
         </div>
 

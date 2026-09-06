@@ -30,19 +30,24 @@ export default function LogAktivitasPage() {
   const today = new Date().toDateString();
   const filteredLogs = [...(db.logs || [])]
     .filter(l => {
-      if (filterDate === "today" && new Date(l.end_time).toDateString() !== today) return false;
+      const logDate = l.end_time ? new Date(l.end_time).toDateString() : (l.start_time ? new Date(l.start_time).toDateString() : "");
+      if (filterDate === "today" && logDate !== today) return false;
       if (filterStatus !== "all" && l.status !== filterStatus) return false;
       if (search.trim()) {
         const q = search.toLowerCase();
         return (
-          l.player_name.toLowerCase().includes(q) ||
-          l.pc_name.toLowerCase().includes(q) ||
-          l.paket_name.toLowerCase().includes(q)
+          (l.player_name || "").toLowerCase().includes(q) ||
+          (l.pc_name || "").toLowerCase().includes(q) ||
+          (l.paket_name || "").toLowerCase().includes(q)
         );
       }
       return true;
     })
-    .sort((a, b) => new Date(b.end_time).getTime() - new Date(a.end_time).getTime());
+    .sort((a, b) => {
+      const timeA = a.end_time ? new Date(a.end_time).getTime() : 0;
+      const timeB = b.end_time ? new Date(b.end_time).getTime() : 0;
+      return timeB - timeA;
+    });
 
   return (
     <PinGuard>
@@ -139,9 +144,11 @@ export default function LogAktivitasPage() {
                   return (
                     <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="p-4 pl-6 font-mono text-white/50 text-[11px]">
-                        {new Date(log.end_time).toLocaleString("id-ID", { 
-                          day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" 
-                        })}
+                        {log.end_time
+                          ? new Date(log.end_time).toLocaleString("id-ID", { 
+                              day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" 
+                            })
+                          : "-"}
                       </td>
                       <td className="p-4 font-bold text-white text-sm">{log.player_name}</td>
                       <td className="p-4">
@@ -223,9 +230,11 @@ export default function LogAktivitasPage() {
                   </div>
 
                   <div className="text-[10px] font-mono text-white/40">
-                    {new Date(log.end_time).toLocaleString("id-ID", { 
-                      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" 
-                    })}
+                    {log.end_time
+                      ? new Date(log.end_time).toLocaleString("id-ID", { 
+                          day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" 
+                        })
+                      : "-"}
                   </div>
                 </div>
               );
