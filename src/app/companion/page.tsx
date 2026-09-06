@@ -224,13 +224,16 @@ export default function CompanionPage() {
           <div className="grid grid-cols-2 gap-2.5">
             {pcs.map((pc: any) => {
               const now = Date.now();
-              const hasTimer = pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > now;
+              const hasTimer = Boolean(pc.expected_empty_time);
+              const diff = pc.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+              const isExpired = hasTimer && diff <= 0;
+              const isWarning = hasTimer && diff > 0 && diff <= 10 * 60 * 1000;
               const isOccupied = pc.status === "occupied" || hasTimer;
               const isMaintenance = pc.status === "maintenance";
 
               let remainingMin = 0;
-              if (hasTimer) {
-                remainingMin = Math.max(0, Math.ceil((new Date(pc.expected_empty_time).getTime() - now) / 60000));
+              if (hasTimer && diff > 0) {
+                remainingMin = Math.ceil(diff / 60000);
               }
 
               return (
@@ -239,7 +242,11 @@ export default function CompanionPage() {
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setSelectedPc(pc)}
                   className={`relative p-3.5 rounded-2xl border transition cursor-pointer flex flex-col justify-between min-h-[115px] ${
-                    isOccupied
+                    isExpired
+                      ? "bg-red-950/30 border-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.25)]"
+                      : isWarning
+                      ? "bg-amber-950/30 border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.25)] animate-pulse"
+                      : isOccupied
                       ? "bg-emerald-950/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                       : isMaintenance
                       ? "bg-amber-950/20 border-amber-500/40"
@@ -250,7 +257,11 @@ export default function CompanionPage() {
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-sm text-white tracking-tight">{pc.name}</span>
                     <span className={`w-2.5 h-2.5 rounded-full ${
-                      isOccupied 
+                      isExpired
+                        ? "bg-red-500 shadow-[0_0_8px_#ef4444] animate-pulse"
+                        : isWarning
+                        ? "bg-amber-400 shadow-[0_0_8px_#f59e0b] animate-ping"
+                        : isOccupied 
                         ? "bg-emerald-400 shadow-[0_0_8px_#34d399]" 
                         : isMaintenance 
                         ? "bg-amber-400" 
@@ -262,8 +273,10 @@ export default function CompanionPage() {
                   <div className="my-1.5">
                     {isOccupied ? (
                       <div>
-                        <div className="text-[11px] font-semibold text-emerald-300 truncate">
-                          {pc.player_name || "Sedang Bermain"}
+                        <div className={`text-[11px] font-semibold truncate ${
+                          isExpired ? 'text-red-300' : isWarning ? 'text-amber-300' : 'text-emerald-300'
+                        }`}>
+                          {pc.player_name || (isExpired ? "Waktu Habis" : "Sedang Bermain")}
                         </div>
                         <div className="text-[10px] text-zinc-400 truncate">
                           {pc.paket_name || "Paket Billing"}
@@ -278,9 +291,17 @@ export default function CompanionPage() {
 
                   {/* Footer: Timer or Action Hint */}
                   <div className="pt-1.5 border-t border-white/[0.04] flex items-center justify-between text-[10px]">
-                    {isOccupied ? (
+                    {isExpired ? (
+                      <div className="flex items-center gap-1 text-red-400 font-mono font-bold animate-pulse">
+                        <Clock size={11} /> Waktu Habis (0m)
+                      </div>
+                    ) : isWarning ? (
+                      <div className="flex items-center gap-1 text-amber-400 font-mono font-bold">
+                        <Clock size={11} className="animate-spin" /> {remainingMin}m tersisa
+                      </div>
+                    ) : isOccupied ? (
                       <div className="flex items-center gap-1 text-emerald-400 font-mono font-bold">
-                        <Clock size={11} /> {remainingMin}m tersisa
+                        <Clock size={11} /> {remainingMin > 0 ? `${remainingMin}m tersisa` : 'Aktif'}
                       </div>
                     ) : (
                       <div className="text-zinc-500 flex items-center gap-0.5">

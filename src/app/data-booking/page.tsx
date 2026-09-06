@@ -90,15 +90,13 @@ export default function DataBookingPage() {
 
     // Fast 1-second ticker to check countdown expiry and trigger 10s buzzer alarm
     const timerTicker = setInterval(() => {
-      if (!db?.pcs || !db?.bookings) return;
+      if (!db?.pcs) return;
       const now = Date.now();
       
-      db.bookings.forEach((b: Booking) => {
-        if (b.status !== "active") return;
-        const pc = db.pcs.find((p: PC) => p.id === b.pc_id);
+      db.pcs.forEach((pc: PC) => {
         if (pc?.expected_empty_time) {
           const expTime = new Date(pc.expected_empty_time).getTime();
-          // If expired within the last 15 seconds and haven't triggered yet
+          // If expired within the last 20 seconds and haven't triggered yet
           if (expTime <= now && now - expTime < 20000 && !triggeredExpiredPcIds.current.has(pc.id)) {
             triggeredExpiredPcIds.current.add(pc.id);
             triggerAlarm();
@@ -631,6 +629,7 @@ export default function DataBookingPage() {
               const pkg = db.pakets.find(p => p.id === b.paket_id);
               const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
               const isPending = b.status === "pending";
+              const isExpired = !isPending && pc?.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= Date.now();
 
               const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
               let pkgTitle = 'Tarif Langsung';
@@ -695,9 +694,11 @@ export default function DataBookingPage() {
                         Rp {resolvedPrice.toLocaleString("id-ID")}
                       </span>
                       {pc?.expected_empty_time && (
-                        <span className="text-[10px] text-amber-400 font-mono flex items-center justify-end gap-1 mt-1">
-                          <Hourglass size={10} />
-                          {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                        <span className={`text-[10px] font-mono flex items-center justify-end gap-1 mt-1 ${
+                          isExpired ? "text-red-400 font-bold animate-pulse" : "text-amber-400"
+                        }`}>
+                          <Hourglass size={10} className={isExpired ? "animate-spin" : ""} />
+                          {isExpired ? "WAKTU HABIS" : new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       )}
                     </div>

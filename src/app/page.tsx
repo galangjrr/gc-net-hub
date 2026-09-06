@@ -45,6 +45,7 @@ export default function Home() {
   const [bookingStep, setBookingStep] = useState<1 | 2>(1);
   const [antreanSearch, setAntreanSearch] = useState("");
   const carouselRef = useRef<HTMLDivElement>(null);
+  const triggeredExpiredPcIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const el = carouselRef.current;
@@ -148,10 +149,26 @@ export default function Home() {
     };
   }, []);
 
-
+  // Trigger audio alert when any PC timer reaches 0
+  useEffect(() => {
+    if (!db?.pcs) return;
+    db.pcs.forEach((pc: PC) => {
+      if (pc.expected_empty_time) {
+        const expTime = new Date(pc.expected_empty_time).getTime();
+        if (expTime <= now && now - expTime < 15000 && !triggeredExpiredPcIds.current.has(pc.id)) {
+          triggeredExpiredPcIds.current.add(pc.id);
+          try {
+            const audio = new Audio("/sounds/timer-alarm-10s.wav");
+            audio.volume = 0.6;
+            audio.play().catch(() => {});
+          } catch (_) {}
+        }
+      }
+    });
+  }, [now, db?.pcs]);
 
   const totalPcs = db?.pcs?.length || 0;
-  const bookedPcsCount = db?.pcs?.filter(pc => db?.bookings?.some(b => b.pc_id === pc.id)).length || 0;
+  const bookedPcsCount = db?.pcs?.filter(pc => (pc.status === 'occupied' || Boolean(pc.expected_empty_time)) || db?.bookings?.some(b => b.pc_id === pc.id)).length || 0;
 
   const handlePcClick = (pcId: string) => {
     setSelectedPc(pcId);
@@ -162,7 +179,9 @@ export default function Home() {
 
   const handleNextStep = () => {
     const selectedPcBookings = db?.bookings?.filter(b => b.pc_id === selectedPc) || [];
-    if (selectedPcBookings.length > 0) {
+    const targetPc = db?.pcs?.find(p => p.id === selectedPc);
+    const hasActiveTimer = targetPc?.expected_empty_time && new Date(targetPc.expected_empty_time).getTime() > Date.now();
+    if (selectedPcBookings.length > 0 || hasActiveTimer) {
       setShowQueueWarning(true);
       return;
     }
@@ -907,77 +926,154 @@ export default function Home() {
                       {db?.pcs?.map((pc) => {
                         const isSelected = selectedPc === pc.id;
                         const pcBookings = db?.bookings?.filter(b => b.pc_id === pc.id) || [];
-                        const diff = pc.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
-                        const isTimerActive = diff > 0;
-                        const mins = Math.floor(diff / 60000);
-                        const secs = Math.floor((diff % 60000) / 1000);
                         const firstBooking = pcBookings[0];
                         const isPending = firstBooking?.status === 'pending';
+
+                        const hasTimer = Boolean(pc.expected_empty_time);
+                        const diff = pc.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+                        const isExpired = hasTimer && diff <= 0;
+                        const isWarning = hasTimer && diff > 0 && diff <= 10 * 60 * 1000;
+                        const isNormalTimer = hasTimer && diff > 10 * 60 * 1000;
+
+                        const mins = Math.max(0, Math.floor(diff / 60000));
+                        const secs = Math.max(0, Math.floor((diff % 60000) / 1000));
 
                         return (
                           <motion.button
                             variants={itemVariants}
-                            whileHover={{ scale: 1.03, borderColor: "#76b900" }}
+                            whileHover={{ 
+                              scale: 1.03, 
+                              borderColor: isExpired ? "#ef4444" : isWarning ? "#f59e0b" : "#76b900" 
+                            }}
                             whileTap={{ scale: 0.97 }}
                             key={pc.id}
                             onClick={() => handlePcClick(pc.id)}
                             className={`
-                              relative flex flex-col items-start justify-between p-3 md:p-4 rounded-[2px] transition-all border border-hairline overflow-hidden group h-full
+                              relative flex flex-col items-start justify-between p-3 md:p-4 rounded-[2px] transition-all border overflow-hidden group h-full text-left
                               ${isSelected
-                                ? "bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[inset_0_0_20px_rgba(118,185,0,0.2)]"
-                                : "bg-surface-dark text-white hover:border-white/50"
+                                ? isExpired
+                                  ? "bg-red-500/20 border-red-500 text-white shadow-[inset_0_0_20px_rgba(239,68,68,0.3),0_0_25px_rgba(239,68,68,0.4)] ring-1 ring-red-500"
+                                  : isWarning
+                                  ? "bg-amber-500/20 border-amber-500 text-white shadow-[inset_0_0_20px_rgba(245,158,11,0.3),0_0_25px_rgba(245,158,11,0.4)] ring-1 ring-amber-500 animate-pulse"
+                                  : "bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[inset_0_0_20px_rgba(118,185,0,0.2)]"
+                                : isExpired
+                                ? "bg-red-500/10 border-red-500/80 text-white shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:border-red-400"
+                                : isWarning
+                                ? "bg-amber-500/10 border-amber-500/80 text-white shadow-[0_0_20px_rgba(245,158,11,0.25)] animate-pulse hover:border-amber-400"
+                                : "bg-surface-dark border-hairline text-white hover:border-white/50"
                               }
                             `}
                           >
-                            {!isSelected && (
+                            {!isSelected && !isExpired && !isWarning && (
                               <div className="absolute inset-0 bg-nvidia-green/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                             )}
 
                             {/* Watermark Icon */}
                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-                              <Monitor size={80} className={isSelected ? "text-nvidia-green" : "text-white"} />
+                              <Monitor size={80} className={
+                                isSelected 
+                                  ? isExpired ? "text-red-400" : isWarning ? "text-amber-400" : "text-nvidia-green"
+                                  : isExpired ? "text-red-400" : isWarning ? "text-amber-400" : "text-white"
+                              } />
                             </div>
 
+                            {/* Header: PC Name & Status Badges */}
                             <div className="flex justify-between w-full relative z-10 mb-2 items-start gap-2">
-                              <span className="font-sans text-sm md:text-base font-black tracking-tighter uppercase leading-tight">
-                                {pc.name}
-                              </span>
+                              <div className="flex flex-col items-start text-left">
+                                <span className={`font-sans text-sm md:text-base font-black tracking-tighter uppercase leading-tight ${
+                                  isExpired ? "text-red-400" : isWarning ? "text-amber-400" : isSelected ? "text-nvidia-green" : "text-white"
+                                }`}>
+                                  {pc.name}
+                                </span>
+                                {isExpired ? (
+                                  <span className="text-[9px] font-bold text-red-400 tracking-wide uppercase mt-0.5 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping inline-block" /> Waktu Habis
+                                  </span>
+                                ) : isWarning ? (
+                                  <span className="text-[9px] font-bold text-amber-400 tracking-wide uppercase mt-0.5 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block" /> Segera Berakhir
+                                  </span>
+                                ) : null}
+                              </div>
+
                               <div className="flex flex-col items-end gap-1.5 shrink-0">
                                 <Monitor
                                   size={18}
-                                  className={`md:w-[20px] md:h-[20px] mb-1 ${isSelected ? "text-nvidia-green" : "text-white/30 group-hover:text-white/60"}`}
+                                  className={`md:w-[20px] md:h-[20px] mb-1 ${
+                                    isExpired 
+                                      ? "text-red-400" 
+                                      : isWarning 
+                                      ? "text-amber-400" 
+                                      : isSelected 
+                                      ? "text-nvidia-green" 
+                                      : "text-white/30 group-hover:text-white/60"
+                                  }`}
                                 />
-                                {pcBookings.length > 0 && (
-                                  <span className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-widest text-center leading-[1.2] max-w-[65px] md:max-w-none ${isPending ? 'bg-warning text-black' : 'bg-nvidia-green text-black'}`}>
+                                {pcBookings.length > 0 ? (
+                                  <span className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-widest text-center leading-[1.2] max-w-[65px] md:max-w-none ${
+                                    isPending ? 'bg-amber-500 text-black font-black' : 'bg-nvidia-green text-black font-black'
+                                  }`}>
                                     {isPending ? 'Menunggu Admin' : 'Booked'}
                                   </span>
-                                )}
+                                ) : isExpired ? (
+                                  <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse">
+                                    Habis
+                                  </span>
+                                ) : isWarning ? (
+                                  <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                                    &lt; 10M
+                                  </span>
+                                ) : null}
                               </div>
                             </div>
 
-                            {isTimerActive && (
-                              <div className="w-full bg-warning/10 border border-warning/20 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10">
-                                <span className="text-[9px] text-warning font-bold uppercase tracking-widest">Sisa Waktu</span>
-                                <span className="text-[11px] tracking-tight text-warning font-bold tracking-wider">
+                            {/* Timer Bar */}
+                            {isExpired ? (
+                              <div className="w-full bg-red-500/20 border border-red-500/40 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-red-300">
+                                <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
+                                  <AlertTriangle size={11} className="text-red-400" /> Sisa Waktu
+                                </span>
+                                <span className="font-mono text-[11px] font-black tracking-wider text-red-400 animate-pulse">
+                                  00:00 (HABIS)
+                                </span>
+                              </div>
+                            ) : isWarning ? (
+                              <div className="w-full bg-amber-500/20 border border-amber-500/40 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-amber-300">
+                                <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
+                                  <Clock size={11} className="text-amber-400 animate-spin" /> Sisa Waktu
+                                </span>
+                                <span className="font-mono text-[11px] font-black tracking-wider text-amber-300">
                                   {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
                                 </span>
                               </div>
-                            )}
+                            ) : isNormalTimer ? (
+                              <div className="w-full bg-white/[0.04] border border-white/10 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-white/70">
+                                <span className="text-[9px] font-bold uppercase tracking-widest">Sisa Waktu</span>
+                                <span className="font-mono text-[11px] font-bold tracking-wider text-nvidia-green">
+                                  {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
+                                </span>
+                              </div>
+                            ) : null}
 
+                            {/* PC Body & Booking Info */}
                             <div className="flex-1 w-full relative z-10 flex flex-col gap-1.5 mt-2 justify-center">
                               {pcBookings.length > 0 ? (
                                 <div className="flex flex-col w-full h-full gap-1.5 justify-center">
-                                  {pcBookings.slice(0, 3).map((b, i) => {
+                                  {pcBookings.slice(0, 3).map((b) => {
                                     const paket = db?.pakets?.find(p => p.id === b.paket_id);
                                     const pName = paket?.name || "Custom";
                                     return (
                                       <div key={b.id} className="flex flex-col justify-center gap-1.5 w-full">
                                         <div className="flex items-start gap-2">
-                                          <User size={14} className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
+                                          <User size={14} className={`shrink-0 mt-0.5 ${
+                                            isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
+                                          }`} />
                                           <span className="text-[12px] uppercase font-bold text-white/90 line-clamp-2 leading-tight">{b.player_name || "Guest"}</span>
                                         </div>
                                         <div className="flex items-start gap-2">
-                                          <Package size={14} className={`shrink-0 mt-0.5 ${isSelected ? 'text-nvidia-green' : 'text-white/50'}`} />
+                                          <Package size={14} className={`shrink-0 mt-0.5 ${
+                                            isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
+                                          }`} />
                                           <span className="text-[12px] font-bold text-white/70 line-clamp-2 leading-tight">{pName}</span>
                                         </div>
                                       </div>
@@ -988,6 +1084,25 @@ export default function Home() {
                                       +{pcBookings.length - 3} Antrean Lainnya
                                     </div>
                                   )}
+                                </div>
+                              ) : (pc.player_name || isExpired || isWarning || isNormalTimer) ? (
+                                <div className="flex flex-col justify-center gap-1.5 w-full">
+                                  <div className="flex items-start gap-2">
+                                    <User size={14} className={`shrink-0 mt-0.5 ${
+                                      isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
+                                    }`} />
+                                    <span className="text-[12px] uppercase font-bold text-white/90 line-clamp-2 leading-tight">
+                                      {pc.player_name || (isExpired ? "Sesi Berakhir" : "Sedang Main")}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-start gap-2">
+                                    <Package size={14} className={`shrink-0 mt-0.5 ${
+                                      isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
+                                    }`} />
+                                    <span className="text-[12px] font-bold text-white/70 line-clamp-2 leading-tight">
+                                      {pc.paket_name || (isExpired ? "Siap Dibooking" : "Sesi Bilik")}
+                                    </span>
+                                  </div>
                                 </div>
                               ) : (
                                 <div className={`text-sm md:text-base h-full tracking-tight font-bold uppercase flex items-center justify-center gap-2 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/30'}`}>

@@ -128,10 +128,12 @@ export async function getDB(): Promise<DatabaseSchema> {
   const cleanedPcs = (pcs || []).map((pc: any) => {
     const activeBooking = activeBookingsMap.get(pc.id.toLowerCase());
     const paket = activeBooking ? (pakets || []).find((p: any) => p.id === activeBooking.paket_id) : null;
-    const hasTimer = pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > now;
+    const expTime = pc.expected_empty_time ? new Date(pc.expected_empty_time).getTime() : null;
+    const hasTimer = Boolean(expTime);
+    const isStale = expTime ? (now - expTime > 30 * 60 * 1000) : false;
 
-    if (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= now) {
-      // Asynchronously clean up stale expired timer in background
+    if (isStale) {
+      // Asynchronously clean up stale expired timer in background after 30m grace period
       supabaseAdmin.from('pcs').update({ expected_empty_time: null, status: 'available' }).eq('id', pc.id).then();
       return { 
         ...pc, 
