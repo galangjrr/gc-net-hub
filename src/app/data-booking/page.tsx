@@ -429,10 +429,10 @@ export default function DataBookingPage() {
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead className="bg-surface-dark border-b border-hairline text-white/50 text-[10px] uppercase tracking-wider">
                 <tr>
-                  <th className="p-4 pl-6 w-28">Status</th>
+                  <th className="p-4 pl-6 text-nvidia-green font-black tracking-wider">Target PC & Status</th>
+                  <th className="p-4 text-nvidia-green font-black tracking-wider">Paket / Tarif</th>
                   <th className="p-4">Pemain</th>
-                  <th className="p-4">Target PC & Countdown</th>
-                  <th className="p-4">Paket / Tarif</th>
+                  <th className="p-4 w-28">Status</th>
                   <th className="p-4">Waktu Booking</th>
                   <th className="p-4 pr-6 text-right">Aksi & Timer Bilik</th>
                 </tr>
@@ -446,6 +446,18 @@ export default function DataBookingPage() {
                   const now = Date.now();
                   const isExpired = !isPending && pc?.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= now;
 
+                  const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
+                  let pkgTitle = 'Tarif Langsung';
+                  if (!isPriceName && pkg?.name) {
+                    pkgTitle = pkg.name;
+                  } else if (pkg?.duration_minutes) {
+                    pkgTitle = pkg.duration_minutes >= 60 
+                      ? `${Math.round(pkg.duration_minutes / 60)} Jam` 
+                      : `${pkg.duration_minutes} Menit`;
+                  } else if (b.paket_id?.startsWith('custom-')) {
+                    pkgTitle = 'Kustom';
+                  }
+
                   return (
                     <motion.tr
                       key={b.id}
@@ -455,60 +467,71 @@ export default function DataBookingPage() {
                       transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                       className={`transition-colors group ${isExpired ? "border-l-4 border-l-red-500" : "hover:bg-white/[0.02]"}`}
                     >
+                      {/* 1. TARGET PC (Primary Operator Eye Target) */}
                       <td className="p-4 pl-6">
-                        {isPending ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
-                            <Clock size={12} className="animate-spin" />
-                            Menunggu Verifikasi
-                          </span>
-                        ) : isExpired ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
-                            <Hourglass size={12} />
-                            Waktu Habis!
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                            <CheckCircle2 size={12} />
-                            Antrean Terkonfirmasi
-                          </span>
-                        )}
+                        <div className="flex items-center gap-3">
+                          <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-nvidia-green/15 border-2 border-nvidia-green/50 shadow-[0_0_15px_rgba(118,185,0,0.18)]">
+                            <Monitor size={18} className="text-nvidia-green shrink-0 stroke-[2.5]" />
+                            <span className="font-mono font-black text-base md:text-lg text-white tracking-wider">
+                              {(pc?.name || b.pc_id).toUpperCase()}
+                            </span>
+                          </div>
+                          {pc?.expected_empty_time ? (
+                            <span className={`text-[11px] font-mono font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg border ${
+                              isExpired ? "bg-red-500/20 border-red-500/50 text-red-400 animate-pulse" : "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                            }`}>
+                              <Hourglass size={12} className={isExpired ? "animate-spin" : ""} />
+                              {isExpired ? "WAKTU HABIS" : `Kosong: ${new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}`}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-emerald-400/90 uppercase tracking-wider px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                              Ready
+                            </span>
+                          )}
+                        </div>
                       </td>
 
+                      {/* 2. PAKET & TARIF (Primary Financial Info) */}
+                      <td className="p-4">
+                        <div className="inline-flex flex-col justify-center px-3.5 py-2 rounded-xl bg-surface-dark border border-hairline min-w-[130px] shadow-sm">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-white/80 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green"></span>
+                            {pkgTitle}
+                          </span>
+                          <span className="font-mono font-black text-sm md:text-base text-nvidia-green tracking-tight mt-0.5">
+                            Rp {resolvedPrice.toLocaleString("id-ID")}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* 3. PEMAIN */}
                       <td className="p-4 font-bold text-white text-sm">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-surface-dark border border-hairline flex items-center justify-center text-nvidia-green font-mono text-xs">
+                          <div className="w-7 h-7 rounded-lg bg-surface-dark border border-hairline flex items-center justify-center text-white/70 font-mono text-xs">
                             {b.player_name.slice(0, 1).toUpperCase()}
                           </div>
                           <span>{b.player_name}</span>
                         </div>
                       </td>
 
+                      {/* 4. STATUS */}
                       <td className="p-4">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-nvidia-green text-sm flex items-center gap-1.5">
-                            <Monitor size={14} />
-                            {pc?.name || b.pc_id}
+                        {isPending ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+                            <Clock size={11} className="animate-spin" /> Verifikasi
                           </span>
-                          {pc?.expected_empty_time ? (
-                            <span className={`text-[11px] font-mono flex items-center gap-1 mt-0.5 ${isExpired ? "text-red-400 font-bold" : "text-amber-400"}`}>
-                              <Hourglass size={12} className={isExpired ? "animate-spin" : ""} />
-                              {isExpired ? "WAKTU HABIS" : `Kosong: ${new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}`}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-white/30 uppercase mt-0.5">Siap Main / Standby</span>
-                          )}
-                        </div>
+                        ) : isExpired ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                            <Hourglass size={11} /> Habis
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-[10px] font-semibold uppercase tracking-wider">
+                            <CheckCircle2 size={11} /> Terkonfirmasi
+                          </span>
+                        )}
                       </td>
 
-                      <td className="p-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-white">{pkg?.name || 'Paket Kustom'}</span>
-                          <span className="font-mono text-nvidia-green font-bold text-[11px]">
-                            Rp {resolvedPrice.toLocaleString("id-ID")}
-                          </span>
-                        </div>
-                      </td>
-
+                      {/* 5. WAKTU */}
                       <td className="p-4 font-mono text-white/50 text-[11px]">
                         {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
                       </td>
@@ -609,6 +632,18 @@ export default function DataBookingPage() {
               const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
               const isPending = b.status === "pending";
 
+              const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
+              let pkgTitle = 'Tarif Langsung';
+              if (!isPriceName && pkg?.name) {
+                pkgTitle = pkg.name;
+              } else if (pkg?.duration_minutes) {
+                pkgTitle = pkg.duration_minutes >= 60 
+                  ? `${Math.round(pkg.duration_minutes / 60)} Jam` 
+                  : `${pkg.duration_minutes} Menit`;
+              } else if (b.paket_id?.startsWith('custom-')) {
+                pkgTitle = 'Kustom';
+              }
+
               return (
                 <div
                   key={b.id}
@@ -616,51 +651,55 @@ export default function DataBookingPage() {
                     isPending ? "border-amber-500/40" : "border-hairline"
                   }`}
                 >
-                  {/* Top Bar */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-surface-dark border border-hairline flex items-center justify-center text-nvidia-green font-mono font-bold text-sm">
-                        {b.player_name.slice(0, 1).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white text-sm">{b.player_name}</h3>
-                        <span className="text-[10px] text-white/40 font-mono">
-                          {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
-                        </span>
-                      </div>
+                  {/* Top Bar - High Visibility PC & Status */}
+                  <div className="flex items-center justify-between gap-2 pb-1 border-b border-hairline/60">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-nvidia-green/15 border-2 border-nvidia-green/50 shadow-[0_0_12px_rgba(118,185,0,0.15)]">
+                      <Monitor size={16} className="text-nvidia-green stroke-[2.5]" />
+                      <span className="font-mono font-black text-sm md:text-base text-white tracking-wider">
+                        {(pc?.name || b.pc_id).toUpperCase()}
+                      </span>
                     </div>
 
                     {isPending ? (
-                      <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Clock size={12} className="animate-spin" /> Verifikasi
+                      <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Clock size={11} className="animate-spin" /> Verifikasi
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 size={12} /> Terkonfirmasi
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 size={11} /> Terkonfirmasi
                       </span>
                     )}
                   </div>
 
-                  {/* Info Box */}
-                  <div className="grid grid-cols-2 gap-2 bg-surface-dark p-3 rounded-lg border border-hairline text-xs">
-                    <div>
-                      <span className="text-[10px] text-white/40 uppercase block">Target PC</span>
-                      <span className="text-nvidia-green font-bold text-sm flex items-center gap-1">
-                        <Monitor size={14} /> {pc?.name || b.pc_id}
+                  {/* Player & Highlighted Paket Box */}
+                  <div className="grid grid-cols-2 gap-2.5 bg-surface-dark p-3.5 rounded-xl border border-hairline text-xs">
+                    <div className="flex flex-col justify-center">
+                      <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider block mb-1">Pemain</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-surface border border-hairline flex items-center justify-center text-white/70 font-mono text-[11px] font-bold">
+                          {b.player_name.slice(0, 1).toUpperCase()}
+                        </div>
+                        <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
+                      </div>
+                      <span className="text-[10px] text-white/40 font-mono mt-1">
+                        {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
                       </span>
-                      {pc?.expected_empty_time && (
-                        <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 mt-0.5">
-                          <Hourglass size={12} />
-                          Kosong: {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-white/40 uppercase block">Paket & Tarif</span>
-                      <span className="text-white font-bold block">{pkg?.name || 'Paket Kustom'}</span>
-                      <span className="text-nvidia-green font-mono font-bold text-[11px]">
+
+                    <div className="flex flex-col justify-center text-right px-3 py-2 rounded-lg bg-surface border border-hairline/60">
+                      <span className="text-[10px] text-white/60 font-black uppercase tracking-wider flex items-center justify-end gap-1 mb-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green"></span>
+                        {pkgTitle}
+                      </span>
+                      <span className="font-mono font-black text-base text-nvidia-green tracking-tight">
                         Rp {resolvedPrice.toLocaleString("id-ID")}
                       </span>
+                      {pc?.expected_empty_time && (
+                        <span className="text-[10px] text-amber-400 font-mono flex items-center justify-end gap-1 mt-1">
+                          <Hourglass size={10} />
+                          {new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
                     </div>
                   </div>
 
