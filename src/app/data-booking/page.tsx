@@ -438,8 +438,8 @@ export default function DataBookingPage() {
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden lg:block bg-surface border border-hairline rounded-xl overflow-hidden shadow-2xl">
-            <table className="w-full text-left text-xs whitespace-nowrap">
+          <div className="hidden lg:block bg-surface border border-hairline rounded-xl overflow-x-auto custom-scrollbar shadow-2xl">
+            <table className="w-full min-w-[980px] text-left text-xs whitespace-nowrap">
               <thead className="bg-surface-dark border-b border-hairline text-white/50 text-[10px] uppercase tracking-wider">
                 <tr>
                   <th className="p-4 pl-6 text-nvidia-green font-black tracking-wider">Target PC & Status</th>
@@ -473,33 +473,33 @@ export default function DataBookingPage() {
                       transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                       className={`transition-colors group ${isExpired ? "border-l-4 border-l-red-500" : "hover:bg-white/[0.02]"}`}
                     >
-                      {/* 1. TARGET PC (Primary Operator Eye Target) */}
+                      {/* 1. TARGET PC & STATUS (Primary Operator Eye Target) */}
                       <td className="p-4 pl-6">
-                        <div className="flex items-center gap-3">
-                          <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-nvidia-green/15 border-2 border-nvidia-green/50 shadow-[0_0_15px_rgba(118,185,0,0.18)]">
-                            <Monitor size={18} className="text-nvidia-green shrink-0 stroke-[2.5]" />
-                            <span className="font-mono font-black text-base md:text-lg text-white tracking-wider">
+                        <div className="flex items-center gap-2.5">
+                          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-nvidia-green/15 border-2 border-nvidia-green/50 shadow-[0_0_12px_rgba(118,185,0,0.15)] shrink-0">
+                            <Monitor size={16} className="text-nvidia-green shrink-0 stroke-[2.5]" />
+                            <span className="font-mono font-black text-sm md:text-base text-white tracking-wider">
                               {(pc?.name || b.pc_id).toUpperCase()}
                             </span>
                           </div>
                           {pc?.expected_empty_time ? (
-                            <span className={`text-[11px] font-mono font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
+                            <span className={`text-[10px] font-mono font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shrink-0 ${
                               isExpired 
                                 ? "bg-red-500/20 border-red-500/50 text-red-400 animate-pulse" 
                                 : isWarning 
                                 ? "bg-amber-500/15 border-amber-500/40 text-amber-400 animate-pulse" 
                                 : "bg-surface-dark border-hairline text-white/80"
                             }`}>
-                              <Hourglass size={12} className={isExpired ? "animate-spin text-red-400" : isWarning ? "text-amber-400" : "text-white/50"} />
+                              <Hourglass size={11} className={isExpired ? "animate-spin text-red-400" : isWarning ? "text-amber-400" : "text-white/50"} />
                               {isExpired 
-                                ? `HABIS • GILIRAN ${b.player_name.toUpperCase()}! (${pkgTitle})` 
+                                ? `HABIS • GILIRAN ${b.player_name.toUpperCase()}!` 
                                 : isWarning
-                                ? `Sisa: ${mins}m • Siapkan ${b.player_name} (${pkgTitle})`
-                                : `Sisa: ${mins}m • ${b.player_name} (${pkgTitle})`}
+                                ? `Sisa: ${mins}m • ${b.player_name}`
+                                : `Sisa: ${mins}m • ${b.player_name}`}
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold text-emerald-400/90 uppercase tracking-wider px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                              Bilik Standby • {b.player_name} ({pkgTitle})
+                            <span className="text-[10px] font-bold text-emerald-400/90 uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 shrink-0">
+                              Bilik Standby • {b.player_name}
                             </span>
                           )}
                         </div>
@@ -507,27 +507,24 @@ export default function DataBookingPage() {
 
                       {/* 2. PAKET & TARIF (Primary Financial Info) */}
                       <td className="p-4">
-                        <div className="inline-flex flex-col justify-center px-3.5 py-2 rounded-xl bg-surface-dark border border-hairline min-w-[130px] shadow-sm">
-                          <span className="text-[11px] font-black uppercase tracking-wider text-white/80 flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green"></span>
+                        <div className="inline-flex flex-col justify-center px-3 py-1.5 rounded-xl bg-surface-dark border border-hairline min-w-[110px] shadow-sm">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-white/80 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green shrink-0"></span>
                             {pkgTitle}
                           </span>
-                          <span className="font-mono font-black text-sm md:text-base text-nvidia-green tracking-tight mt-0.5">
+                          <span className="font-mono font-black text-sm text-nvidia-green tracking-tight mt-0.5">
                             Rp {resolvedPrice.toLocaleString("id-ID")}
                           </span>
                         </div>
                       </td>
 
                       {/* 3. PEMAIN */}
-                      <td className="p-4 font-bold text-white text-sm">
+                      <td className="p-4 font-bold text-white text-xs">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-surface-dark border border-hairline flex items-center justify-center text-white/70 font-mono text-xs">
+                          <div className="w-6 h-6 rounded-md bg-surface-dark border border-hairline flex items-center justify-center text-white/70 font-mono text-[11px] shrink-0">
                             {b.player_name.slice(0, 1).toUpperCase()}
                           </div>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-white leading-tight">{b.player_name}</span>
-                            <span className="text-[11px] font-mono text-nvidia-green font-semibold mt-0.5">{pkgTitle}</span>
-                          </div>
+                          <span className="font-bold text-white text-xs leading-tight">{b.player_name}</span>
                         </div>
                       </td>
 
@@ -638,13 +635,13 @@ export default function DataBookingPage() {
                               <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'complete')}
-                                className={`px-3.5 py-1.5 font-black text-[11px] uppercase rounded transition flex items-center gap-1.5 ${
+                                className={`px-3 py-1.5 font-black text-[11px] uppercase rounded transition flex items-center gap-1.5 shrink-0 ${
                                   isExpired
                                     ? "bg-nvidia-green hover:bg-[#88d600] text-black shadow-[0_0_15px_rgba(118,185,0,0.6)] animate-pulse"
                                     : "bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                                 }`}
                               >
-                                <Play size={12} className={isExpired ? "fill-current" : ""} /> Mulai Main ke PC
+                                <Play size={12} className={isExpired ? "fill-current" : ""} /> Mulai Main
                               </button>
                             </>
                           )}
