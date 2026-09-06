@@ -834,11 +834,36 @@ export default function Home() {
                 const pkg = db.pakets?.find((p: Paket) => p.id === b.paket_id);
                 const isPending = b.status === "pending";
 
+                const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
+                let pkgTitle = 'Tarif Langsung';
+                if (!isPriceName && pkg?.name) {
+                  pkgTitle = pkg.name;
+                } else if (pkg?.duration_minutes) {
+                  pkgTitle = pkg.duration_minutes >= 60 
+                    ? `${Math.round(pkg.duration_minutes / 60)} Jam` 
+                    : `${pkg.duration_minutes} Menit`;
+                } else if (b.paket_id?.startsWith('custom-')) {
+                  pkgTitle = 'Kustom';
+                }
+
+                const pcDiff = pc?.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+                const pcHasTimer = Boolean(pc?.expected_empty_time);
+                const pcExpired = !isPending && pcHasTimer && pcDiff <= 0;
+                const pcWarning = !isPending && pcHasTimer && pcDiff > 0 && pcDiff <= 10 * 60 * 1000;
+                const pcMins = Math.max(0, Math.floor(pcDiff / 60000));
+                const pcSecs = Math.max(0, Math.floor((pcDiff % 60000) / 1000));
+
                 return (
                   <motion.div
                     key={b.id}
                     variants={itemVariants}
-                    className="nvidia-card p-6 md:p-8 flex flex-col justify-between gap-4 relative overflow-hidden group hover:border-nvidia-green/50 transition-all bg-black/60 backdrop-blur-md"
+                    className={`nvidia-card p-6 md:p-8 flex flex-col justify-between gap-4 relative overflow-hidden group transition-all bg-black/60 backdrop-blur-md border ${
+                      pcExpired
+                        ? "border-red-500/80 shadow-[0_0_25px_rgba(239,68,68,0.25)]"
+                        : pcWarning
+                        ? "border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                        : "border-hairline hover:border-nvidia-green/50"
+                    }`}
                   >
                     <div className="nvidia-corner"></div>
 
@@ -846,6 +871,8 @@ export default function Home() {
                       <div className="flex items-center gap-3">
                         {isPending ? (
                           <Clock size={24} className="text-warning-bright animate-pulse" />
+                        ) : pcExpired ? (
+                          <span className="w-3 h-3 rounded-full bg-red-500 animate-ping" />
                         ) : (
                           <CheckCircle2 size={24} className="text-nvidia-green" />
                         )}
@@ -863,20 +890,74 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col gap-1 text-right min-w-0">
                         <span className="text-[10px] md:text-xs text-white/40 uppercase font-bold">PAKET / TARIF</span>
-                        <span className="text-white/90 font-bold text-sm md:text-base line-clamp-2 leading-tight">{pkg?.name || "Custom"}</span>
+                        <span className="text-white/90 font-bold text-sm md:text-base line-clamp-2 leading-tight">{pkgTitle}</span>
                         <span className="text-nvidia-green font-bold text-xs md:text-sm">RP {pkg?.price?.toLocaleString("id-ID")}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 md:pt-4">
-                      <span className={`px-3 py-1.5 md:px-4 md:py-2 rounded-[2px] text-[10px] md:text-xs font-bold uppercase tracking-widest ${isPending
-                        ? 'bg-warning/10 text-warning border border-warning/30'
-                        : 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30'
-                        }`}>
-                        {isPending ? 'MENUNGGU VERIFIKASI' : 'BOOKING AKTIF'}
-                      </span>
-                      <span className="text-white/30 text-xs md:text-sm font-mono">#{b.id.slice(-5)}</span>
-                    </div>
+                    {/* Live Waitlist State Bar for this Player */}
+                    {isPending ? (
+                      <div className="w-full bg-warning/10 border border-warning/30 p-2.5 rounded-[2px] flex items-center justify-between text-warning">
+                        <span className="text-xs font-bold uppercase flex items-center gap-1.5">
+                          <Clock size={13} className="animate-spin" />
+                          Menunggu Konfirmasi Kasir
+                        </span>
+                        <span className="text-white/30 text-xs font-mono">#{b.id.slice(-5)}</span>
+                      </div>
+                    ) : pcExpired ? (
+                      <div className="w-full bg-red-500/20 border border-red-500/50 p-2.5 rounded-[2px] flex flex-col gap-1 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)] animate-pulse">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black uppercase text-red-400 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block"></span>
+                            🔥 GILIRAN {b.player_name.toUpperCase()} MAIN!
+                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-red-300">WAKTU HABIS</span>
+                        </div>
+                        <span className="text-[11px] text-white/80 font-medium">
+                          Bilik {pc?.name || b.pc_id} sudah selesai dimainkan • Silakan langsung masuk main ({pkgTitle})!
+                        </span>
+                      </div>
+                    ) : pcWarning ? (
+                      <div className="w-full bg-amber-500/15 border border-amber-500/40 p-2.5 rounded-[2px] flex flex-col gap-1 text-white shadow-[0_0_15px_rgba(245,158,11,0.2)] animate-pulse">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold uppercase text-amber-400 flex items-center gap-1.5">
+                            <Clock size={13} className="text-amber-400 animate-spin" />
+                            ⚠️ {b.player_name.toUpperCase()} BERSIAP!
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-amber-300">
+                            {pcMins}:{pcSecs.toString().padStart(2, '0')}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-white/70">
+                          Player sebelumnya sisa &lt; {pcMins} menit lagi • Segera giliranmu ({pkgTitle})!
+                        </span>
+                      </div>
+                    ) : pcHasTimer && pcMins > 0 ? (
+                      <div className="w-full bg-white/[0.04] border border-hairline p-2.5 rounded-[2px] flex flex-col gap-1 text-white/80">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold uppercase text-white/90 flex items-center gap-1.5">
+                            <Hourglass size={13} className="text-nvidia-green" />
+                            ⌛ {b.player_name} Mengantre ({pkgTitle})
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-nvidia-green">
+                            ~{pcMins}m Lagi
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-white/50 font-mono">
+                          Menunggu player selesai • Estimasi kosong {pc?.expected_empty_time ? new Date(pc.expected_empty_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'} WIB
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="w-full bg-nvidia-green/10 border border-nvidia-green/30 p-2.5 rounded-[2px] flex items-center justify-between text-nvidia-green">
+                        <span className="text-xs font-bold uppercase flex items-center gap-1.5">
+                          <CheckCircle2 size={14} />
+                          Bilik {pc?.name || b.pc_id} Standby
+                        </span>
+                        <span className="text-[11px] text-white/70">
+                          Silakan konfirmasi ke kasir ({pkgTitle})
+                        </span>
+                      </div>
+                    )}
                   </motion.div>
                 );
               })}
@@ -910,8 +991,8 @@ export default function Home() {
                   {/* Step 1 Header */}
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-6 border-b border-hairline">
                     <div>
-                      <h2 className="text-2xl font-bold text-white tracking-tight uppercase tracking-tight">Step 1: Pilih PC Untuk Main</h2>
-                      <p className="text-sm text-white/60 mt-1 tracking-tight">Klik PC yang kamu main main, lihat spesisifkasi PC di bagian <a href="#showcase" onClick={(e) => { e.preventDefault(); document.getElementById('showcase')?.scrollIntoView({ behavior: 'smooth' }); }} className="text-nvidia-green hover:text-nvidia-green/80 transition-colors cursor-pointer">PC Showcase</a></p>
+                      <h2 className="text-2xl font-bold text-white tracking-tight uppercase tracking-tight">Step 1: Pilih Bilik PC Untuk Antre</h2>
+                      <p className="text-sm text-white/60 mt-1 tracking-tight">Lihat sisa waktu player yang sedang main dan siapa pengantre berikutnya di bawah ini.</p>
                     </div>
                   </div>
 
@@ -928,6 +1009,9 @@ export default function Home() {
                         const pcBookings = db?.bookings?.filter(b => b.pc_id === pc.id) || [];
                         const firstBooking = pcBookings[0];
                         const isPending = firstBooking?.status === 'pending';
+
+                        const firstPkg = db?.pakets?.find(p => p.id === firstBooking?.paket_id);
+                        const firstPkgTitle = firstPkg?.name || (firstBooking?.paket_id?.startsWith('custom-') ? 'Kustom' : 'Paket');
 
                         const hasTimer = Boolean(pc.expected_empty_time);
                         const diff = pc.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
@@ -987,13 +1071,23 @@ export default function Home() {
                                 </span>
                                 {isExpired ? (
                                   <span className="text-[9px] font-bold text-red-400 tracking-wide uppercase mt-0.5 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping inline-block" /> Waktu Habis
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping inline-block" /> 
+                                    {firstBooking ? `Giliran ${firstBooking.player_name}` : 'PC Bebas'}
                                   </span>
                                 ) : isWarning ? (
                                   <span className="text-[9px] font-bold text-amber-400 tracking-wide uppercase mt-0.5 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block" /> Segera Berakhir
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block" /> 
+                                    {firstBooking ? `${firstBooking.player_name} Bersiap` : 'Hampir Selesai'}
                                   </span>
-                                ) : null}
+                                ) : hasTimer ? (
+                                  <span className="text-[9px] font-bold text-white/50 tracking-wide uppercase mt-0.5">
+                                    Sedang Dimainkan
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-emerald-400/90 tracking-wide uppercase mt-0.5">
+                                    PC Bebas
+                                  </span>
+                                )}
                               </div>
 
                               <div className="flex flex-col items-end gap-1.5 shrink-0">
@@ -1010,10 +1104,16 @@ export default function Home() {
                                   }`}
                                 />
                                 {pcBookings.length > 0 ? (
-                                  <span className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-widest text-center leading-[1.2] max-w-[65px] md:max-w-none ${
-                                    isPending ? 'bg-amber-500 text-black font-black' : 'bg-nvidia-green text-black font-black'
+                                  <span className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] max-w-[80px] truncate ${
+                                    isExpired 
+                                      ? 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse'
+                                      : isWarning 
+                                      ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]'
+                                      : isPending 
+                                      ? 'bg-amber-500 text-black' 
+                                      : 'bg-nvidia-green text-black'
                                   }`}>
-                                    {isPending ? 'Menunggu Admin' : 'Booked'}
+                                    {isExpired ? `GILIRAN ${firstBooking.player_name.slice(0, 6)}` : isPending ? 'Verifikasi' : `${pcBookings.length} Antrean`}
                                   </span>
                                 ) : isExpired ? (
                                   <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse">
@@ -1023,15 +1123,19 @@ export default function Home() {
                                   <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]">
                                     &lt; 10M
                                   </span>
-                                ) : null}
+                                ) : (
+                                  <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-widest text-center leading-[1.2] bg-white/10 text-white/60">
+                                    Bebas
+                                  </span>
+                                )}
                               </div>
                             </div>
 
-                            {/* Timer Bar */}
+                            {/* Timer Bar (Sisa Player Lama) */}
                             {isExpired ? (
                               <div className="w-full bg-red-500/20 border border-red-500/40 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-red-300">
                                 <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                  <AlertTriangle size={11} className="text-red-400" /> Sisa Waktu
+                                  <AlertTriangle size={11} className="text-red-400" /> Sisa Player
                                 </span>
                                 <span className="font-mono text-[11px] font-black tracking-wider text-red-400 animate-pulse">
                                   00:00 (HABIS)
@@ -1040,7 +1144,7 @@ export default function Home() {
                             ) : isWarning ? (
                               <div className="w-full bg-amber-500/20 border border-amber-500/40 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-amber-300">
                                 <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                  <Clock size={11} className="text-amber-400 animate-spin" /> Sisa Waktu
+                                  <Clock size={11} className="text-amber-400 animate-spin" /> Sisa Player
                                 </span>
                                 <span className="font-mono text-[11px] font-black tracking-wider text-amber-300">
                                   {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
@@ -1048,65 +1152,72 @@ export default function Home() {
                               </div>
                             ) : isNormalTimer ? (
                               <div className="w-full bg-white/[0.04] border border-white/10 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-white/70">
-                                <span className="text-[9px] font-bold uppercase tracking-widest">Sisa Waktu</span>
+                                <span className="text-[9px] font-bold uppercase tracking-widest">Sisa Player</span>
                                 <span className="font-mono text-[11px] font-bold tracking-wider text-nvidia-green">
                                   {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
                                 </span>
                               </div>
                             ) : null}
 
-                            {/* PC Body & Booking Info */}
+                            {/* PC Body & Queue Information */}
                             <div className="flex-1 w-full relative z-10 flex flex-col gap-1.5 mt-2 justify-center">
                               {pcBookings.length > 0 ? (
-                                <div className="flex flex-col w-full h-full gap-1.5 justify-center">
-                                  {pcBookings.slice(0, 3).map((b) => {
-                                    const paket = db?.pakets?.find(p => p.id === b.paket_id);
-                                    const pName = paket?.name || "Custom";
-                                    return (
-                                      <div key={b.id} className="flex flex-col justify-center gap-1.5 w-full">
-                                        <div className="flex items-start gap-2">
-                                          <User size={14} className={`shrink-0 mt-0.5 ${
-                                            isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
-                                          }`} />
-                                          <span className="text-[12px] uppercase font-bold text-white/90 line-clamp-2 leading-tight">{b.player_name || "Guest"}</span>
-                                        </div>
-                                        <div className="flex items-start gap-2">
-                                          <Package size={14} className={`shrink-0 mt-0.5 ${
-                                            isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
-                                          }`} />
-                                          <span className="text-[12px] font-bold text-white/70 line-clamp-2 leading-tight">{pName}</span>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                  {pcBookings.length > 3 && (
-                                    <div className="text-[9px] text-white/50 font-bold text-center mt-1 uppercase tracking-widest border-t border-hairline pt-1.5 shrink-0">
-                                      +{pcBookings.length - 3} Antrean Lainnya
+                                <div className="flex flex-col w-full h-full justify-center gap-1.5">
+                                  <div className={`p-2 rounded-[2px] border ${
+                                    isExpired 
+                                      ? 'bg-red-500/15 border-red-500/30' 
+                                      : isWarning 
+                                      ? 'bg-amber-500/10 border-amber-500/30' 
+                                      : 'bg-black/40 border-white/10'
+                                  }`}>
+                                    <div className="flex items-center justify-between mb-0.5">
+                                      <span className="text-[9px] uppercase font-bold text-nvidia-green">
+                                        {isExpired ? "🔥 GILIRAN MAIN:" : isWarning ? "⚠️ SIAP MASUK:" : "ANTREAN #1:"}
+                                      </span>
+                                      <span className="text-[9px] font-mono font-bold text-white/70">
+                                        {firstPkgTitle}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs font-black text-white truncate">
+                                      {firstBooking.player_name}
+                                    </div>
+                                    <span className="text-[10px] text-white/50 block mt-0.5">
+                                      {isExpired 
+                                        ? "Bilik selesai dimainkan • Silakan masuk" 
+                                        : isWarning 
+                                        ? "Player lama hampir selesai" 
+                                        : "Menunggu player selesai"}
+                                    </span>
+                                  </div>
+
+                                  {pcBookings.length > 1 && (
+                                    <div className="text-[9px] text-white/40 font-bold text-center uppercase tracking-widest border-t border-hairline pt-1 shrink-0">
+                                      +{pcBookings.length - 1} Antrean Berikutnya
                                     </div>
                                   )}
                                 </div>
-                              ) : (pc.player_name || isExpired || isWarning || isNormalTimer) ? (
-                                <div className="flex flex-col justify-center gap-1.5 w-full">
-                                  <div className="flex items-start gap-2">
-                                    <User size={14} className={`shrink-0 mt-0.5 ${
-                                      isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
-                                    }`} />
-                                    <span className="text-[12px] uppercase font-bold text-white/90 line-clamp-2 leading-tight">
-                                      {pc.player_name || (isExpired ? "Sesi Berakhir" : "Sedang Main")}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-start gap-2">
-                                    <Package size={14} className={`shrink-0 mt-0.5 ${
-                                      isExpired ? 'text-red-400' : isWarning ? 'text-amber-400' : isSelected ? 'text-nvidia-green' : 'text-white/50'
-                                    }`} />
-                                    <span className="text-[12px] font-bold text-white/70 line-clamp-2 leading-tight">
-                                      {pc.paket_name || (isExpired ? "Siap Dibooking" : "Sesi Bilik")}
-                                    </span>
-                                  </div>
+                              ) : (hasTimer && !isExpired) ? (
+                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full">
+                                  <span className="text-xs font-bold text-white/80 uppercase">SEDANG DIMAINKAN</span>
+                                  <span className="text-[10px] text-nvidia-green font-bold uppercase tracking-wider bg-nvidia-green/10 border border-nvidia-green/30 px-2 py-0.5 rounded">
+                                    Belum Ada Antrean • Bisa Antre!
+                                  </span>
+                                </div>
+                              ) : isExpired ? (
+                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full">
+                                  <span className="text-xs font-black text-red-400 uppercase">WAKTU HABIS • PC BEBAS</span>
+                                  <span className="text-[10px] text-white/60">Bisa langsung main ke kasir</span>
                                 </div>
                               ) : (
-                                <div className={`text-sm md:text-base h-full tracking-tight font-bold uppercase flex items-center justify-center gap-2 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/30'}`}>
-                                  {isSelected ? <><CheckCircle2 size={20} /> DIPILIH</> : "READY TO BOOK"}
+                                <div className={`text-sm md:text-base h-full tracking-tight font-bold uppercase flex flex-col items-center justify-center gap-1 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/40'}`}>
+                                  {isSelected ? (
+                                    <span className="flex items-center gap-1.5 font-black"><CheckCircle2 size={18} /> PC DIPILIH</span>
+                                  ) : (
+                                    <>
+                                      <span className="font-bold">PC BEBAS (SIAP MAIN)</span>
+                                      <span className="text-[10px] text-white/30 normal-case">Langsung main ke kasir</span>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1127,10 +1238,10 @@ export default function Home() {
                     >
                       {selectedPc ? (
                         <span className="flex items-center gap-2">
-                          Lanjut ke Pembayaran <ArrowRight size={16} />
+                          Lanjut Ambil Antrean {db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc} <ArrowRight size={16} />
                         </span>
                       ) : (
-                        "Pilih PC Dulu Bro"
+                        "Pilih Bilik PC Dulu"
                       )}
                     </button>
                   </div>

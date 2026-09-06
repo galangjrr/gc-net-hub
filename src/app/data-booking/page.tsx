@@ -442,7 +442,10 @@ export default function DataBookingPage() {
                   const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
                   const isPending = b.status === "pending";
                   const now = Date.now();
-                  const isExpired = !isPending && pc?.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= now;
+                  const diff = pc?.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+                  const isExpired = !isPending && pc?.expected_empty_time && diff <= 0;
+                  const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
+                  const mins = Math.max(0, Math.floor(diff / 60000));
 
                   const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
                   let pkgTitle = 'Tarif Langsung';
@@ -475,15 +478,23 @@ export default function DataBookingPage() {
                             </span>
                           </div>
                           {pc?.expected_empty_time ? (
-                            <span className={`text-[11px] font-mono font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg border ${
-                              isExpired ? "bg-red-500/20 border-red-500/50 text-red-400 animate-pulse" : "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                            <span className={`text-[11px] font-mono font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${
+                              isExpired 
+                                ? "bg-red-500/20 border-red-500/50 text-red-400 animate-pulse" 
+                                : isWarning 
+                                ? "bg-amber-500/15 border-amber-500/40 text-amber-400 animate-pulse" 
+                                : "bg-surface-dark border-hairline text-white/80"
                             }`}>
-                              <Hourglass size={12} className={isExpired ? "animate-spin" : ""} />
-                              {isExpired ? "WAKTU HABIS" : `Kosong: ${new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}`}
+                              <Hourglass size={12} className={isExpired ? "animate-spin text-red-400" : isWarning ? "text-amber-400" : "text-white/50"} />
+                              {isExpired 
+                                ? `HABIS • GILIRAN ${b.player_name.toUpperCase()}! (${pkgTitle})` 
+                                : isWarning
+                                ? `Sisa: ${mins}m • Siapkan ${b.player_name} (${pkgTitle})`
+                                : `Sisa: ${mins}m • ${b.player_name} (${pkgTitle})`}
                             </span>
                           ) : (
                             <span className="text-[10px] font-bold text-emerald-400/90 uppercase tracking-wider px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                              Ready
+                              Bilik Standby • {b.player_name} ({pkgTitle})
                             </span>
                           )}
                         </div>
@@ -508,7 +519,10 @@ export default function DataBookingPage() {
                           <div className="w-7 h-7 rounded-lg bg-surface-dark border border-hairline flex items-center justify-center text-white/70 font-mono text-xs">
                             {b.player_name.slice(0, 1).toUpperCase()}
                           </div>
-                          <span>{b.player_name}</span>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-white leading-tight">{b.player_name}</span>
+                            <span className="text-[11px] font-mono text-nvidia-green font-semibold mt-0.5">{pkgTitle}</span>
+                          </div>
                         </div>
                       </td>
 
@@ -599,9 +613,13 @@ export default function DataBookingPage() {
                               <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'complete')}
-                                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded text-[11px] uppercase transition flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                                className={`px-3.5 py-1.5 font-black text-[11px] uppercase rounded transition flex items-center gap-1.5 ${
+                                  isExpired
+                                    ? "bg-nvidia-green hover:bg-[#88d600] text-black shadow-[0_0_15px_rgba(118,185,0,0.6)] animate-pulse"
+                                    : "bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                                }`}
                               >
-                                <Play size={12} /> Mulai Main ke PC
+                                <Play size={12} className={isExpired ? "fill-current" : ""} /> Mulai Main ke PC
                               </button>
                             </>
                           )}
@@ -629,7 +647,11 @@ export default function DataBookingPage() {
               const pkg = db.pakets.find(p => p.id === b.paket_id);
               const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
               const isPending = b.status === "pending";
-              const isExpired = !isPending && pc?.expected_empty_time && new Date(pc.expected_empty_time).getTime() <= Date.now();
+              const now = Date.now();
+              const diff = pc?.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+              const isExpired = !isPending && pc?.expected_empty_time && diff <= 0;
+              const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
+              const mins = Math.max(0, Math.floor(diff / 60000));
 
               const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
               let pkgTitle = 'Tarif Langsung';
@@ -647,7 +669,13 @@ export default function DataBookingPage() {
                 <div
                   key={b.id}
                   className={`bg-surface border p-4 rounded-xl shadow-lg relative overflow-hidden space-y-3 ${
-                    isPending ? "border-amber-500/40" : "border-hairline"
+                    isPending 
+                      ? "border-amber-500/40" 
+                      : isExpired 
+                      ? "border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.2)]" 
+                      : isWarning 
+                      ? "border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]" 
+                      : "border-hairline"
                   }`}
                 >
                   {/* Top Bar - High Visibility PC & Status */}
@@ -663,6 +691,10 @@ export default function DataBookingPage() {
                       <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
                         <Clock size={11} className="animate-spin" /> Verifikasi
                       </span>
+                    ) : isExpired ? (
+                      <span className="px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 animate-pulse">
+                        <Hourglass size={11} className="animate-spin" /> Selesai Main
+                      </span>
                     ) : (
                       <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1">
                         <CheckCircle2 size={11} /> Terkonfirmasi
@@ -673,12 +705,15 @@ export default function DataBookingPage() {
                   {/* Player & Highlighted Paket Box */}
                   <div className="grid grid-cols-2 gap-2.5 bg-surface-dark p-3.5 rounded-xl border border-hairline text-xs">
                     <div className="flex flex-col justify-center">
-                      <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider block mb-1">Pemain</span>
+                      <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider block mb-1">Pemain & Booking</span>
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded bg-surface border border-hairline flex items-center justify-center text-white/70 font-mono text-[11px] font-bold">
                           {b.player_name.slice(0, 1).toUpperCase()}
                         </div>
-                        <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
+                          <span className="text-[10px] font-mono text-nvidia-green font-semibold">{pkgTitle}</span>
+                        </div>
                       </div>
                       <span className="text-[10px] text-white/40 font-mono mt-1">
                         {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
@@ -693,12 +728,24 @@ export default function DataBookingPage() {
                       <span className="font-mono font-black text-base text-nvidia-green tracking-tight">
                         Rp {resolvedPrice.toLocaleString("id-ID")}
                       </span>
-                      {pc?.expected_empty_time && (
+                      {pc?.expected_empty_time ? (
                         <span className={`text-[10px] font-mono flex items-center justify-end gap-1 mt-1 ${
-                          isExpired ? "text-red-400 font-bold animate-pulse" : "text-amber-400"
+                          isExpired 
+                            ? "text-red-400 font-bold animate-pulse" 
+                            : isWarning 
+                            ? "text-amber-400 animate-pulse" 
+                            : "text-amber-400"
                         }`}>
                           <Hourglass size={10} className={isExpired ? "animate-spin" : ""} />
-                          {isExpired ? "WAKTU HABIS" : new Date(pc.expected_empty_time).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                          {isExpired 
+                            ? `HABIS • GILIRAN ${b.player_name.toUpperCase()}! (${pkgTitle})` 
+                            : isWarning
+                            ? `Sisa ${mins}m • Siapkan ${b.player_name}`
+                            : `Sisa ${mins}m • ${b.player_name}`}
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-mono text-emerald-400 font-semibold block mt-1">
+                          Standby • {b.player_name}
                         </span>
                       )}
                     </div>
@@ -761,9 +808,13 @@ export default function DataBookingPage() {
                       <button
                         disabled={loadingId === b.id}
                         onClick={() => handleAction(b.id, 'complete')}
-                        className="w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold border border-emerald-400/50 rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                        className={`w-full px-4 py-2.5 font-black rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 ${
+                          isExpired
+                            ? "bg-nvidia-green hover:bg-[#88d600] text-black shadow-[0_0_15px_rgba(118,185,0,0.6)] animate-pulse"
+                            : "bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                        }`}
                       >
-                        <Play size={12} /> Mulai Main
+                        <Play size={12} className={isExpired ? "fill-current" : ""} /> Mulai Main ke PC
                       </button>
                     </div>
                   )}
