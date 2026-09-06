@@ -21,6 +21,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
+// Helper to safely clean up custom package only if no other bookings reference it
+async function cleanupCustomPaket(paketId: string, excludeBookingId?: string) {
+  if (!paketId) return;
+  const { data: pkt } = await supabaseAdmin.from('pakets').select('is_custom').eq('id', paketId).single();
+  if (!pkt?.is_custom) return;
+
+  let query = supabaseAdmin.from('bookings').select('id').eq('paket_id', paketId);
+  if (excludeBookingId) {
+    query = query.neq('id', excludeBookingId);
+  }
+  const { data: activeRefs } = await query;
+  if (!activeRefs || activeRefs.length === 0) {
+    await supabaseAdmin.from('pakets').delete().eq('id', paketId);
+  }
+}
+
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -53,10 +69,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         }).eq('id', booking.pc_id);
       }
 
-      // Clean up custom paket
-      if (paket?.is_custom) {
-        await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
-      }
+      // Clean up custom paket safely
+      await cleanupCustomPaket(booking.paket_id, id);
 
       let resolvedPrice = paket?.price || 0;
       let resolvedName = paket?.name || 'Paket Booking';
@@ -88,10 +102,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         status: 'available'
       }).eq('id', booking.pc_id);
 
-      // Clean up custom paket
-      if (paket?.is_custom) {
-        await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
-      }
+      // Clean up custom paket safely
+      await cleanupCustomPaket(booking.paket_id, id);
 
       let resolvedPrice = paket?.price || 0;
       let resolvedName = paket?.name || 'Paket Booking';
@@ -114,9 +126,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       await supabaseAdmin.from('logs').insert(log);
 
     } else if (action === 'edit_paket' && customName && customPrice !== undefined) {
-      if (paket?.is_custom) {
-        await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
-      }
+      await cleanupCustomPaket(booking.paket_id, id);
 
       const customPaketId = `paket-custom-${crypto.randomUUID()}`;
       await supabaseAdmin.from('pakets').insert({
@@ -133,8 +143,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       if (pc_id) updates.pc_id = pc_id;
       if (player_name) updates.player_name = player_name;
       if (paket_id) {
-        if (paket?.is_custom && paket_id !== booking.paket_id) {
-          await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
+        if (paket_id !== booking.paket_id) {
+          await cleanupCustomPaket(booking.paket_id, id);
         }
         updates.paket_id = paket_id;
       }
@@ -156,9 +166,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const { id } = await params;
     const { data: booking } = await supabaseAdmin.from('bookings').select('*').eq('id', id).single();
     if (booking) {
-      if (booking.paket_id?.startsWith('paket-custom-')) {
-        await supabaseAdmin.from('pakets').delete().eq('id', booking.paket_id);
-      }
+      await cleanupCustomPaket(booking.paket_id, id);
       await supabaseAdmin.from('bookings').delete().eq('id', id);
 
       const { data: rem } = await supabaseAdmin.from('bookings').select('id').eq('pc_id', booking.pc_id);

@@ -33,6 +33,7 @@ export default function AuthButton() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password, rememberMe: false })
       });
       if (res.ok) {

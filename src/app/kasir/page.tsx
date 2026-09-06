@@ -51,14 +51,26 @@ export default function KasirPage() {
   const handleCheckout = async () => {
     setShowConfirm(false);
     setLoading(true);
-    await fetch("/api/kasir/checkout", {
-      method: "POST",
-      body: JSON.stringify({ cart, total })
-    });
-    setCart([]);
-    await loadData();
-    setLoading(false);
-    alert("Pembayaran lunas! Stok berhasil dipotong.");
+    try {
+      const res = await fetch("/api/kasir/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart, total })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data?.error || "Gagal memproses checkout!");
+        setLoading(false);
+        return;
+      }
+      setCart([]);
+      await loadData();
+      alert("Pembayaran lunas! Stok berhasil dipotong.");
+    } catch (err) {
+      alert("Terjadi kesalahan jaringan!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const total = cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0);

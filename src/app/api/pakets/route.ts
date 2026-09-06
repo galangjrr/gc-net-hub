@@ -9,8 +9,22 @@ export async function POST(req: Request) {
     if (!data.is_custom && !isAdminRequest(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (data.is_custom) {
+      const { data: existing } = await supabaseAdmin
+        .from('pakets')
+        .select('*')
+        .eq('is_custom', true)
+        .eq('price', Number(data.price))
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        return NextResponse.json(existing);
+      }
+    }
+
     const newPaket = {
-      id: `paket-${crypto.randomUUID()}`,
+      id: `paket-custom-${crypto.randomUUID()}`,
       name: data.name,
       price: Number(data.price),
       is_custom: data.is_custom || false,

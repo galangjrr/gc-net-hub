@@ -19,10 +19,14 @@ export async function POST(req: Request) {
     // PC exist check
     const { data: pc } = await supabaseAdmin.from('pcs').select('id').eq('id', pc_id).single();
     if (!pc) return NextResponse.json({ error: 'PC tidak ditemukan' }, { status: 404 });
+
+    // Paket exist check
+    const { data: paket } = await supabaseAdmin.from('pakets').select('id').eq('id', paket_id).single();
+    if (!paket) return NextResponse.json({ error: 'Paket tidak ditemukan' }, { status: 404 });
     
     // Note: Antrean bertumpuk diizinkan (FIFO queue bagi pemain yang bersedia menunggu)
     
-    let finalPlayerName = player_name;
+    let finalPlayerName = typeof player_name === 'string' ? player_name.trim() : '';
     if (!finalPlayerName) {
       if (!is_admin_manual) {
         return NextResponse.json({ error: 'Nama pemain wajib diisi!' }, { status: 400 });
@@ -43,18 +47,18 @@ export async function POST(req: Request) {
       player_name: finalPlayerName,
       status: is_admin_manual ? 'active' : 'pending',
       created_at: new Date().toISOString(),
-      ss_bukti
+      ss_bukti: ss_bukti || null
     };
 
     const { error: insertError } = await supabaseAdmin.from('bookings').insert(newBooking);
     if (insertError) {
-      console.error(insertError);
-      return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
+      console.error('Insert booking error:', insertError);
+      return NextResponse.json({ error: insertError.message || 'Gagal menyimpan data booking' }, { status: 500 });
     }
 
     return NextResponse.json(newBooking);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Create booking catch error:', error);
+    return NextResponse.json({ error: error?.message || 'Gagal membuat booking' }, { status: 500 });
   }
 }

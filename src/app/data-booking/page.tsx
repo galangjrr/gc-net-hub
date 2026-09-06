@@ -533,19 +533,24 @@ export default function DataBookingPage() {
 
                       {/* 4. STATUS */}
                       <td className="p-4">
-                        {isPending ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
-                            <Clock size={11} className="animate-spin" /> Verifikasi
+                        <div className="flex flex-col gap-1.5 items-start">
+                          {isPending ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+                              <Clock size={11} className="animate-spin" /> Verifikasi
+                            </span>
+                          ) : isExpired ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                              <Hourglass size={11} /> Habis
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-[10px] font-semibold uppercase tracking-wider">
+                              <CheckCircle2 size={11} /> Terkonfirmasi
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${b.ss_bukti ? 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}`}>
+                            {b.ss_bukti ? 'QRIS (DANA)' : 'KASIR (TUNAI)'}
                           </span>
-                        ) : isExpired ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
-                            <Hourglass size={11} /> Habis
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-[10px] font-semibold uppercase tracking-wider">
-                            <CheckCircle2 size={11} /> Terkonfirmasi
-                          </span>
-                        )}
+                        </div>
                       </td>
 
                       {/* 5. WAKTU */}
@@ -557,12 +562,18 @@ export default function DataBookingPage() {
                         <div className="flex items-center justify-end gap-2">
                           {isPending ? (
                             <>
-                              <button
-                                onClick={() => showBukti(b.id, b.ss_bukti)}
-                                className="px-3 py-1.5 bg-surface-dark hover:bg-white/10 border border-hairline text-white/70 hover:text-white rounded text-[11px] font-bold uppercase transition flex items-center gap-1"
-                              >
-                                <ImageIcon size={14} /> Cek Bukti
-                              </button>
+                              {b.ss_bukti ? (
+                                <button
+                                  onClick={() => showBukti(b.id, b.ss_bukti)}
+                                  className="px-3 py-1.5 bg-surface-dark hover:bg-white/10 border border-hairline text-white/70 hover:text-white rounded text-[11px] font-bold uppercase transition flex items-center gap-1"
+                                >
+                                  <ImageIcon size={14} /> Cek Bukti
+                                </button>
+                              ) : (
+                                <span className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase rounded">
+                                  💵 Tagih Tunai
+                                </span>
+                              )}
                               <button
                                 disabled={loadingId === b.id}
                                 onClick={() => handleAction(b.id, 'approve')}
@@ -691,19 +702,24 @@ export default function DataBookingPage() {
                       </span>
                     </div>
 
-                    {isPending ? (
-                      <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Clock size={11} className="animate-spin" /> Verifikasi
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${b.ss_bukti ? 'bg-nvidia-green/15 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'}`}>
+                        {b.ss_bukti ? 'QRIS' : 'KASIR'}
                       </span>
-                    ) : isExpired ? (
-                      <span className="px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 animate-pulse">
-                        <Hourglass size={11} className="animate-spin" /> Selesai Main
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 size={11} /> Terkonfirmasi
-                      </span>
-                    )}
+                      {isPending ? (
+                        <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                          <Clock size={11} className="animate-spin" /> Verifikasi
+                        </span>
+                      ) : isExpired ? (
+                        <span className="px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 animate-pulse">
+                          <Hourglass size={11} className="animate-spin" /> Selesai Main
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <CheckCircle2 size={11} /> Terkonfirmasi
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Player & Highlighted Paket Box */}
@@ -758,12 +774,18 @@ export default function DataBookingPage() {
                   {/* Mobile Actions */}
                   {isPending ? (
                     <div className="flex gap-2 pt-1">
-                      <button
-                        onClick={() => showBukti(b.id, b.ss_bukti)}
-                        className="flex-1 py-2.5 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
-                      >
-                        <ImageIcon size={14} /> Bukti
-                      </button>
+                      {b.ss_bukti ? (
+                        <button
+                          onClick={() => showBukti(b.id, b.ss_bukti)}
+                          className="flex-1 py-2.5 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
+                        >
+                          <ImageIcon size={14} /> Bukti
+                        </button>
+                      ) : (
+                        <div className="flex-1 py-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1">
+                          💵 Bayar Tunai
+                        </div>
+                      )}
                       <button
                         disabled={loadingId === b.id}
                         onClick={() => handleAction(b.id, 'approve')}

@@ -189,7 +189,8 @@ export default function Home() {
   };
 
   const handlePayment = async () => {
-    if (!selectedPc || !selectedPaket || !playerName) {
+    const trimmedName = playerName.trim();
+    if (!selectedPc || !selectedPaket || !trimmedName) {
       alert("Lengkapi data: Pilih PC, Paket, dan isi Nama Pemain!");
       return;
     }
@@ -197,12 +198,12 @@ export default function Home() {
       alert("Wajib upload bukti transfer DANA jika pilih QRIS!");
       return;
     }
-    if (ssFile && !ssFile.type.startsWith('image/')) {
+    if (paymentMethod === 'qris' && ssFile && !ssFile.type.startsWith('image/')) {
       alert("Bukti transfer wajib berupa file gambar (JPG/PNG/dll)!");
       return;
     }
     // Validasi ukuran file max 2MB
-    if (ssFile && ssFile.size > 2 * 1024 * 1024) {
+    if (paymentMethod === 'qris' && ssFile && ssFile.size > 2 * 1024 * 1024) {
       alert("Ukuran file SS maksimal 2MB. Kompres dulu gambarnya ya boss!");
       return;
     }
@@ -218,23 +219,42 @@ export default function Home() {
       if (hours > 0) timeStr += `${hours} Jam `;
       if (remMins > 0) timeStr += `${remMins} Menit`;
 
-      const newPaketRes = await fetch("/api/pakets", {
-        method: "POST",
-        body: JSON.stringify({ name: `Personal ${timeStr.trim()}`, price, is_custom: true })
-      });
-      const createdPaket = await newPaketRes.json();
-      finalPaketId = createdPaket.id;
+      // Check if db.pakets already has this exact custom package
+      const existingCustom = db?.pakets?.find(p => p.is_custom && p.price === price);
+      if (existingCustom) {
+        finalPaketId = existingCustom.id;
+      } else {
+        try {
+          const newPaketRes = await fetch("/api/pakets", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: `Personal ${timeStr.trim()}`, price, is_custom: true })
+          });
+          const createdPaket = await newPaketRes.json();
+          if (!newPaketRes.ok || !createdPaket?.id) {
+            alert(createdPaket?.error || "Gagal memproses paket custom!");
+            setLoading(false);
+            return;
+          }
+          finalPaketId = createdPaket.id;
+        } catch (err) {
+          alert("Gagal menghubungi server untuk paket custom.");
+          setLoading(false);
+          return;
+        }
+      }
     }
 
     const sendBooking = async (base64SS?: string) => {
       try {
         const res = await fetch("/api/bookings", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             pc_id: selectedPc,
             paket_id: finalPaketId,
-            player_name: playerName,
-            ss_bukti: base64SS
+            player_name: trimmedName,
+            ss_bukti: paymentMethod === 'qris' ? base64SS : undefined
           })
         });
         const resData = await res.json();
@@ -255,11 +275,15 @@ export default function Home() {
       }
     };
 
-    if (ssFile) {
+    if (paymentMethod === 'qris' && ssFile) {
       const reader = new FileReader();
       reader.onload = async () => {
         const base64SS = reader.result as string;
         await sendBooking(base64SS);
+      };
+      reader.onerror = () => {
+        alert("Gagal membaca file gambar screenshot.");
+        setLoading(false);
       };
       reader.readAsDataURL(ssFile);
     } else {
@@ -881,7 +905,14 @@ export default function Home() {
                       <div className="flex flex-col gap-1 text-right min-w-0">
                         <span className="text-[10px] md:text-xs text-white/40 uppercase font-bold">PAKET / TARIF</span>
                         <span className="text-white/90 font-bold text-sm md:text-base line-clamp-2 leading-tight">{pkgTitle}</span>
-                        <span className="text-nvidia-green font-bold text-xs md:text-sm">RP {pkg?.price?.toLocaleString("id-ID")}</span>
+                        <div className="flex items-center justify-end gap-2 mt-0.5">
+                          <span className="text-nvidia-green font-bold text-xs md:text-sm font-mono">
+                            RP {(pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) || 0 : 0)).toLocaleString("id-ID")}
+                          </span>
+                          <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${b.ss_bukti ? 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}`}>
+                            {b.ss_bukti ? 'QRIS' : 'KASIR'}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -1402,7 +1433,10 @@ export default function Home() {
                         <label className="text-[11px] font-bold text-white uppercase tracking-widest tracking-tight">Metode Pembayaran</label>
                         <div className="grid grid-cols-2 gap-2">
                           <button
-                            onClick={() => setPaymentMethod('kasir')}
+                            onClick={() => {
+                              setPaymentMethod('kasir');
+                              setSsFile(null);
+                            }}
                             className={`p-3 tracking-tight text-xs border transition-colors ${paymentMethod === 'kasir' ? 'bg-nvidia-green/10 border-nvidia-green text-nvidia-green' : 'bg-surface-dark border-hairline text-white/50 hover:border-white/30'}`}
                           >
                             BAYAR DI KASIR
@@ -1679,10 +1713,14 @@ export default function Home() {
               </p>
               <div className="flex justify-end">
                 <button
-                  onClick={() => setShowSuccessModal(false)}
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    const elem = document.getElementById("antrean");
+                    if (elem) elem.scrollIntoView({ behavior: "smooth" });
+                  }}
                   className="px-6 py-2 bg-nvidia-green text-black hover:bg-[#88d600] text-[10px] font-bold uppercase transition-colors"
                 >
-                  Okey
+                  Lihat Status Antrean
                 </button>
               </div>
             </motion.div>
