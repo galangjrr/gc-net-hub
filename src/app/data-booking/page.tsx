@@ -447,17 +447,7 @@ export default function DataBookingPage() {
                   const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
                   const mins = Math.max(0, Math.floor(diff / 60000));
 
-                  const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
-                  let pkgTitle = 'Tarif Langsung';
-                  if (!isPriceName && pkg?.name) {
-                    pkgTitle = pkg.name;
-                  } else if (pkg?.duration_minutes) {
-                    pkgTitle = pkg.duration_minutes >= 60 
-                      ? `${Math.round(pkg.duration_minutes / 60)} Jam` 
-                      : `${pkg.duration_minutes} Menit`;
-                  } else if (b.paket_id?.startsWith('custom-')) {
-                    pkgTitle = 'Kustom';
-                  }
+                  const pkgTitle = pkg?.name || (b.paket_id?.startsWith('custom-') ? 'Kustom' : 'Tarif Langsung');
 
                   return (
                     <motion.tr
@@ -653,17 +643,7 @@ export default function DataBookingPage() {
               const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
               const mins = Math.max(0, Math.floor(diff / 60000));
 
-              const isPriceName = pkg?.name?.toLowerCase().startsWith('rp');
-              let pkgTitle = 'Tarif Langsung';
-              if (!isPriceName && pkg?.name) {
-                pkgTitle = pkg.name;
-              } else if (pkg?.duration_minutes) {
-                pkgTitle = pkg.duration_minutes >= 60 
-                  ? `${Math.round(pkg.duration_minutes / 60)} Jam` 
-                  : `${pkg.duration_minutes} Menit`;
-              } else if (b.paket_id?.startsWith('custom-')) {
-                pkgTitle = 'Kustom';
-              }
+              const pkgTitle = pkg?.name || (b.paket_id?.startsWith('custom-') ? 'Kustom' : 'Tarif Langsung');
 
               return (
                 <div
