@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ShoppingCart, Coffee, Utensils, Package, Trash2, Check, LayoutGrid, List, Monitor, User, Plus, Minus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ShoppingCart, Coffee, Utensils, Package, Trash2, Check, LayoutGrid, List, Monitor, User, Plus, Minus, X } from "lucide-react";
 import type { DatabaseSchema, InventoryItem } from "@/lib/db";
 import PinGuard from "@/components/PinGuard";
 
@@ -117,6 +117,51 @@ export default function KasirPage() {
     }
   };
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showConfirm) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setShowConfirm(false);
+          return;
+        }
+        if (e.key === "Enter" && !loading) {
+          e.preventDefault();
+          handleCheckout();
+          return;
+        }
+        return;
+      }
+
+      if ((e.key === "/" || e.key === "F3") && document.activeElement !== searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      if (e.key === "Escape") {
+        if (search) {
+          e.preventDefault();
+          setSearch("");
+        } else if (document.activeElement === searchInputRef.current) {
+          searchInputRef.current?.blur();
+        }
+        return;
+      }
+
+      if (e.key === "F9" && cart.length > 0 && !loading) {
+        e.preventDefault();
+        setShowConfirm(true);
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showConfirm, loading, search, cart, total, targetType, selectedPc, buyerName]);
+
   const cleanName = (name: string) => {
     return name.replace(/\(|\)/g, "").replace(/\//g, " atau ");
   };
@@ -171,15 +216,32 @@ export default function KasirPage() {
               {/* Kontrol Pencarian, Filter Kategori, dan Mode Tampilan */}
               <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
                 
-                {/* Input Pencarian */}
+                {/* Input Pencarian dengan Shortcut Badge */}
                 <div className="relative w-full sm:w-48 xl:w-56">
                   <input
+                    ref={searchInputRef}
                     type="text"
                     placeholder="Cari barang kasir..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-[#16171b] border border-hairline px-3.5 py-2 text-xs text-zinc-100 rounded-lg outline-none focus:border-nvidia-green transition"
+                    className="w-full bg-[#16171b] border border-hairline pl-3.5 pr-8 py-2 text-xs text-zinc-100 rounded-lg outline-none focus:border-nvidia-green transition"
                   />
+                  {search ? (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"
+                      title="Bersihkan pencarian"
+                    >
+                      <X size={14} />
+                    </button>
+                  ) : (
+                    <kbd 
+                      className="hidden sm:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400 bg-white/5 border border-white/10 rounded pointer-events-none"
+                      title="Shortcut keyboard tombol garis miring"
+                    >
+                      /
+                    </kbd>
+                  )}
                 </div>
 
                 {/* Filter Kategori */}
@@ -223,6 +285,21 @@ export default function KasirPage() {
                   >
                     <List size={16} />
                   </button>
+                </div>
+
+                {/* Hint Bar Tombol Cepat Keyboard */}
+                <div className="hidden lg:flex items-center gap-2 text-[11px] text-zinc-400 bg-[#16171b] border border-hairline/80 px-3 py-1.5 rounded-xl">
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-zinc-300 font-semibold">/</kbd> Cari
+                  </span>
+                  <span className="text-zinc-600">•</span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-zinc-300 font-semibold">F9</kbd> Bayar
+                  </span>
+                  <span className="text-zinc-600">•</span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-zinc-300 font-semibold">Esc</kbd> Reset
+                  </span>
                 </div>
 
               </div>
@@ -550,7 +627,10 @@ export default function KasirPage() {
                   onClick={() => setShowConfirm(true)}
                   className="w-full py-3 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 text-black font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-[0_0_20px_rgba(118,185,0,0.25)] flex items-center justify-center gap-2 active:scale-95"
                 >
-                  {loading ? "Memproses..." : "Bayar Cash Lunas"}
+                  <span>{loading ? "Memproses..." : "Bayar Cash Lunas"}</span>
+                  <kbd className="px-1.5 py-0.5 text-[10px] bg-black/20 text-black/80 font-bold rounded border border-black/20" title="Shortcut keyboard F9">
+                    F9
+                  </kbd>
                 </button>
               </div>
 
@@ -590,20 +670,29 @@ export default function KasirPage() {
                 ))}
               </div>
 
-              <div className="flex gap-2.5 pt-2">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1">
+                <span>Enter konfirmasi lunas</span>
+                <span>Esc batal</span>
+              </div>
+
+              <div className="flex gap-2.5 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 py-2.5 bg-[#1a1b20] border border-hairline text-zinc-300 hover:text-white rounded-lg font-bold text-xs uppercase transition"
+                  className="flex-1 py-2.5 bg-[#1a1b20] border border-hairline text-zinc-300 hover:text-white rounded-lg font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition"
                 >
-                  Batal
+                  <span>Batal</span>
+                  <kbd className="px-1.5 py-0.2 bg-white/10 text-zinc-400 text-[10px] rounded font-semibold">Esc</kbd>
                 </button>
                 <button
                   type="button"
                   onClick={handleCheckout}
-                  className="flex-1 py-2.5 bg-nvidia-green hover:bg-[#88d600] text-black rounded-lg font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition shadow-sm"
+                  disabled={loading}
+                  className="flex-1 py-2.5 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-50 text-black rounded-lg font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition shadow-sm"
                 >
-                  <Check size={16} /> Lunas
+                  <Check size={16} />
+                  <span>{loading ? "Memproses..." : "Lunas"}</span>
+                  <kbd className="px-1.5 py-0.2 bg-black/20 text-black text-[10px] rounded font-semibold">Enter</kbd>
                 </button>
               </div>
             </div>
