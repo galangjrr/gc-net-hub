@@ -516,12 +516,8 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/20" />
 
-          {/* Ambient Glows */}
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.15, 0.1] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-1/4 -left-[200px] w-[600px] h-[600px] bg-nvidia-green/30 rounded-full blur-[120px]"
-          />
+          {/* Ambient Lighting - Refined radial lighting */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(118,185,0,0.12),rgba(0,0,0,0))]" />
 
           <div className="scanlines opacity-20"></div>
         </div>
@@ -535,7 +531,7 @@ export default function Home() {
             className="max-w-xl flex-1 mt-10 md:mt-0"
           >
             {/* Mobile Hero Logo */}
-            <div className="md:hidden flex items-center justify-start mb-10 h-28 w-28 relative">
+            <div className="md:hidden flex items-center justify-start mb-8 h-24 w-24 relative">
               <motion.img
                 src="/logo/GC Master Logo.svg"
                 alt="GC Net Logo"
@@ -553,7 +549,7 @@ export default function Home() {
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
               />
             </div>
-            <div className="flex items-center gap-3 mb-6 bg-white/5 backdrop-blur-md border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] w-max px-4 py-1.5 rounded-full">
+            <div className="flex items-center gap-3 mb-6 bg-[#16171b] border border-hairline shadow-sm w-max px-4 py-1.5 rounded-full">
               <span className="flex items-center justify-center w-2 h-2">
                 <span className="absolute inline-flex h-2 w-2 rounded-full bg-nvidia-green animate-ping opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green shadow-[0_0_10px_rgba(118,185,0,1)]"></span>
@@ -572,7 +568,25 @@ export default function Home() {
               </span>
             </motion.h1>
 
-            <div className="bg-white/[0.03] border border-white/10 p-4 rounded-xl mb-8 max-w-[480px] space-y-2.5 backdrop-blur-sm">
+            {/* Mobile Compact Live PC Status */}
+            <div className="md:hidden flex items-center justify-between p-3.5 rounded-xl bg-[#121316] border border-hairline mb-6 backdrop-blur-sm">
+              <div className="flex items-center gap-2.5">
+                <Monitor size={16} className="text-nvidia-green" />
+                <span className="text-xs font-bold text-white uppercase tracking-wide">Status PC</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <div className="text-zinc-400">
+                  Tersedia: <span className="text-nvidia-green font-bold tabular-nums">{Math.max(0, totalPcs - bookedPcsCount)}</span>
+                </div>
+                <div className="text-zinc-600">•</div>
+                <div className="text-zinc-400">
+                  Aktif: <span className="text-zinc-200 font-bold tabular-nums">{bookedPcsCount}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kotak Aturan Booking Selaras */}
+            <div className="bg-[#121316]/90 border border-hairline border-l-2 border-l-nvidia-green/80 p-4 rounded-xl mb-8 max-w-[480px] space-y-2.5 backdrop-blur-sm">
               <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-300">
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
                   <Check className="text-nvidia-green" size={12} />
@@ -607,7 +621,7 @@ export default function Home() {
 
               <button
                 onClick={() => setShowTcModal(true)}
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/10 hover:border-white/25 rounded-xl font-bold text-xs uppercase tracking-wider transition backdrop-blur-sm"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#16171b] hover:bg-[#1f2126] text-zinc-300 hover:text-white border border-hairline rounded-xl font-bold text-xs uppercase tracking-wider transition backdrop-blur-sm"
               >
                 Syarat dan Ketentuan
               </button>
@@ -620,10 +634,9 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="hidden md:flex flex-1 justify-end"
           >
-            <div className="nvidia-card p-6 w-[320px] bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl relative shadow-2xl">
-              <div className="nvidia-corner" />
-
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+            {/* Card Status Ketersediaan PC Selaras */}
+            <div className="p-6 w-[320px] bg-[#121316]/95 backdrop-blur-xl border border-hairline rounded-xl relative shadow-2xl">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-hairline">
                 <div className="flex items-center gap-2.5">
                   <Monitor size={18} className="text-nvidia-green" />
                   <h3 className="text-xs font-bold text-white tracking-wider uppercase">Status Ketersediaan PC</h3>
@@ -656,7 +669,7 @@ export default function Home() {
                       {totalPcs > 0 ? Math.round((bookedPcsCount / totalPcs) * 100) : 0}%
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                  <div className="w-full h-2 bg-zinc-800/80 rounded-full overflow-hidden border border-hairline">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${totalPcs > 0 ? Math.round((bookedPcsCount / totalPcs) * 100) : 0}%` }}
@@ -666,7 +679,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400">
+                <div className="pt-3 border-t border-hairline flex items-center justify-between text-[11px] text-zinc-400">
                   <span>Total Kapasitas</span>
                   <span className="font-bold text-white tabular-nums">{totalPcs} Unit PC</span>
                 </div>
