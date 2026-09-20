@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, Variants } from "motion/react";
-import { Monitor, ArrowRight, Gamepad2, AlertCircle, CheckCircle2, Crosshair, Upload, ChevronLeft, ChevronRight, Sparkles, Clock, User, Package, Crown, UtensilsCrossed, Ban, Banknote, AlertTriangle, Star, Check, X, Hourglass, Play } from "lucide-react";
+import { Monitor, ArrowRight, Gamepad2, AlertCircle, CheckCircle2, Crosshair, Upload, ChevronLeft, ChevronRight, Sparkles, Clock, User, Package, Crown, UtensilsCrossed, Ban, Banknote, AlertTriangle, Star, Check, X, Hourglass, Play, QrCode } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { DatabaseSchema, PC, Paket } from "@/lib/db";
@@ -44,8 +44,22 @@ export default function Home() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [bookingStep, setBookingStep] = useState<1 | 2>(1);
   const [antreanSearch, setAntreanSearch] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const triggeredExpiredPcIds = useRef<Set<string>>(new Set());
+
+  const selectedPaketObj = useMemo(() => {
+    if (!selectedPaket) return null;
+    if (selectedPaket.startsWith("custom-")) {
+      const price = parseInt(selectedPaket.replace("custom-", "")) || 0;
+      const mins = Math.floor(price / 4000 * 60);
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const timeStr = [h > 0 ? `${h}j` : '', m > 0 ? `${m}m` : ''].filter(Boolean).join(' ') || '0m';
+      return { id: selectedPaket, name: `Paket Custom (± ${timeStr})`, price };
+    }
+    return db?.pakets?.find(p => p.id === selectedPaket) || null;
+  }, [selectedPaket, db?.pakets]);
 
   useEffect(() => {
     const el = carouselRef.current;
@@ -189,22 +203,23 @@ export default function Home() {
   };
 
   const handlePayment = async () => {
+    setFormError(null);
     const trimmedName = playerName.trim();
     if (!selectedPc || !selectedPaket || !trimmedName) {
-      alert("Lengkapi data: Pilih PC, Paket, dan isi Nama Pemain!");
+      setFormError("Lengkapi data: pilih PC, paket, dan isi nama panggilan lu");
       return;
     }
     if (paymentMethod === 'qris' && !ssFile) {
-      alert("Wajib upload bukti transfer DANA jika pilih QRIS!");
+      setFormError("Wajib upload bukti transfer DANA jika memilih QRIS");
       return;
     }
     if (paymentMethod === 'qris' && ssFile && !ssFile.type.startsWith('image/')) {
-      alert("Bukti transfer wajib berupa file gambar JPG atau PNG");
+      setFormError("Bukti transfer wajib berupa file gambar JPG atau PNG");
       return;
     }
     // Validasi ukuran file max 2MB
     if (paymentMethod === 'qris' && ssFile && ssFile.size > 2 * 1024 * 1024) {
-      alert("Ukuran file SS maksimal 2MB. Kompres dulu gambarnya ya boss!");
+      setFormError("Ukuran file bukti transfer maksimal 2MB");
       return;
     }
     setLoading(true);
@@ -232,13 +247,13 @@ export default function Home() {
           });
           const createdPaket = await newPaketRes.json();
           if (!newPaketRes.ok || !createdPaket?.id) {
-            alert(createdPaket?.error || "Gagal memproses paket custom!");
+            setFormError(createdPaket?.error || "Gagal memproses paket custom");
             setLoading(false);
             return;
           }
           finalPaketId = createdPaket.id;
         } catch (err) {
-          alert("Gagal menghubungi server untuk paket custom.");
+          setFormError("Gagal menghubungi server untuk paket custom");
           setLoading(false);
           return;
         }
@@ -259,7 +274,7 @@ export default function Home() {
         });
         const resData = await res.json();
         if (!res.ok) {
-          alert(resData?.error || "Gagal membuat booking. Silakan coba lagi.");
+          setFormError(resData?.error || "Gagal membuat booking. Silakan coba lagi.");
           setLoading(false);
           return;
         }
@@ -270,7 +285,7 @@ export default function Home() {
         setLoading(false);
         loadData();
       } catch (err: any) {
-        alert("Terjadi kesalahan jaringan saat mengirim booking.");
+        setFormError("Terjadi kesalahan jaringan saat mengirim booking");
         setLoading(false);
       }
     };
@@ -282,7 +297,7 @@ export default function Home() {
         await sendBooking(base64SS);
       };
       reader.onerror = () => {
-        alert("Gagal membaca file gambar screenshot.");
+        setFormError("Gagal membaca file gambar screenshot");
         setLoading(false);
       };
       reader.readAsDataURL(ssFile);
@@ -1032,7 +1047,47 @@ export default function Home() {
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1800px] w-full mx-auto px-6 flex-1 flex flex-col">
+        <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 flex-1 flex flex-col">
+          {/* Stepper Header */}
+          <div className="flex items-center justify-between max-w-sm mx-auto w-full mb-6 px-2">
+            <button
+              onClick={() => setBookingStep(1)}
+              className="flex items-center gap-2 group transition-opacity"
+            >
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                bookingStep === 1 
+                  ? "bg-nvidia-green text-black shadow-[0_0_12px_rgba(118,185,0,0.5)]" 
+                  : "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/40"
+              }`}>
+                {bookingStep === 2 ? <Check size={14} /> : "1"}
+              </div>
+              <span className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+                bookingStep === 1 ? "text-white" : "text-zinc-400 group-hover:text-white"
+              }`}>
+                Pilih PC
+              </span>
+            </button>
+
+            <div className="flex-1 h-[2px] mx-4 bg-zinc-800 relative overflow-hidden rounded-full">
+              <div className={`h-full bg-nvidia-green transition-all duration-300 ${bookingStep === 2 ? "w-full" : "w-0"}`} />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                bookingStep === 2 
+                  ? "bg-nvidia-green text-black shadow-[0_0_12px_rgba(118,185,0,0.5)]" 
+                  : "bg-[#16171b] text-zinc-500 border border-hairline"
+              }`}>
+                2
+              </div>
+              <span className={`text-xs font-bold uppercase tracking-wider ${
+                bookingStep === 2 ? "text-white" : "text-zinc-500"
+              }`}>
+                Pembayaran
+              </span>
+            </div>
+          </div>
+
           <div className="w-full relative overflow-hidden flex-1 flex flex-col">
             <AnimatePresence mode="popLayout">
               {bookingStep === 1 && (
@@ -1041,15 +1096,13 @@ export default function Home() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="w-full flex-1 nvidia-card p-8 flex flex-col"
+                  className="w-full flex-1 p-4 sm:p-6 md:p-8 bg-[#0f1013]/95 border border-hairline rounded-2xl flex flex-col shadow-2xl"
                 >
-                  <div className="nvidia-corner"></div>
-
                   {/* Step 1 Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-6 border-b border-hairline">
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 pb-5 border-b border-hairline">
                     <div>
-                      <h2 className="text-2xl font-bold text-white tracking-tight uppercase tracking-tight">Step 1: Pilih PC Untuk Antre</h2>
-                      <p className="text-sm text-white/60 mt-1 tracking-tight">Lihat sisa waktu player yang sedang main dan siapa pengantre berikutnya di bawah ini.</p>
+                      <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Pilih PC Untuk Booking</h2>
+                      <p className="text-xs md:text-sm text-zinc-400 mt-1">Cek sisa waktu pemain aktif dan ambil nomor antrean berikutnya</p>
                     </div>
                   </div>
 
@@ -1083,196 +1136,176 @@ export default function Home() {
                           <motion.button
                             variants={itemVariants}
                             whileHover={{ 
-                              scale: 1.03, 
+                              scale: 1.02, 
                               borderColor: isExpired ? "#ef4444" : isWarning ? "#f59e0b" : "#76b900" 
                             }}
-                            whileTap={{ scale: 0.97 }}
+                            whileTap={{ scale: 0.98 }}
                             key={pc.id}
                             onClick={() => handlePcClick(pc.id)}
                             className={`
-                              relative flex flex-col items-start justify-between p-3 md:p-4 rounded-[2px] transition-all border overflow-hidden group h-full text-left
+                              relative flex flex-col items-start justify-between p-4 rounded-xl transition-all border overflow-hidden group h-full text-left
                               ${isSelected
                                 ? isExpired
-                                  ? "bg-red-500/20 border-red-500 text-white shadow-[inset_0_0_20px_rgba(239,68,68,0.3),0_0_25px_rgba(239,68,68,0.4)] ring-1 ring-red-500"
+                                  ? "bg-red-500/15 border-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.25)] ring-1 ring-red-500"
                                   : isWarning
-                                  ? "bg-amber-500/20 border-amber-500 text-white shadow-[inset_0_0_20px_rgba(245,158,11,0.3),0_0_25px_rgba(245,158,11,0.4)] ring-1 ring-amber-500 animate-pulse"
-                                  : "bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[inset_0_0_20px_rgba(118,185,0,0.2)]"
+                                  ? "bg-amber-500/15 border-amber-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.25)] ring-1 ring-amber-500"
+                                  : "bg-nvidia-green/10 border-nvidia-green text-white shadow-[0_0_20px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green"
                                 : isExpired
-                                ? "bg-red-500/10 border-red-500/80 text-white shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:border-red-400"
+                                ? "bg-red-500/5 border-red-500/40 text-white hover:border-red-400"
                                 : isWarning
-                                ? "bg-amber-500/10 border-amber-500/80 text-white shadow-[0_0_20px_rgba(245,158,11,0.25)] animate-pulse hover:border-amber-400"
-                                : "bg-surface-dark border-hairline text-white hover:border-white/50"
+                                ? "bg-amber-500/5 border-amber-500/40 text-white hover:border-amber-400"
+                                : "bg-[#121316] border-hairline text-white hover:border-zinc-500"
                               }
                             `}
                           >
-                            {!isSelected && !isExpired && !isWarning && (
-                              <div className="absolute inset-0 bg-nvidia-green/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                            )}
-
-                            {/* Watermark Icon */}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
-                              <Monitor size={80} className={
-                                isSelected 
-                                  ? isExpired ? "text-red-400" : isWarning ? "text-amber-400" : "text-nvidia-green"
-                                  : isExpired ? "text-red-400" : isWarning ? "text-amber-400" : "text-white"
-                              } />
-                            </div>
-
-                            {/* Header: PC Name & Status Badges */}
-                            <div className="flex justify-between w-full relative z-10 mb-2 items-start gap-2">
+                            {/* Header: PC Name & Status */}
+                            <div className="flex justify-between w-full relative z-10 mb-2.5 items-start gap-2">
                               <div className="flex flex-col items-start text-left">
-                                <span className={`font-sans text-sm md:text-base font-black tracking-tighter uppercase leading-tight ${
+                                <span className={`text-base font-black tracking-tight uppercase leading-tight ${
                                   isExpired ? "text-red-400" : isWarning ? "text-amber-400" : isSelected ? "text-nvidia-green" : "text-white"
                                 }`}>
                                   {pc.name}
                                 </span>
                                 {isExpired ? (
-                                  <span className="text-[9px] font-bold text-red-400 tracking-wide uppercase mt-0.5 flex items-center gap-1">
+                                  <span className="text-[10px] font-bold text-red-400 uppercase mt-0.5 flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping inline-block" /> 
                                     {firstBooking ? `Giliran ${firstBooking.player_name}` : 'PC Bebas'}
                                   </span>
                                 ) : isWarning ? (
-                                  <span className="text-[9px] font-bold text-amber-400 tracking-wide uppercase mt-0.5 flex items-center gap-1">
+                                  <span className="text-[10px] font-bold text-amber-400 uppercase mt-0.5 flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block" /> 
                                     {firstBooking ? `${firstBooking.player_name} Bersiap` : 'Hampir Selesai'}
                                   </span>
                                 ) : hasTimer ? (
-                                  <span className="text-[9px] font-bold text-white/50 tracking-wide uppercase mt-0.5">
+                                  <span className="text-[10px] font-medium text-zinc-400 uppercase mt-0.5">
                                     Sedang Dimainkan
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] font-bold text-emerald-400/90 tracking-wide uppercase mt-0.5">
+                                  <span className="text-[10px] font-bold text-emerald-400 uppercase mt-0.5">
                                     PC Bebas
                                   </span>
                                 )}
                               </div>
 
-                              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                              <div className="flex flex-col items-end gap-1 shrink-0">
                                 <Monitor
                                   size={18}
-                                  className={`md:w-[20px] md:h-[20px] mb-1 ${
+                                  className={
                                     isExpired 
                                       ? "text-red-400" 
                                       : isWarning 
                                       ? "text-amber-400" 
                                       : isSelected 
                                       ? "text-nvidia-green" 
-                                      : "text-white/30 group-hover:text-white/60"
-                                  }`}
+                                      : "text-zinc-500 group-hover:text-zinc-300"
+                                  }
                                 />
                                 {pcBookings.length > 0 ? (
-                                  <span className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] max-w-[80px] truncate ${
+                                  <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide text-center ${
                                     isExpired 
-                                      ? 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse'
+                                      ? 'bg-red-500 text-white' 
                                       : isWarning 
-                                      ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]'
+                                      ? 'bg-amber-500 text-black' 
                                       : isPending 
                                       ? 'bg-amber-500 text-black' 
                                       : 'bg-nvidia-green text-black'
                                   }`}>
-                                    {isExpired ? `GILIRAN ${firstBooking.player_name.slice(0, 6)}` : isPending ? 'Verifikasi' : `${pcBookings.length} Antrean`}
+                                    {isExpired ? `Giliran ${firstBooking.player_name.slice(0, 6)}` : isPending ? 'Verifikasi' : `${pcBookings.length} Antrean`}
                                   </span>
                                 ) : isExpired ? (
-                                  <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide bg-red-500/20 text-red-400 border border-red-500/40">
                                     Habis
                                   </span>
                                 ) : isWarning ? (
-                                  <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-black uppercase tracking-widest text-center leading-[1.2] bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-                                    &lt; 10M
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                                    Kurang 10M
                                   </span>
                                 ) : (
-                                  <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-widest text-center leading-[1.2] bg-white/10 text-white/60">
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-medium uppercase tracking-wide bg-white/5 text-zinc-400 border border-white/10">
                                     Bebas
                                   </span>
                                 )}
                               </div>
                             </div>
 
-                            {/* Timer Bar (Sisa Player Lama) */}
+                            {/* Timer Countdown Bar */}
                             {isExpired ? (
-                              <div className="w-full bg-red-500/20 border border-red-500/40 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-red-300">
-                                <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                  <AlertTriangle size={11} className="text-red-400" /> Sisa Player
+                              <div className="w-full bg-red-500/10 border border-red-500/30 p-2 rounded-lg flex items-center justify-between mb-2 z-10 text-red-300">
+                                <span className="text-[10px] font-bold uppercase tracking-wide flex items-center gap-1">
+                                  <AlertTriangle size={12} className="text-red-400" /> Sisa Waktu
                                 </span>
-                                <span className="tabular-nums text-[11px] font-black tracking-wider text-red-400 animate-pulse">
-                                  00:00 (HABIS)
+                                <span className="tabular-nums text-xs font-black text-red-400">
+                                  00:00 Habis
                                 </span>
                               </div>
                             ) : isWarning ? (
-                              <div className="w-full bg-amber-500/20 border border-amber-500/40 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-amber-300">
-                                <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                  <Clock size={11} className="text-amber-400 animate-spin" /> Sisa Player
+                              <div className="w-full bg-amber-500/10 border border-amber-500/30 p-2 rounded-lg flex items-center justify-between mb-2 z-10 text-amber-300">
+                                <span className="text-[10px] font-bold uppercase tracking-wide flex items-center gap-1">
+                                  <Clock size={12} className="text-amber-400" /> Sisa Waktu
                                 </span>
-                                <span className="tabular-nums text-[11px] font-black tracking-wider text-amber-300">
+                                <span className="tabular-nums text-xs font-black text-amber-300">
                                   {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
                                 </span>
                               </div>
                             ) : isNormalTimer ? (
-                              <div className="w-full bg-white/[0.04] border border-white/10 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-white/70">
-                                <span className="text-[9px] font-bold uppercase tracking-widest">Sisa Player</span>
-                                <span className="tabular-nums text-[11px] font-bold tracking-wider text-nvidia-green">
+                              <div className="w-full bg-white/[0.04] border border-hairline p-2 rounded-lg flex items-center justify-between mb-2 z-10 text-zinc-300">
+                                <span className="text-[10px] font-medium uppercase tracking-wide">Sisa Waktu</span>
+                                <span className="tabular-nums text-xs font-bold text-nvidia-green">
                                   {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
                                 </span>
                               </div>
                             ) : null}
 
-                            {/* PC Body & Queue Information */}
-                            <div className="flex-1 w-full relative z-10 flex flex-col gap-1.5 mt-2 justify-center">
+                            {/* PC Queue & Action Hint */}
+                            <div className="flex-1 w-full relative z-10 flex flex-col gap-1.5 mt-1 justify-center">
                               {pcBookings.length > 0 ? (
-                                <div className="flex flex-col w-full h-full justify-center gap-1.5">
-                                  <div className={`p-2 rounded-[2px] border ${
+                                <div className="flex flex-col w-full h-full justify-center gap-1">
+                                  <div className={`p-2 rounded-lg border text-xs ${
                                     isExpired 
-                                      ? 'bg-red-500/15 border-red-500/30' 
+                                      ? 'bg-red-500/10 border-red-500/20' 
                                       : isWarning 
-                                      ? 'bg-amber-500/10 border-amber-500/30' 
-                                      : 'bg-black/40 border-white/10'
+                                      ? 'bg-amber-500/10 border-amber-500/20' 
+                                      : 'bg-black/40 border-hairline'
                                   }`}>
                                     <div className="flex items-center justify-between mb-0.5">
-                                      <span className="text-[9px] uppercase font-bold text-nvidia-green">
-                                        {isExpired ? "🔥 GILIRAN MAIN:" : isWarning ? "⚠️ SIAP MASUK:" : "ANTREAN #1:"}
+                                      <span className="text-[10px] font-bold text-nvidia-green">
+                                        {isExpired ? "Giliran Main:" : isWarning ? "Siap Masuk:" : "Antrean 1:"}
                                       </span>
-                                      <span className="text-[10px] tabular-nums font-bold text-white/70">
+                                      <span className="text-[10px] font-medium text-zinc-400">
                                         {firstPkgTitle}
                                       </span>
                                     </div>
-                                    <div className="text-xs font-black text-white truncate">
+                                    <div className="text-xs font-bold text-white truncate">
                                       {firstBooking.player_name}
                                     </div>
-                                    <span className="text-[10px] text-white/50 block mt-0.5">
-                                      {isExpired 
-                                        ? "PC selesai dimainkan • Silakan masuk" 
-                                        : isWarning 
-                                        ? "Player lama hampir selesai" 
-                                        : "Menunggu player selesai"}
-                                    </span>
                                   </div>
 
                                   {pcBookings.length > 1 && (
-                                    <div className="text-[9px] text-white/40 font-bold text-center uppercase tracking-widest border-t border-hairline pt-1 shrink-0">
+                                    <div className="text-[10px] text-zinc-400 font-medium text-center uppercase tracking-wide border-t border-hairline pt-1 shrink-0">
                                       +{pcBookings.length - 1} Antrean Berikutnya
                                     </div>
                                   )}
                                 </div>
                               ) : (hasTimer && !isExpired) ? (
-                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full">
-                                  <span className="text-xs font-bold text-white/80 uppercase">SEDANG DIMAINKAN</span>
-                                  <span className="text-[10px] text-nvidia-green font-bold uppercase tracking-wider bg-nvidia-green/10 border border-nvidia-green/30 px-2 py-0.5 rounded">
-                                    Belum Ada Antrean • Bisa Antre!
+                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full py-1">
+                                  <span className="text-xs font-semibold text-zinc-300">Sedang Dimainkan</span>
+                                  <span className="text-[10px] text-nvidia-green font-bold uppercase tracking-wide bg-nvidia-green/10 border border-nvidia-green/20 px-2 py-0.5 rounded-full">
+                                    Belum Ada Antrean
                                   </span>
                                 </div>
                               ) : isExpired ? (
-                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full">
-                                  <span className="text-xs font-black text-red-400 uppercase">WAKTU HABIS • PC BEBAS</span>
-                                  <span className="text-[10px] text-white/60">Bisa langsung main ke kasir</span>
+                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full py-1">
+                                  <span className="text-xs font-bold text-red-400">Waktu Habis • PC Bebas</span>
+                                  <span className="text-[10px] text-zinc-400">Bisa langsung main ke kasir</span>
                                 </div>
                               ) : (
-                                <div className={`text-sm md:text-base h-full tracking-tight font-bold uppercase flex flex-col items-center justify-center gap-1 transition-colors ${isSelected ? 'text-nvidia-green' : 'text-white/40'}`}>
+                                <div className={`text-xs h-full font-bold flex flex-col items-center justify-center gap-1 transition-colors py-2 ${isSelected ? 'text-nvidia-green' : 'text-zinc-400'}`}>
                                   {isSelected ? (
-                                    <span className="flex items-center gap-1.5 font-black"><CheckCircle2 size={18} /> PC DIPILIH</span>
+                                    <span className="flex items-center gap-1.5 font-bold"><CheckCircle2 size={16} /> PC Dipilih</span>
                                   ) : (
                                     <>
-                                      <span className="font-bold">PC BEBAS SIAP MAIN</span>
-                                      <span className="text-[10px] text-white/30 normal-case">Langsung main ke kasir</span>
+                                      <span className="font-semibold text-white">PC Bebas Siap Main</span>
+                                      <span className="text-[10px] text-zinc-400 font-normal">Langsung main ke kasir</span>
                                     </>
                                   )}
                                 </div>
@@ -1284,22 +1317,25 @@ export default function Home() {
                     </motion.div>
                   )}
 
-                  <div className="mt-auto pt-6 border-t border-hairline flex justify-end">
+                  {/* Sticky Bottom Action Bar for Mobile & Desktop */}
+                  <div className="sticky bottom-4 z-30 mt-auto pt-3 pb-3 px-4 rounded-xl bg-[#121316]/95 border border-hairline backdrop-blur-md flex items-center justify-between gap-3 shadow-2xl">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-zinc-400 font-medium">Unit Terpilih:</span>
+                      <span className="text-sm font-bold text-white">
+                        {selectedPc ? (db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc) : "Pilih salah satu PC"}
+                      </span>
+                    </div>
                     <button
                       onClick={handleNextStep}
                       disabled={!selectedPc}
-                      className={`px-8 py-3 tracking-tight font-bold uppercase tracking-widest text-sm rounded-[2px] transition-all ${selectedPc
-                        ? "bg-nvidia-green text-black hover:bg-white hover:text-black shadow-[0_0_20px_rgba(118,185,0,0.3)]"
-                        : "bg-surface-soft text-white/20 cursor-not-allowed border border-hairline"
-                        }`}
+                      className={`px-5 py-2.5 font-bold text-xs uppercase tracking-wider rounded-lg transition-all flex items-center gap-2 ${
+                        selectedPc
+                          ? "bg-nvidia-green text-black hover:bg-white active:scale-95 shadow-[0_0_15px_rgba(118,185,0,0.3)]"
+                          : "bg-surface-soft text-zinc-600 cursor-not-allowed border border-hairline"
+                      }`}
                     >
-                      {selectedPc ? (
-                        <span className="flex items-center gap-2">
-                          Lanjut Ambil Antrean {db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc} <ArrowRight size={16} />
-                        </span>
-                      ) : (
-                        "Pilih PC Dulu"
-                      )}
+                      <span>Lanjut Pembayaran</span>
+                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </motion.div>
@@ -1311,45 +1347,55 @@ export default function Home() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="w-full max-w-2xl mx-auto flex-1 nvidia-card p-4 sm:p-8 flex flex-col"
+                  className="w-full max-w-2xl mx-auto flex-1 p-4 sm:p-6 md:p-8 bg-[#0f1013]/95 border border-hairline rounded-2xl flex flex-col shadow-2xl"
                 >
-                  <div className="nvidia-corner"></div>
-
-                  <div className="flex items-center gap-4 mb-6 border-b border-hairline pb-4">
+                  <div className="flex items-center gap-3.5 mb-6 border-b border-hairline pb-4">
                     <button
                       onClick={() => {
+                        setFormError(null);
                         setBookingStep(1);
                       }}
-                      className="w-10 h-10 flex items-center justify-center bg-surface-dark border border-hairline rounded-[2px] text-white hover:border-nvidia-green hover:text-nvidia-green transition-colors shrink-0"
+                      className="w-9 h-9 flex items-center justify-center bg-[#16171b] border border-hairline rounded-lg text-white hover:border-nvidia-green hover:text-nvidia-green transition-colors shrink-0"
                     >
-                      <ChevronLeft size={20} />
+                      <ChevronLeft size={18} />
                     </button>
                     <div>
-                      <h3 className="text-xl font-bold text-white uppercase tracking-tight tracking-tight">Step 2: Identitas & Pembayaran</h3>
-                      <p className="text-xs text-white/50 tracking-tight">PC Terpilih: <strong className="text-nvidia-green">{db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc}</strong></p>
+                      <h3 className="text-lg md:text-xl font-bold text-white uppercase tracking-tight">Step 2: Identitas dan Pembayaran</h3>
+                      <p className="text-xs text-zinc-400">Unit PC: <strong className="text-nvidia-green">{db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc}</strong></p>
                     </div>
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-between space-y-6">
+                  {/* Inline Error Message */}
+                  {formError && (
+                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium flex items-center gap-2 mb-4">
+                      <AlertTriangle size={15} className="shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 flex flex-col justify-between space-y-5">
                     {/* Identitas */}
                     <div>
-                      <label className="text-[11px] font-bold text-white mb-2 block uppercase tracking-widest tracking-tight">
-                        Nama Panggilan Lu
+                      <label className="text-xs font-bold text-zinc-300 mb-1.5 block uppercase tracking-wide">
+                        Nama Panggilan Pemain
                       </label>
                       <input
                         type="text"
                         value={playerName}
-                        onChange={e => setPlayerName(e.target.value)}
+                        onChange={e => {
+                          setPlayerName(e.target.value);
+                          if (formError) setFormError(null);
+                        }}
                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('portal-paket')?.focus(); } }}
-                        placeholder="e.g. Bang Jago"
-                        className="w-full bg-surface-dark border border-hairline text-white p-3 rounded-[2px] tracking-tight text-sm focus:border-nvidia-green outline-none"
+                        placeholder="Contoh: Bang Jago"
+                        className="w-full bg-[#16171b] border border-hairline text-white p-3 rounded-lg text-sm focus:border-nvidia-green outline-none"
                       />
                     </div>
 
                     {/* Package Selection */}
-                    <div className="flex flex-col h-[280px]">
-                      <label className="text-[11px] font-bold text-white mb-2 block uppercase tracking-widest tracking-tight shrink-0">
-                        Cari / Bikin Paket Booking
+                    <div className="flex flex-col">
+                      <label className="text-xs font-bold text-zinc-300 mb-1.5 block uppercase tracking-wide shrink-0">
+                        Pilih Paket Billing
                       </label>
                       <input
                         id="portal-paket"
@@ -1357,10 +1403,10 @@ export default function Home() {
                         value={searchPaket}
                         onChange={e => setSearchPaket(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('portal-paket')?.blur(); } }}
-                        placeholder="e.g. 6000 atau Paket Malam"
-                        className="w-full bg-black/40 border border-white/10 text-white p-3 rounded-t-xl tracking-tight text-sm focus:border-nvidia-green focus:bg-surface-dark outline-none transition-colors shrink-0 mb-2"
+                        placeholder="Cari nama paket atau ketik nominal..."
+                        className="w-full bg-[#16171b] border border-hairline text-white p-3 rounded-lg text-sm focus:border-nvidia-green outline-none mb-2"
                       />
-                      <div className="flex-1 flex flex-col gap-2 overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="max-h-64 flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar">
                         {(() => {
                           const query = debouncedSearch.toLowerCase();
                           let customPkg = null;
@@ -1412,10 +1458,10 @@ export default function Home() {
 
                           if (displayPkgs.length === 0) {
                             return (
-                              <div className="p-4 text-center text-white/40 tracking-tight text-xs border border-dashed border-white/10 rounded-xl">
+                              <div className="p-4 text-center text-zinc-400 text-xs border border-dashed border-hairline rounded-xl">
                                 {(parsedPrice > 0 && parsedPrice < 3000)
                                   ? "Minimal booking Rp 3.000 boss"
-                                  : "Paket nggak ketemu"}
+                                  : "Paket tidak ditemukan"}
                               </div>
                             );
                           }
@@ -1426,14 +1472,17 @@ export default function Home() {
                             return (
                               <button
                                 key={pkg.id}
-                                onClick={() => setSelectedPaket(pkg.id)}
+                                onClick={() => {
+                                  setSelectedPaket(pkg.id);
+                                  if (formError) setFormError(null);
+                                }}
                                 className={`
-                                    relative group flex items-center justify-between px-4 py-3 rounded-xl tracking-tight transition-all duration-300 w-full overflow-hidden outline-none shrink-0
-                                    ${isSelected
+                                  relative group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 w-full overflow-hidden outline-none shrink-0 text-left
+                                  ${isSelected
                                     ? "bg-nvidia-green/10 border border-nvidia-green/50 shadow-[0_0_15px_rgba(118,185,0,0.15)]"
-                                    : isCustom ? "bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/50" : "bg-black/40 border border-white/5 hover:border-white/20 hover:bg-black/60"
+                                    : isCustom ? "bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/50" : "bg-[#16171b] border border-hairline hover:border-zinc-500"
                                   }
-                                  `}
+                                `}
                               >
                                 {isSelected && (
                                   <motion.div
@@ -1444,16 +1493,16 @@ export default function Home() {
                                   />
                                 )}
                                 <div className="flex flex-col items-start relative z-10">
-                                  <span className={`text-xs md:text-sm font-bold tracking-tight uppercase ${isSelected ? "text-nvidia-green drop-shadow-[0_0_8px_rgba(118,185,0,0.8)]" : isCustom ? "text-blue-400" : "text-white/70 group-hover:text-white"} transition-all duration-300`}>
+                                  <span className={`text-xs md:text-sm font-bold uppercase ${isSelected ? "text-nvidia-green" : isCustom ? "text-blue-400" : "text-white"} transition-colors`}>
                                     {pkg.name}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-3 relative z-10">
-                                  <span className={`text-[11px] md:text-xs font-bold ${isSelected ? "text-nvidia-green" : "text-white/40 group-hover:text-white/80"} transition-colors`}>
-                                    RP {pkg.price.toLocaleString("id-ID")}
+                                  <span className={`text-xs font-bold tabular-nums ${isSelected ? "text-nvidia-green" : "text-zinc-400"}`}>
+                                    Rp {pkg.price.toLocaleString("id-ID")}
                                   </span>
-                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isSelected ? "border-nvidia-green bg-nvidia-green/20" : "border-white/20 group-hover:border-white/40"}`}>
-                                    {isSelected && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="w-2 h-2 bg-nvidia-green rounded-full shadow-[0_0_8px_rgba(118,185,0,1)]" />}
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-nvidia-green bg-nvidia-green/20" : "border-zinc-600"}`}>
+                                    {isSelected && <div className="w-2 h-2 bg-nvidia-green rounded-full shadow-[0_0_8px_rgba(118,185,0,1)]" />}
                                   </div>
                                 </div>
                               </button>
@@ -1463,93 +1512,139 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* QRIS / Upload Bukti */}
-                    <div className="bg-surface-soft p-4 border border-hairline rounded-[2px] text-center">
-                      <div className="flex flex-col gap-2 mb-4">
-                        <label className="text-[11px] font-bold text-white uppercase tracking-widest tracking-tight">Metode Pembayaran</label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => {
-                              setPaymentMethod('kasir');
-                              setSsFile(null);
-                            }}
-                            className={`p-3 tracking-tight text-xs border transition-colors ${paymentMethod === 'kasir' ? 'bg-nvidia-green/10 border-nvidia-green text-nvidia-green' : 'bg-surface-dark border-hairline text-white/50 hover:border-white/30'}`}
-                          >
-                            BAYAR DI KASIR
-                          </button>
-                          <button
-                            onClick={() => setPaymentMethod('qris')}
-                            className={`p-3 tracking-tight text-xs border transition-colors ${paymentMethod === 'qris' ? 'bg-nvidia-green/10 border-nvidia-green text-nvidia-green' : 'bg-surface-dark border-hairline text-white/50 hover:border-white/30'}`}
-                          >
-                            QRIS (DANA)
-                          </button>
-                        </div>
+                    {/* Metode Pembayaran */}
+                    <div className="bg-[#121316] p-4 border border-hairline rounded-xl space-y-3">
+                      <label className="text-xs font-bold text-zinc-300 block uppercase tracking-wide">
+                        Metode Pembayaran
+                      </label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentMethod('kasir');
+                            setSsFile(null);
+                            if (formError) setFormError(null);
+                          }}
+                          className={`p-3 text-xs font-bold rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                            paymentMethod === 'kasir'
+                              ? 'bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[0_0_10px_rgba(118,185,0,0.15)]'
+                              : 'bg-[#16171b] border-hairline text-zinc-400 hover:border-zinc-500'
+                          }`}
+                        >
+                          <span>Bayar di Kasir</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentMethod('qris');
+                            if (formError) setFormError(null);
+                          }}
+                          className={`p-3 text-xs font-bold rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                            paymentMethod === 'qris'
+                              ? 'bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[0_0_10px_rgba(118,185,0,0.15)]'
+                              : 'bg-[#16171b] border-hairline text-zinc-400 hover:border-zinc-500'
+                          }`}
+                        >
+                          <span>QRIS DANA</span>
+                        </button>
                       </div>
 
-                      <AnimatePresence mode="wait">
-                        {paymentMethod === 'kasir' && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-4">
-                            <p className="text-xs text-white/50 tracking-tight italic">
-                              *Booking masuk antrean. Siapkan uang pas di meja kasir. Info: prioritas mungkin didahului oleh user yang bayar via QRIS.
-                            </p>
-                          </motion.div>
-                        )}
+                      {paymentMethod === 'kasir' && (
+                        <div className="p-2.5 rounded-lg bg-white/[0.02] border border-hairline">
+                          <p className="text-[11px] text-zinc-400">
+                            Booking langsung tercatat di antrean. Siapkan uang pas di meja kasir sebelum giliran main tiba.
+                          </p>
+                        </div>
+                      )}
 
-                        {paymentMethod === 'qris' && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex flex-col mb-4 overflow-hidden">
-                            <button
-                              onClick={() => setShowQrModal(true)}
-                              className="w-full mb-3 flex items-center justify-center gap-2 px-4 py-3 bg-surface-dark border border-nvidia-green/30 text-nvidia-green hover:bg-nvidia-green hover:text-black transition-all tracking-tight font-bold text-xs uppercase tracking-widest group rounded-[2px]"
-                            >
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75 group-hover:bg-black"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green group-hover:bg-black"></span>
-                              </span>
-                              Tampilkan QRIS (DANA)
-                            </button>
-                            <label className="nvidia-button w-full flex justify-center items-center gap-2 cursor-pointer text-xs">
-                              <Upload size={16} />
-                              {ssFile ? "Bukti Ter-Upload!" : "Upload Bukti Transfer"}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  if (e.target.files && e.target.files[0]) {
-                                    const file = e.target.files[0];
-                                    if (file.size > 2 * 1024 * 1024) {
-                                      alert("File terlalu besar! Max 2MB ya boss.");
-                                      e.target.value = "";
-                                      return;
-                                    }
-                                    setSsFile(file);
+                      {paymentMethod === 'qris' && (
+                        <div className="space-y-2.5 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setShowQrModal(true)}
+                            className="w-full py-2.5 px-3 bg-[#16171b] border border-nvidia-green/30 text-nvidia-green hover:bg-nvidia-green hover:text-black rounded-lg text-xs font-bold uppercase tracking-wide transition flex items-center justify-center gap-2"
+                          >
+                            <QrCode size={16} />
+                            <span>Tampilkan QRIS DANA</span>
+                          </button>
+
+                          <label className="w-full py-2.5 px-3 bg-[#16171b] border border-hairline hover:border-nvidia-green text-white rounded-lg text-xs font-medium cursor-pointer flex items-center justify-center gap-2 transition">
+                            <Upload size={16} className="text-nvidia-green" />
+                            <span className="truncate max-w-[220px]">
+                              {ssFile ? ssFile.name : "Upload Bukti Transfer Gambar"}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  const file = e.target.files[0];
+                                  if (file.size > 2 * 1024 * 1024) {
+                                    setFormError("Ukuran file terlalu besar, maksimal 2MB");
+                                    e.target.value = "";
+                                    return;
                                   }
-                                }}
-                              />
-                            </label>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                                  setSsFile(file);
+                                  if (formError) setFormError(null);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Payment Action */}
-                    <div className="border-t border-hairline pt-4 flex flex-col gap-3">
-                      <motion.button
-                        disabled={loading}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handlePayment}
-                        className={`w-full nvidia-button text-sm uppercase tracking-widest ${loading ? 'opacity-50' : ''}`}
-                      >
-                        {loading ? 'MEMPROSES...' : 'KIRIM BOOKING'}
-                      </motion.button>
+                    {/* Rangkuman Checkout Pembayaran */}
+                    {selectedPaketObj && (
+                      <div className="bg-[#16171b] border border-hairline rounded-xl p-4 space-y-2 text-xs">
+                        <div className="flex justify-between text-zinc-400">
+                          <span>Unit PC:</span>
+                          <strong className="text-white">{db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc}</strong>
+                        </div>
+                        <div className="flex justify-between text-zinc-400">
+                          <span>Paket Pilihan:</span>
+                          <strong className="text-white">{selectedPaketObj.name}</strong>
+                        </div>
+                        <div className="flex justify-between text-zinc-400">
+                          <span>Metode Pembayaran:</span>
+                          <strong className="text-white uppercase">{paymentMethod === 'kasir' ? 'Bayar di Kasir' : 'QRIS DANA'}</strong>
+                        </div>
+                        <div className="pt-2 border-t border-hairline flex justify-between items-center">
+                          <span className="text-xs font-bold text-white uppercase tracking-wide">Total Tagihan:</span>
+                          <span className="text-base font-black text-nvidia-green tabular-nums">
+                            Rp {selectedPaketObj.price.toLocaleString("id-ID")}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
-                      {/* Syarat & Ketentuan Button */}
+                    {/* Payment Action */}
+                    <div className="pt-2 flex flex-col gap-2.5">
+                      <button
+                        disabled={loading}
+                        onClick={handlePayment}
+                        className={`w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                          loading 
+                            ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed' 
+                            : 'bg-nvidia-green text-black hover:bg-white active:scale-95 shadow-[0_0_20px_rgba(118,185,0,0.3)]'
+                        }`}
+                      >
+                        {loading ? (
+                          <span>Memproses Booking...</span>
+                        ) : (
+                          <>
+                            <span>Kirim Booking Sekarang</span>
+                            <ArrowRight size={15} />
+                          </>
+                        )}
+                      </button>
+
                       <button
                         onClick={() => setShowTcModal(true)}
-                        className="text-[10px] text-white/40 hover:text-nvidia-green tracking-tight uppercase tracking-widest underline underline-offset-4 transition-colors flex items-center justify-center gap-2 mt-1"
+                        className="text-[11px] text-zinc-400 hover:text-nvidia-green transition-colors text-center underline underline-offset-4"
                       >
-                        Baca Syarat & Ketentuan
+                        Baca Syarat dan Ketentuan Booking
                       </button>
                     </div>
                   </div>
