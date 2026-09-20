@@ -749,7 +749,7 @@ export default function DataBookingPage() {
 
                               <button
                                 disabled={loadingId === b.id}
-                                onClick={() => handleDeleteBooking(b.id, b.player_name)}
+                                onClick={() => handleDelete(b.id, b.player_name)}
                                 className="p-2 xl:p-2.5 bg-surface-soft hover:bg-error/20 text-white/60 hover:text-error border border-hairline/60 rounded-lg transition"
                                 title="Hapus Antrean"
                               >
@@ -957,7 +957,7 @@ export default function DataBookingPage() {
                         </button>
                         <button
                           disabled={loadingId === b.id}
-                          onClick={() => handleDeleteBooking(b.id, b.player_name)}
+                          onClick={() => handleDelete(b.id, b.player_name)}
                           className="flex-1 py-2 bg-surface-dark hover:bg-error/20 text-white/60 hover:text-error border border-hairline/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition"
                         >
                           <Trash2 size={13} /> Hapus
