@@ -572,37 +572,44 @@ export default function Home() {
               </span>
             </motion.h1>
 
-            <div className="text-white/60 text-base md:text-lg leading-relaxed mb-8 tracking-tight max-w-[45ch] space-y-2">
-              <div className="flex items-center gap-2">
-                <Check className="text-nvidia-green shrink-0" size={18} />
-                <span>Kalo PC penuh, wajib booking buat antre.</span>
+            <div className="bg-white/[0.03] border border-white/10 p-4 rounded-xl mb-8 max-w-[480px] space-y-2.5 backdrop-blur-sm">
+              <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-300">
+                <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
+                  <Check className="text-nvidia-green" size={12} />
+                </div>
+                <span>Saat bilik penuh, wajib catat antrean booking.</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="text-nvidia-green shrink-0" size={18} />
-                <span>Datang langsung ke lokasi tetap prioritas utama.</span>
+              <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-300">
+                <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
+                  <Check className="text-nvidia-green" size={12} />
+                </div>
+                <span>Pemain yang datang langsung ke meja kasir tetap prioritas.</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="text-nvidia-green shrink-0" size={18} />
-                <span>Admin Acc, pantau antrean, tunggu giliran!</span>
+              <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-300">
+                <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
+                  <Check className="text-nvidia-green" size={12} />
+                </div>
+                <span>Kasir konfirmasi, pantau posisi antrean, giliran main tiba.</span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 items-start">
+            <div className="flex flex-wrap gap-3.5 items-center">
               <motion.a
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 href="#booking"
                 onClick={scrollToBooking}
-                className="nvidia-button gap-2 w-max"
+                className="nvidia-button group gap-2.5 px-6 py-3 rounded-xl shadow-[0_0_25px_rgba(118,185,0,0.3)] transition"
               >
-                Booking Sekarang! <ArrowRight size={16} />
+                <span>Booking Sekarang</span>
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </motion.a>
 
               <button
                 onClick={() => setShowTcModal(true)}
-                className="relative inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black font-bold border-2 border-transparent hover:bg-transparent hover:text-white hover:border-white hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] tracking-tight text-sm uppercase tracking-widest transition-all rounded-[2px] w-max"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/10 hover:border-white/25 rounded-xl font-bold text-xs uppercase tracking-wider transition backdrop-blur-sm"
               >
-                Syarat & Ketentuan Booking
+                Syarat dan Ketentuan
               </button>
             </div>
           </motion.div>
@@ -613,39 +620,55 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="hidden md:flex flex-1 justify-end"
           >
-            <div className="nvidia-card p-6 w-[320px] bg-black/60 backdrop-blur-md border-nvidia-green/30 relative">
-              <div className="absolute top-0 right-0 w-2 h-2 bg-nvidia-green animate-pulse" />
-              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-nvidia-green" />
-              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-nvidia-green" />
-              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-nvidia-green" />
+            <div className="nvidia-card p-6 w-[320px] bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl relative shadow-2xl">
+              <div className="nvidia-corner" />
 
-              <div className="flex items-center gap-3 mb-4 border-b border-hairline pb-4">
-                <Crosshair size={24} className="text-nvidia-green animate-[spin_4s_linear_infinite]" />
-                <h3 className="tracking-tight text-sm font-bold text-white tracking-widest uppercase">Status Warnet</h3>
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <Monitor size={18} className="text-nvidia-green" />
+                  <h3 className="text-xs font-bold text-white tracking-wider uppercase">Status Ketersediaan PC</h3>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-nvidia-green/10 border border-nvidia-green/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green animate-pulse" />
+                  <span className="text-[10px] font-bold text-nvidia-green uppercase tracking-wide">Live</span>
+                </div>
               </div>
 
-              <div className="space-y-4 tracking-tight text-[11px]">
-                <div className="flex justify-between">
-                  <span className="text-white/50">TOTAL PC</span>
-                  <span className="text-nvidia-green font-bold">{totalPcs} Unit Ready</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/50">IN QUEUE</span>
-                  <span className="text-warning font-bold">{bookedPcsCount} PC</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/50">HARGA / JAM</span>
-                  <span className="text-nvidia-green font-bold">Rp 4.000</span>
-                </div>
+              <div className="space-y-4 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-white/50">KONEKSI</span>
-                  <div className="w-24 h-1.5 bg-surface-soft rounded-full overflow-hidden self-center">
+                  <span className="text-zinc-400">PC Tersedia</span>
+                  <span className="text-sm font-bold text-nvidia-green tabular-nums">
+                    {Math.max(0, totalPcs - bookedPcsCount)} Unit
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-400">Sedang Digunakan</span>
+                  <span className="text-sm font-bold text-zinc-100 tabular-nums">
+                    {bookedPcsCount} Unit
+                  </span>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-[11px] text-zinc-400 mb-1.5 font-medium">
+                    <span>Keterisian Bilik</span>
+                    <span className="tabular-nums font-bold text-white">
+                      {totalPcs > 0 ? Math.round((bookedPcsCount / totalPcs) * 100) : 0}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
                     <motion.div
-                      animate={{ width: ["30%", "70%", "45%", "85%"] }}
-                      transition={{ duration: 5, repeat: Infinity, repeatType: "mirror" }}
-                      className="h-full bg-nvidia-green"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${totalPcs > 0 ? Math.round((bookedPcsCount / totalPcs) * 100) : 0}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-nvidia-green to-emerald-400 rounded-full"
                     />
                   </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400">
+                  <span>Total Kapasitas</span>
+                  <span className="font-bold text-white tabular-nums">{totalPcs} Bilik PC</span>
                 </div>
               </div>
             </div>
