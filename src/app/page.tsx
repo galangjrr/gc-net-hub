@@ -925,107 +925,95 @@ export default function Home() {
                   <motion.div
                     key={b.id}
                     variants={itemVariants}
-                    className={`p-3.5 sm:p-4 rounded-xl flex flex-col justify-between gap-2.5 relative overflow-hidden group transition-all bg-[#0f1013]/95 border shadow-md ${
+                    className={`p-3 sm:p-3.5 rounded-xl flex flex-col justify-between gap-2 relative overflow-hidden group transition-all bg-[#0f1013]/95 border shadow-sm ${
                       pcExpired
-                        ? "border-red-500/80 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+                        ? "border-red-500/70 bg-red-500/[0.03]"
                         : pcWarning
-                        ? "border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+                        ? "border-amber-500/70 bg-amber-500/[0.03]"
                         : "border-hairline hover:border-zinc-500"
                     }`}
                   >
-                    <div className="flex items-center justify-between pb-2.5 border-b border-hairline">
+                    {/* Baris 1: Header Pemain & Target PC */}
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         {isPending ? (
-                          <Clock size={16} className="text-amber-400 animate-pulse shrink-0" />
+                          <Clock size={15} className="text-amber-400 animate-pulse shrink-0" />
                         ) : pcExpired ? (
                           <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" />
                         ) : (
-                          <CheckCircle2 size={16} className="text-nvidia-green shrink-0" />
+                          <CheckCircle2 size={15} className="text-nvidia-green shrink-0" />
                         )}
                         <span className="font-bold text-white text-sm uppercase tracking-tight truncate">
                           {b.player_name}
                         </span>
                       </div>
-                      <span className="text-[11px] text-zinc-400 font-medium tabular-nums shrink-0">
-                        {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
+                      <span className="text-[11px] font-black uppercase text-nvidia-green px-2 py-0.5 rounded-md bg-nvidia-green/10 border border-nvidia-green/20 shrink-0">
+                        {pcLabel}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs bg-[#16171b] p-2.5 rounded-lg border border-hairline">
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[10px] text-zinc-400 uppercase font-semibold">TARGET PC</span>
-                        <span className="text-nvidia-green font-bold text-xs uppercase truncate">
-                          {pcLabel}
+                    {/* Baris 2: Paket & Tarif Ringkas */}
+                    <div className="flex items-center justify-between text-xs py-1 border-t border-b border-hairline/60">
+                      <span className="text-zinc-400 truncate max-w-[150px] font-medium">
+                        {pkgTitle}
+                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-white font-bold tabular-nums">
+                          Rp {(pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) || 0 : 0)).toLocaleString("id-ID")}
                         </span>
-                      </div>
-                      <div className="flex flex-col text-right min-w-0">
-                        <span className="text-[10px] text-zinc-400 uppercase font-semibold">PAKET / TARIF</span>
-                        <div className="flex items-center justify-end gap-1.5 mt-0.5">
-                          <span className="text-white font-bold text-xs tabular-nums">
-                            Rp {(pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) || 0 : 0)).toLocaleString("id-ID")}
-                          </span>
-                          <span className={`text-[9px] font-bold uppercase px-1 py-0.5 rounded ${b.ss_bukti ? 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}`}>
-                            {b.ss_bukti ? 'QRIS' : 'KASIR'}
-                          </span>
-                        </div>
+                        <span className={`text-[9px] font-bold uppercase px-1 py-0.5 rounded ${b.ss_bukti ? 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}`}>
+                          {b.ss_bukti ? 'QRIS' : 'KASIR'}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Live Waitlist State Bar for this Player */}
+                    {/* Baris 3: Status Giliran Bar */}
                     {isPending ? (
-                      <div className="w-full bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg flex items-center justify-between text-amber-400 text-xs">
-                        <span className="text-[11px] font-bold uppercase flex items-center gap-1.5">
+                      <div className="flex items-center justify-between text-[11px] text-amber-400 font-medium pt-0.5">
+                        <span className="flex items-center gap-1.5">
                           <Clock size={12} className="animate-spin" />
                           Menunggu Kasir
                         </span>
-                        <span className="text-zinc-500 text-[10px] tabular-nums font-mono">#{b.id.slice(-5)}</span>
-                      </div>
-                    ) : pcExpired ? (
-                      <div className="w-full bg-red-500/15 border border-red-500/40 p-2 rounded-lg flex flex-col gap-0.5 text-white">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold uppercase text-red-400 flex items-center gap-1.5">
-                            <Flame size={13} className="text-red-400" />
-                            Giliran {b.player_name} Main
-                          </span>
-                          <span className="text-[10px] font-bold uppercase text-red-300">Waktu Habis</span>
-                        </div>
-                        <span className="text-[10px] text-zinc-300 truncate">
-                          {pcLabel} selesai dimainkan • Silakan masuk
+                        <span className="text-zinc-500 text-[10px] tabular-nums font-mono">
+                          {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
                         </span>
                       </div>
+                    ) : pcExpired ? (
+                      <div className="flex items-center justify-between text-[11px] text-red-400 font-bold pt-0.5">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Flame size={12} />
+                          Giliran {b.player_name} Main
+                        </span>
+                        <span className="text-[10px] text-red-300 uppercase shrink-0">Waktu Habis</span>
+                      </div>
                     ) : pcWarning ? (
-                      <div className="w-full bg-amber-500/15 border border-amber-500/30 p-2 rounded-lg flex flex-col gap-0.5 text-white">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold uppercase text-amber-400 flex items-center gap-1.5">
-                            <Clock size={12} className="text-amber-400 animate-spin" />
-                            {b.player_name} Bersiap
-                          </span>
-                          <span className="text-[11px] font-bold text-amber-300 tabular-nums">
-                            {pcMins}:{pcSecs.toString().padStart(2, '0')}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-zinc-300 truncate">
-                          Sisa waktu player kurang dari {pcMins} menit lagi
+                      <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold pt-0.5">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Clock size={12} className="animate-spin" />
+                          {b.player_name} Bersiap
+                        </span>
+                        <span className="text-[11px] tabular-nums shrink-0">
+                          {pcMins}:{pcSecs.toString().padStart(2, '0')}
                         </span>
                       </div>
                     ) : pcHasTimer && pcMins > 0 ? (
-                      <div className="w-full bg-white/[0.03] border border-hairline p-2 rounded-lg flex items-center justify-between text-xs">
-                        <span className="text-[11px] font-semibold text-zinc-300 flex items-center gap-1.5">
+                      <div className="flex items-center justify-between text-[11px] text-zinc-300 pt-0.5">
+                        <span className="flex items-center gap-1.5 truncate text-zinc-400">
                           <Hourglass size={12} className="text-nvidia-green" />
-                          Mengantre di {pcLabel}
+                          Mengantre
                         </span>
-                        <span className="text-[11px] font-bold text-nvidia-green tabular-nums">
-                          Sekitar {pcMins}m Lagi
+                        <span className="text-nvidia-green font-bold tabular-nums shrink-0">
+                          ~{pcMins}m Lagi
                         </span>
                       </div>
                     ) : (
-                      <div className="w-full bg-nvidia-green/10 border border-nvidia-green/30 p-2 rounded-lg flex items-center justify-between text-nvidia-green text-xs">
-                        <span className="text-[11px] font-bold uppercase flex items-center gap-1.5">
-                          <CheckCircle2 size={13} />
+                      <div className="flex items-center justify-between text-[11px] text-nvidia-green pt-0.5">
+                        <span className="flex items-center gap-1.5 font-bold">
+                          <CheckCircle2 size={12} />
                           {pcLabel} Standby
                         </span>
                         <span className="text-[10px] text-zinc-400">
-                          Konfirmasi ke kasir
+                          Konfirmasi kasir
                         </span>
                       </div>
                     )}
