@@ -151,21 +151,23 @@ export default function AccountsManagementPage() {
 
   return (
     <PinGuard>
-      <div className="min-h-screen bg-surface-dark text-white p-4 md:p-8 pt-20">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <div className="min-h-screen bg-surface-dark text-white p-4 md:p-8 pt-16 md:pt-8 space-y-6 pb-32">
+        <div className="max-w-[1400px] 2xl:max-w-[1720px] mx-auto space-y-6">
           
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-6">
-            <div className="flex items-center gap-4">
-              <Link href="/data-booking" className="p-2 hover:bg-surface rounded-lg text-white/50 hover:text-white transition">
-                <ArrowLeft size={24} />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4 xl:pb-6">
+            <div className="flex items-center gap-3 xl:gap-4">
+              <Link href="/data-booking" className="p-2.5 xl:p-3 hover:bg-surface border border-hairline rounded-xl text-white/50 hover:text-white transition">
+                <ArrowLeft size={22} />
               </Link>
+              <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green shrink-0">
+                <ShieldCheck size={32} />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold uppercase tracking-tight flex items-center gap-2">
-                  <ShieldCheck size={28} className="text-nvidia-green" />
+                <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white flex items-center gap-3">
                   Manajemen Akun Login
                 </h1>
-                <p className="text-xs text-white/50 uppercase tracking-wider mt-1">
+                <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
                   Kelola hak akses kasir, operator, dan admin warnet
                 </p>
               </div>
@@ -180,7 +182,7 @@ export default function AccountsManagementPage() {
                 setErrorMsg("");
                 setShowAddModal(true);
               }}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-nvidia-green/10 border border-nvidia-green/50 text-nvidia-green hover:bg-nvidia-green hover:text-black rounded-lg transition font-bold text-xs uppercase tracking-wider"
+              className="nvidia-button flex items-center justify-center gap-2 px-4 xl:px-5 py-2.5 xl:py-3 rounded-xl font-bold text-xs xl:text-sm uppercase tracking-wider shrink-0"
             >
               <Plus size={18} />
               Tambah Akun Staff
@@ -189,32 +191,32 @@ export default function AccountsManagementPage() {
 
           {/* Accounts Grid / Table */}
           {loading ? (
-            <div className="p-12 text-center text-white/40 text-sm uppercase tracking-widest animate-pulse">
+            <div className="p-12 text-center text-white/40 text-xs xl:text-sm uppercase tracking-wider animate-pulse font-bold">
               Memuat data akun...
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 xl:gap-6">
               {accounts.map(acc => (
                 <div
                   key={acc.id}
-                  className={`bg-surface border p-5 rounded-lg flex flex-col justify-between relative overflow-hidden transition ${
+                  className={`bg-surface border p-5 xl:p-6 rounded-xl flex flex-col justify-between relative overflow-hidden transition shadow-xl ${
                     acc.active ? "border-hairline hover:border-nvidia-green/40" : "border-error/30 opacity-60"
                   }`}
                 >
                   <div>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="p-2 bg-surface-dark border border-hairline rounded-lg text-nvidia-green">
-                          <User size={20} />
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 xl:p-3 bg-surface-dark border border-hairline rounded-xl text-nvidia-green shrink-0">
+                          <User size={22} />
                         </div>
                         <div>
-                          <h3 className="font-bold text-sm text-white tracking-tight">{acc.fullName || acc.username}</h3>
-                          <span className="text-[11px] font-mono text-white/50">@{acc.username}</span>
+                          <h3 className="font-bold text-sm xl:text-base text-white tracking-tight">{acc.fullName || acc.username}</h3>
+                          <span className="text-xs xl:text-sm text-zinc-400 font-medium">@{acc.username}</span>
                         </div>
                       </div>
 
                       <span
-                        className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                        className={`text-[10px] xl:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
                           acc.role === "owner"
                             ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
                             : acc.role === "admin"
@@ -226,8 +228,8 @@ export default function AccountsManagementPage() {
                       </span>
                     </div>
 
-                    <div className="text-[10px] text-white/40 uppercase tracking-wider space-y-1 mb-4">
-                      <div className="flex items-center gap-1.5">
+                    <div className="text-xs xl:text-sm text-white/50 uppercase tracking-wider space-y-1 mb-5">
+                      <div className="flex items-center gap-2">
                         <span>Status:</span>
                         <span className={acc.active ? "text-emerald-400 font-bold" : "text-error font-bold"}>
                           {acc.active ? "Aktif" : "Dinonaktifkan"}
@@ -236,18 +238,18 @@ export default function AccountsManagementPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-3 border-t border-hairline">
+                  <div className="flex items-center gap-2.5 pt-4 border-t border-hairline">
                     <button
                       onClick={() => openEdit(acc)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-surface-dark hover:bg-white/10 text-white text-xs font-semibold rounded transition"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 xl:py-3 bg-surface-dark hover:bg-white/10 text-white text-xs xl:text-sm font-bold rounded-xl transition border border-hairline"
                     >
-                      <Pencil size={14} />
-                      Ubah / Password
+                      <Pencil size={15} />
+                      Ubah Akun
                     </button>
                     {acc.username.toLowerCase() !== "gcnet" && (
                       <button
                         onClick={() => handleDelete(acc)}
-                        className="p-2 bg-error/10 hover:bg-error text-error hover:text-white rounded transition"
+                        className="p-2.5 xl:p-3 bg-error/10 hover:bg-error text-error hover:text-white rounded-xl transition border border-error/30 shrink-0"
                         title="Hapus Akun"
                       >
                         <Trash2 size={16} />
@@ -272,77 +274,77 @@ export default function AccountsManagementPage() {
                   initial={{ scale: 0.95 }}
                   animate={{ scale: 1 }}
                   exit={{ scale: 0.95 }}
-                  className="bg-surface border border-hairline p-6 rounded-xl max-w-md w-full space-y-4"
+                  className="bg-surface border border-hairline p-6 xl:p-8 rounded-2xl max-w-md xl:max-w-lg w-full space-y-5 shadow-2xl relative text-white"
                 >
-                  <h2 className="text-lg font-bold uppercase tracking-tight text-white flex items-center gap-2">
+                  <h2 className="text-lg xl:text-xl font-bold uppercase tracking-tight text-white flex items-center gap-2.5">
                     <Plus size={20} className="text-nvidia-green" />
                     Tambah Akun Baru
                   </h2>
 
                   {errorMsg && (
-                    <div className="p-3 bg-error/10 border border-error/30 text-error text-xs rounded font-bold">
+                    <div className="p-3 bg-error/10 border border-error/30 text-error text-xs rounded-xl font-bold">
                       {errorMsg}
                     </div>
                   )}
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div>
-                      <label className="text-[11px] font-bold text-white/50 uppercase">Username (Login)</label>
+                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Username Login</label>
                       <input
                         type="text"
                         value={formUsername}
                         onChange={e => setFormUsername(e.target.value)}
                         placeholder="contoh: kasir_pagi"
-                        className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-white/50 uppercase">Password</label>
+                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Password</label>
                       <input
                         type="password"
                         value={formPassword}
                         onChange={e => setFormPassword(e.target.value)}
                         placeholder="Minimal 6 karakter"
-                        className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-white/50 uppercase">Nama Lengkap / Panggilan</label>
+                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Nama Lengkap atau Panggilan</label>
                       <input
                         type="text"
                         value={formFullName}
                         onChange={e => setFormFullName(e.target.value)}
-                        placeholder="contoh: Budi (Kasir Siang)"
-                        className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                        placeholder="contoh: Budi Kasir Siang"
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-white/50 uppercase">Role / Jabatan</label>
+                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Role atau Jabatan</label>
                       <select
                         value={formRole}
                         onChange={e => setFormRole(e.target.value as any)}
-                        className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
                       >
-                        <option value="operator">Operator / Kasir (Shift Harian)</option>
-                        <option value="admin">Admin (Akses Penuh Manajemen & Rekap)</option>
-                        <option value="owner">Owner (Hak Akses Tertinggi)</option>
+                        <option value="operator">Operator Kasir: Shift Harian</option>
+                        <option value="admin">Admin: Akses Penuh Manajemen dan Rekap</option>
+                        <option value="owner">Owner: Hak Akses Tertinggi</option>
                       </select>
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-3">
+                  <div className="flex gap-3 pt-3">
                     <button
                       onClick={() => setShowAddModal(false)}
-                      className="flex-1 py-2.5 bg-surface-dark hover:bg-white/10 rounded text-xs font-bold uppercase text-white/60"
+                      className="flex-1 py-3 bg-surface-dark hover:bg-white/10 rounded-xl text-xs xl:text-sm font-bold uppercase text-white/60 border border-hairline transition"
                     >
                       Batal
                     </button>
                     <button
                       onClick={handleCreate}
-                      className="flex-1 py-2.5 bg-nvidia-green text-black hover:bg-nvidia-green/90 rounded text-xs font-bold uppercase"
+                      className="flex-1 py-3 bg-nvidia-green text-black hover:bg-nvidia-green/90 rounded-xl text-xs xl:text-sm font-bold uppercase transition"
                     >
                       Simpan Akun
                     </button>
@@ -365,83 +367,83 @@ export default function AccountsManagementPage() {
                   initial={{ scale: 0.95 }}
                   animate={{ scale: 1 }}
                   exit={{ scale: 0.95 }}
-                  className="bg-surface border border-hairline p-6 rounded-xl max-w-md w-full space-y-4"
+                  className="bg-surface border border-hairline p-6 xl:p-8 rounded-2xl max-w-md xl:max-w-lg w-full space-y-5 shadow-2xl relative text-white"
                 >
-                  <h2 className="text-lg font-bold uppercase tracking-tight text-white flex items-center gap-2">
+                  <h2 className="text-lg xl:text-xl font-bold uppercase tracking-tight text-white flex items-center gap-2.5">
                     <Pencil size={20} className="text-cyan-400" />
                     Ubah Akun @{selectedAcc.username}
                   </h2>
 
                   {errorMsg && (
-                    <div className="p-3 bg-error/10 border border-error/30 text-error text-xs rounded font-bold">
+                    <div className="p-3 bg-error/10 border border-error/30 text-error text-xs rounded-xl font-bold">
                       {errorMsg}
                     </div>
                   )}
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div>
-                      <label className="text-[11px] font-bold text-white/50 uppercase">Nama Lengkap</label>
+                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Nama Lengkap</label>
                       <input
                         type="text"
                         value={formFullName}
                         onChange={e => setFormFullName(e.target.value)}
-                        className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-white/50 uppercase">
-                        Ganti Password (Kosongkan jika tidak diubah)
+                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">
+                        Ganti Password, kosongkan jika tidak diubah
                       </label>
                       <input
                         type="password"
                         value={formPassword}
                         onChange={e => setFormPassword(e.target.value)}
                         placeholder="Masukkan password baru"
-                        className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-white/50 uppercase">Role / Jabatan</label>
+                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Role atau Jabatan</label>
                       <select
                         value={formRole}
                         onChange={e => setFormRole(e.target.value as any)}
                         disabled={selectedAcc.username.toLowerCase() === "gcnet"}
-                        className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
                       >
-                        <option value="operator">Operator / Kasir</option>
+                        <option value="operator">Operator Kasir</option>
                         <option value="admin">Admin</option>
                         <option value="owner">Owner</option>
                       </select>
                     </div>
 
                     {selectedAcc.username.toLowerCase() !== "gcnet" && (
-                      <div className="flex items-center gap-2 pt-2">
+                      <div className="flex items-center gap-2.5 pt-2">
                         <input
                           type="checkbox"
                           id="chkActive"
                           checked={formActive}
                           onChange={e => setFormActive(e.target.checked)}
-                          className="rounded text-nvidia-green"
+                          className="w-4 h-4 rounded text-nvidia-green"
                         />
-                        <label htmlFor="chkActive" className="text-xs font-semibold text-white/80 cursor-pointer">
-                          Akun Aktif (Bisa Login)
+                        <label htmlFor="chkActive" className="text-xs xl:text-sm font-semibold text-white/80 cursor-pointer">
+                          Akun Aktif
                         </label>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex gap-2 pt-3">
+                  <div className="flex gap-3 pt-3">
                     <button
                       onClick={() => setShowEditModal(false)}
-                      className="flex-1 py-2.5 bg-surface-dark hover:bg-white/10 rounded text-xs font-bold uppercase text-white/60"
+                      className="flex-1 py-3 bg-surface-dark hover:bg-white/10 rounded-xl text-xs xl:text-sm font-bold uppercase text-white/60 border border-hairline transition"
                     >
                       Batal
                     </button>
                     <button
                       onClick={handleUpdate}
-                      className="flex-1 py-2.5 bg-cyan-500 text-black hover:bg-cyan-400 rounded text-xs font-bold uppercase"
+                      className="flex-1 py-3 bg-cyan-500 text-black hover:bg-cyan-400 rounded-xl text-xs xl:text-sm font-bold uppercase transition"
                     >
                       Simpan Perubahan
                     </button>

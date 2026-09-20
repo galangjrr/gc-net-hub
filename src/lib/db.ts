@@ -85,7 +85,7 @@ const DEFAULT_INVENTORY: InventoryItem[] = [
   { id: "inv-1", name: "Indomie Goreng Jumbo", price: 7000, stock: 20, category: "food" },
   { id: "inv-2", name: "Teh Pucuk", price: 3000, stock: 24, category: "drink" },
   { id: "inv-3", name: "Golda", price: 4000, stock: 24, category: "drink" },
-  { id: "inv-4", name: "Es Seduh (Teajus / Jasjus)", price: 1500, stock: 50, category: "drink" },
+  { id: "inv-4", name: "Es Seduh Teajus Jasjus", price: 1500, stock: 50, category: "drink" },
   { id: "inv-5", name: "Aquviva Botol Kecil", price: 1000, stock: 24, category: "drink" },
   { id: "inv-6", name: "Ale-ale", price: 1000, stock: 24, category: "drink" },
   { id: "inv-7", name: "Panther", price: 1000, stock: 24, category: "drink" },

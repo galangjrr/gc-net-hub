@@ -199,7 +199,7 @@ export default function Home() {
       return;
     }
     if (paymentMethod === 'qris' && ssFile && !ssFile.type.startsWith('image/')) {
-      alert("Bukti transfer wajib berupa file gambar (JPG/PNG/dll)!");
+      alert("Bukti transfer wajib berupa file gambar JPG atau PNG");
       return;
     }
     // Validasi ukuran file max 2MB
@@ -892,7 +892,7 @@ export default function Home() {
                         )}
                         <span className="font-bold text-white text-base md:text-lg uppercase tracking-tight">{b.player_name}</span>
                       </div>
-                      <span className="text-xs md:text-sm text-white/40 font-bold font-mono">
+                      <span className="text-xs md:text-sm text-white/40 font-bold tabular-nums">
                         {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
                       </span>
                     </div>
@@ -906,7 +906,7 @@ export default function Home() {
                         <span className="text-[10px] md:text-xs text-white/40 uppercase font-bold">PAKET / TARIF</span>
                         <span className="text-white/90 font-bold text-sm md:text-base line-clamp-2 leading-tight">{pkgTitle}</span>
                         <div className="flex items-center justify-end gap-2 mt-0.5">
-                          <span className="text-nvidia-green font-bold text-xs md:text-sm font-mono">
+                          <span className="text-nvidia-green font-bold text-xs md:text-sm tabular-nums">
                             RP {(pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) || 0 : 0)).toLocaleString("id-ID")}
                           </span>
                           <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${b.ss_bukti ? 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}`}>
@@ -923,7 +923,7 @@ export default function Home() {
                           <Clock size={13} className="animate-spin" />
                           Menunggu Konfirmasi Kasir
                         </span>
-                        <span className="text-white/30 text-xs font-mono">#{b.id.slice(-5)}</span>
+                        <span className="text-white/30 text-xs tabular-nums font-semibold">#{b.id.slice(-5)}</span>
                       </div>
                     ) : pcExpired ? (
                       <div className="w-full bg-red-500/20 border border-red-500/50 p-2.5 rounded-[2px] flex flex-col gap-1 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)] animate-pulse">
@@ -945,7 +945,7 @@ export default function Home() {
                             <Clock size={13} className="text-amber-400 animate-spin" />
                             ⚠️ {b.player_name.toUpperCase()} BERSIAP!
                           </span>
-                          <span className="text-[11px] font-mono font-bold text-amber-300">
+                          <span className="text-[11px] font-bold text-amber-300 tabular-nums">
                             {pcMins}:{pcSecs.toString().padStart(2, '0')}
                           </span>
                         </div>
@@ -960,11 +960,11 @@ export default function Home() {
                             <Hourglass size={13} className="text-nvidia-green" />
                             ⌛ {b.player_name} Mengantre ({pkgTitle})
                           </span>
-                          <span className="text-[11px] font-mono font-bold text-nvidia-green">
+                          <span className="text-[11px] font-bold text-nvidia-green tabular-nums">
                             ~{pcMins}m Lagi
                           </span>
                         </div>
-                        <span className="text-[11px] text-white/50 font-mono">
+                        <span className="text-[11px] text-white/50 tabular-nums">
                           Menunggu player selesai • Estimasi kosong {pc?.expected_empty_time ? new Date(pc.expected_empty_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'} WIB
                         </span>
                       </div>
@@ -1158,7 +1158,7 @@ export default function Home() {
                                 <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
                                   <AlertTriangle size={11} className="text-red-400" /> Sisa Player
                                 </span>
-                                <span className="font-mono text-[11px] font-black tracking-wider text-red-400 animate-pulse">
+                                <span className="tabular-nums text-[11px] font-black tracking-wider text-red-400 animate-pulse">
                                   00:00 (HABIS)
                                 </span>
                               </div>
@@ -1167,14 +1167,14 @@ export default function Home() {
                                 <span className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
                                   <Clock size={11} className="text-amber-400 animate-spin" /> Sisa Player
                                 </span>
-                                <span className="font-mono text-[11px] font-black tracking-wider text-amber-300">
+                                <span className="tabular-nums text-[11px] font-black tracking-wider text-amber-300">
                                   {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
                                 </span>
                               </div>
                             ) : isNormalTimer ? (
                               <div className="w-full bg-white/[0.04] border border-white/10 p-1.5 rounded-[2px] flex items-center justify-between mb-2 z-10 text-white/70">
                                 <span className="text-[9px] font-bold uppercase tracking-widest">Sisa Player</span>
-                                <span className="font-mono text-[11px] font-bold tracking-wider text-nvidia-green">
+                                <span className="tabular-nums text-[11px] font-bold tracking-wider text-nvidia-green">
                                   {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
                                 </span>
                               </div>
@@ -1195,7 +1195,7 @@ export default function Home() {
                                       <span className="text-[9px] uppercase font-bold text-nvidia-green">
                                         {isExpired ? "🔥 GILIRAN MAIN:" : isWarning ? "⚠️ SIAP MASUK:" : "ANTREAN #1:"}
                                       </span>
-                                      <span className="text-[9px] font-mono font-bold text-white/70">
+                                      <span className="text-[10px] tabular-nums font-bold text-white/70">
                                         {firstPkgTitle}
                                       </span>
                                     </div>
@@ -1235,7 +1235,7 @@ export default function Home() {
                                     <span className="flex items-center gap-1.5 font-black"><CheckCircle2 size={18} /> PC DIPILIH</span>
                                   ) : (
                                     <>
-                                      <span className="font-bold">PC BEBAS (SIAP MAIN)</span>
+                                      <span className="font-bold">PC BEBAS SIAP MAIN</span>
                                       <span className="text-[10px] text-white/30 normal-case">Langsung main ke kasir</span>
                                     </>
                                   )}

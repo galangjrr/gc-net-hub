@@ -31,7 +31,7 @@ const MOCK_ITEMS = [
   { id: 2, name: "Kopi Hitam", price: 7000, category: "Minuman" },
   { id: 3, name: "Mie Goreng", price: 12000, category: "Makanan" },
   { id: 4, name: "Nasi Goreng", price: 15000, category: "Makanan" },
-  { id: 5, name: "Gorengan (5 pcs)", price: 10000, category: "Makanan" },
+  { id: 5, name: "Gorengan 5 Pcs", price: 10000, category: "Makanan" },
   { id: 6, name: "Aqua 600ml", price: 4000, category: "Minuman" },
   { id: 7, name: "Pop Mie", price: 8000, category: "Makanan" },
   { id: 8, name: "Teh Botol", price: 5000, category: "Minuman" },
@@ -134,7 +134,7 @@ export default function AdminPage() {
                 Admin Dashboard <span className="px-2 py-1 bg-amber-500/20 text-amber-500 text-[10px] rounded border border-amber-500/50">WIP</span>
               </h1>
               <p className="text-white/50 text-xs md:text-sm tracking-tight mt-1 uppercase tracking-widest hidden md:block">
-                Management System & Analytics (Mock Data)
+                Management System & Analytics Mock Data
               </p>
             </div>
             

@@ -292,15 +292,15 @@ export default function CompanionPage() {
                   {/* Footer: Timer or Action Hint */}
                   <div className="pt-1.5 border-t border-white/[0.04] flex items-center justify-between text-[10px]">
                     {isExpired ? (
-                      <div className="flex items-center gap-1 text-red-400 font-mono font-bold animate-pulse">
-                        <Clock size={11} /> Waktu Habis (0m)
+                      <div className="flex items-center gap-1 text-red-400 font-bold tabular-nums animate-pulse">
+                        <Clock size={11} /> Waktu Habis
                       </div>
                     ) : isWarning ? (
-                      <div className="flex items-center gap-1 text-amber-400 font-mono font-bold">
+                      <div className="flex items-center gap-1 text-amber-400 font-bold tabular-nums">
                         <Clock size={11} className="animate-spin" /> {remainingMin}m tersisa
                       </div>
                     ) : isOccupied ? (
-                      <div className="flex items-center gap-1 text-emerald-400 font-mono font-bold">
+                      <div className="flex items-center gap-1 text-emerald-400 font-bold tabular-nums">
                         <Clock size={11} /> {remainingMin > 0 ? `${remainingMin}m tersisa` : 'Aktif'}
                       </div>
                     ) : (
@@ -315,7 +315,7 @@ export default function CompanionPage() {
           </div>
         </main>
 
-        {/* BOTTOM SHEET DRAWER (PC ACTION MODAL) */}
+        {/* BOTTOM SHEET DRAWER PC ACTION MODAL */}
         <AnimatePresence>
           {selectedPc && (
             <>
@@ -348,7 +348,7 @@ export default function CompanionPage() {
                     <div>
                       <h3 className="font-bold text-base text-white">{selectedPc.name}</h3>
                       <p className="text-xs text-zinc-400">
-                        {selectedPc.status === "occupied" ? "🟢 Sedang Aktif Main" : "⚪ Bilik Tersedia (Standby)"}
+                        {selectedPc.status === "occupied" ? "🟢 Sedang Aktif Main" : "⚪ Bilik Tersedia Standby"}
                       </p>
                     </div>
                   </div>
@@ -380,7 +380,7 @@ export default function CompanionPage() {
                             }`}
                           >
                             <div className="font-bold text-xs">{pkt.name}</div>
-                            <div className="text-[11px] text-emerald-400 font-mono mt-0.5">
+                            <div className="text-[11px] text-emerald-400 font-bold tabular-nums mt-0.5">
                               Rp {pkt.price.toLocaleString("id-ID")}
                             </div>
                             <div className="text-[10px] text-zinc-500 mt-0.5">
@@ -393,11 +393,11 @@ export default function CompanionPage() {
 
                     <div>
                       <label className="text-xs font-semibold text-zinc-400 mb-1.5 block">
-                        Nama Pemain (Opsional)
+                        Nama Pemain Opsional
                       </label>
                       <input
                         type="text"
-                        placeholder="Contoh: Galang / Budi"
+                        placeholder="Contoh: Galang atau Budi"
                         value={customPlayerName}
                         onChange={(e) => setCustomPlayerName(e.target.value)}
                         className="w-full bg-zinc-900 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500"
@@ -420,7 +420,7 @@ export default function CompanionPage() {
                     {/* Quick Add Time */}
                     <div>
                       <label className="text-xs font-semibold text-zinc-400 mb-1.5 block">
-                        Tambah Waktu Cepat (Stacking)
+                        Tambah Waktu Cepat Stacking
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         <button
@@ -461,7 +461,7 @@ export default function CompanionPage() {
                           <option value="">-- Pilih PC Tujuan --</option>
                           {pcs.filter((p: any) => p.id !== selectedPc.id && p.status !== "occupied").map((p: any) => (
                             <option key={p.id} value={p.id}>
-                              {p.name} (Tersedia)
+                              {p.name} Tersedia
                             </option>
                           ))}
                         </select>
@@ -485,7 +485,7 @@ export default function CompanionPage() {
                           onClick={() => sendRemoteCommand(selectedPc.id, "lock")}
                           className="py-2.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
                         >
-                          <Lock size={14} /> Kunci Sementara (AFK)
+                          <Lock size={14} /> Kunci Sementara AFK
                         </button>
                         <button
                           onClick={() => sendRemoteCommand(selectedPc.id, "unlock")}

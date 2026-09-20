@@ -41,15 +41,57 @@ export async function POST(req: Request) {
       }
     }
 
+    const targetDate = (formData.get('date') as string) || new Date().toISOString().slice(0, 10);
+    const todayDateStr = new Date().toISOString().slice(0, 10);
+
     if (parsedTotal > 0) {
-      const { data: settings } = await supabaseAdmin.from('settings').select('id').limit(1).single();
-      if (settings) {
-        await supabaseAdmin.from('settings').update({ daily_pdf_revenue: parsedTotal }).eq('id', settings.id);
+      if (targetDate === todayDateStr) {
+        const { data: settings } = await supabaseAdmin.from('settings').select('id').limit(1).single();
+        if (settings) {
+          await supabaseAdmin.from('settings').update({ daily_pdf_revenue: parsedTotal }).eq('id', settings.id);
+        }
+      }
+
+      // Upsert into logs for that specific date
+      const startDateStr = `${targetDate}T00:00:00.000Z`;
+      const endDateStr = `${targetDate}T23:59:59.000Z`;
+
+      const { data: existingLog } = await supabaseAdmin
+        .from('logs')
+        .select('id')
+        .eq('pc_name', 'BILLING_SERVER')
+        .gte('end_time', startDateStr)
+        .lte('end_time', endDateStr)
+        .maybeSingle();
+
+      if (existingLog) {
+        await supabaseAdmin
+          .from('logs')
+          .update({
+            price: parsedTotal,
+            paket_name: `Laporan Billing PDF ${targetDate}`,
+            end_time: endDateStr
+          })
+          .eq('id', existingLog.id);
+      } else {
+        await supabaseAdmin
+          .from('logs')
+          .insert({
+            id: `pdf-${targetDate}-${Date.now()}`,
+            player_name: 'Server Billing',
+            pc_name: 'BILLING_SERVER',
+            paket_name: `Laporan Billing PDF ${targetDate}`,
+            price: parsedTotal,
+            start_time: startDateStr,
+            end_time: endDateStr,
+            status: 'Selesai'
+          });
       }
     }
 
     return NextResponse.json({ 
       success: true, 
+      date: targetDate,
       text: text.slice(0, 1000),
       total: parsedTotal 
     });

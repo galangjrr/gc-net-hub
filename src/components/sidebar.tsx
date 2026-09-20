@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, BookOpen, Menu, X, LogOut, Lock, ShieldCheck, Smartphone } from "lucide-react";
+import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, Menu, X, LogOut, Lock, ShieldCheck, Smartphone } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const NAV_ITEMS = [
@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { href: "/data-booking", label: "ANTREAN", icon: Database, admin: true },
   { href: "/kasir", label: "KASIR", icon: ShoppingCart, admin: true },
   { href: "/data-pc", label: "DATA PC & SPEK", icon: Monitor, admin: true },
-  { href: "/log", label: "LOG AKTIVITAS", icon: BookOpen, admin: true },
   { href: "/rekap", label: "REKAP & POOLING", icon: TrendingUp, admin: true },
   { href: "/paket-billing", label: "PAKET BOOKING", icon: Sliders, admin: true },
   { href: "/stok-kasir", label: "STOK KASIR", icon: Package, admin: true },

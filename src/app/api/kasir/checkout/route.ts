@@ -7,13 +7,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   try {
-    const { cart, total } = await req.json();
+    const { cart, total, target_pc, buyer_name } = await req.json();
     
     // Check stock first
     for (const item of cart) {
       const { data: inv } = await supabaseAdmin.from('inventory').select('*').eq('id', item.product.id).single();
       if (!inv || inv.stock < item.qty) {
-        return NextResponse.json({ error: `Stok ${item.product.name} tidak cukup (sisa: ${inv?.stock || 0})` }, { status: 400 });
+        return NextResponse.json({ error: `Stok ${item.product.name} tidak mencukupi, tersisa ${inv?.stock || 0}` }, { status: 400 });
       }
     }
 
@@ -26,11 +26,14 @@ export async function POST(req: Request) {
     }
 
     // Prepare logs
+    const pcTarget = (target_pc && target_pc !== 'KASIR') ? target_pc.toUpperCase() : 'KASIR';
+    const playerTarget = buyer_name || (pcTarget !== 'KASIR' ? `Pemain ${pcTarget}` : 'Tamu Kasir');
+
     const logEntries = cart.map((item: any) => ({
       id: `log-kasir-${crypto.randomUUID()}`,
-      player_name: 'Walk-in',
-      pc_name: 'KASIR',
-      paket_name: `${item.product.name} (x${item.qty})`,
+      player_name: playerTarget,
+      pc_name: pcTarget,
+      paket_name: `${item.product.name} x${item.qty}`,
       price: item.product.price * item.qty,
       start_time: new Date().toISOString(),
       end_time: new Date().toISOString(),
