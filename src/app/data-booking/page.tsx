@@ -236,27 +236,27 @@ export default function DataBookingPage() {
     if (action === 'complete') {
       setConfirmState({
         isOpen: true,
-        title: "Mulai Main Bilik PC",
+        title: "Pemain Masuk Main",
         subtitle: (pcName || "Bilik PC").toUpperCase(),
-        description: `Pemain ${playerName || 'pelanggan'} sudah tiba di bilik? Mulai sesi dan selesaikan antrean web?`,
-        confirmLabel: "Mulai Main",
+        description: `Pemain ${playerName || 'pelanggan'} sudah di ${pcName || 'PC'}? Tandai booking selesai dan pemain mulai main.`,
+        confirmLabel: "Tandai Masuk",
         confirmVariant: "primary",
         onConfirm: () => executeAction(id, 'complete')
       });
     } else if (action === 'approve') {
       setConfirmState({
         isOpen: true,
-        title: "Verifikasi Antrean",
+        title: "Verifikasi Booking PC",
         subtitle: (pcName || "Bilik PC").toUpperCase(),
-        description: `Verifikasi pembayaran & masukkan pemain ${playerName || ''} ke antrean terkonfirmasi?`,
+        description: `Verifikasi pembayaran dan masukkan pemain ${playerName || ''} ke daftar booking terkonfirmasi.`,
         confirmLabel: "Konfirmasi",
         confirmVariant: "primary",
         onConfirm: () => executeAction(id, 'approve')
       });
     } else if (action === 'reject') {
-      const res = prompt("Alasan Pembatalan seperti Salah Input atau Pemain Batal:");
+      const res = prompt("Alasan pembatalan booking:");
       if (res === null) return;
-      executeAction(id, 'reject', res || "Dibatalkan Admin");
+      executeAction(id, 'reject', res || "Dibatalkan Kasir");
     }
   };
 
@@ -268,12 +268,12 @@ export default function DataBookingPage() {
     setShowManual(true);
   };
 
-  const handleDeleteBooking = (id: string, name: string) => {
+  const handleDelete = (id: string, name: string) => {
     setConfirmState({
       isOpen: true,
-      title: "Hapus Antrean",
+      title: "Hapus Booking PC",
       subtitle: "Batalkan Booking",
-      description: `Hapus antrean booking pemain "${name}" dari sistem?`,
+      description: `Hapus data booking pemain ${name} dari daftar antrean.`,
       confirmLabel: "Hapus",
       confirmVariant: "danger",
       onConfirm: async () => {

@@ -31,7 +31,7 @@ export default function PaketBillingPage() {
 
   const addPaket = async () => {
     if (!newPaket.name.trim() || !newPaket.price) {
-      return alert("Nama paket dan harga wajib diisi!");
+      return alert("Nama paket dan harga wajib diisi");
     }
     setIsSubmitting(true);
     try {
@@ -64,7 +64,7 @@ export default function PaketBillingPage() {
   const saveEdit = async () => {
     if (!editingPaket) return;
     if (!editForm.name.trim() || !editForm.price) {
-      return alert("Nama paket dan harga tidak boleh kosong!");
+      return alert("Nama paket dan harga tidak boleh kosong");
     }
     setIsSubmitting(true);
     try {
