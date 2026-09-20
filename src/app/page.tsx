@@ -577,7 +577,7 @@ export default function Home() {
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
                   <Check className="text-nvidia-green" size={12} />
                 </div>
-                <span>Saat bilik penuh, wajib catat antrean booking.</span>
+                <span>Saat PC penuh, wajib catat antrean booking.</span>
               </div>
               <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-300">
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
@@ -651,7 +651,7 @@ export default function Home() {
 
                 <div>
                   <div className="flex justify-between text-[11px] text-zinc-400 mb-1.5 font-medium">
-                    <span>Keterisian Bilik</span>
+                    <span>Keterisian PC</span>
                     <span className="tabular-nums font-bold text-white">
                       {totalPcs > 0 ? Math.round((bookedPcsCount / totalPcs) * 100) : 0}%
                     </span>
@@ -668,7 +668,7 @@ export default function Home() {
 
                 <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400">
                   <span>Total Kapasitas</span>
-                  <span className="font-bold text-white tabular-nums">{totalPcs} Bilik PC</span>
+                  <span className="font-bold text-white tabular-nums">{totalPcs} Unit PC</span>
                 </div>
               </div>
             </div>
@@ -958,7 +958,7 @@ export default function Home() {
                           <span className="text-[10px] font-black uppercase tracking-wider text-red-300">WAKTU HABIS</span>
                         </div>
                         <span className="text-[11px] text-white/80 font-medium">
-                          Bilik {pc?.name || b.pc_id} sudah selesai dimainkan • Silakan langsung masuk main ({pkgTitle})!
+                          PC {pc?.name || b.pc_id} sudah selesai dimainkan • Silakan langsung masuk main ({pkgTitle})!
                         </span>
                       </div>
                     ) : pcWarning ? (
@@ -995,7 +995,7 @@ export default function Home() {
                       <div className="w-full bg-nvidia-green/10 border border-nvidia-green/30 p-2.5 rounded-[2px] flex items-center justify-between text-nvidia-green">
                         <span className="text-xs font-bold uppercase flex items-center gap-1.5">
                           <CheckCircle2 size={14} />
-                          Bilik {pc?.name || b.pc_id} Standby
+                          PC {pc?.name || b.pc_id} Standby
                         </span>
                         <span className="text-[11px] text-white/70">
                           Silakan konfirmasi ke kasir ({pkgTitle})
@@ -1035,7 +1035,7 @@ export default function Home() {
                   {/* Step 1 Header */}
                   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-6 border-b border-hairline">
                     <div>
-                      <h2 className="text-2xl font-bold text-white tracking-tight uppercase tracking-tight">Step 1: Pilih Bilik PC Untuk Antre</h2>
+                      <h2 className="text-2xl font-bold text-white tracking-tight uppercase tracking-tight">Step 1: Pilih PC Untuk Antre</h2>
                       <p className="text-sm text-white/60 mt-1 tracking-tight">Lihat sisa waktu player yang sedang main dan siapa pengantre berikutnya di bawah ini.</p>
                     </div>
                   </div>
@@ -1227,7 +1227,7 @@ export default function Home() {
                                     </div>
                                     <span className="text-[10px] text-white/50 block mt-0.5">
                                       {isExpired 
-                                        ? "Bilik selesai dimainkan • Silakan masuk" 
+                                        ? "PC selesai dimainkan • Silakan masuk" 
                                         : isWarning 
                                         ? "Player lama hampir selesai" 
                                         : "Menunggu player selesai"}
@@ -1285,7 +1285,7 @@ export default function Home() {
                           Lanjut Ambil Antrean {db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc} <ArrowRight size={16} />
                         </span>
                       ) : (
-                        "Pilih Bilik PC Dulu"
+                        "Pilih PC Dulu"
                       )}
                     </button>
                   </div>

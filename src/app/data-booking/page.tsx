@@ -237,7 +237,7 @@ export default function DataBookingPage() {
       setConfirmState({
         isOpen: true,
         title: "Pemain Masuk Main",
-        subtitle: (pcName || "Bilik PC").toUpperCase(),
+        subtitle: (pcName || "Unit PC").toUpperCase(),
         description: `Pemain ${playerName || 'pelanggan'} sudah di ${pcName || 'PC'}? Tandai booking selesai dan pemain mulai main.`,
         confirmLabel: "Tandai Masuk",
         confirmVariant: "primary",
@@ -247,7 +247,7 @@ export default function DataBookingPage() {
       setConfirmState({
         isOpen: true,
         title: "Verifikasi Booking PC",
-        subtitle: (pcName || "Bilik PC").toUpperCase(),
+        subtitle: (pcName || "Unit PC").toUpperCase(),
         description: `Verifikasi pembayaran dan masukkan pemain ${playerName || ''} ke daftar booking terkonfirmasi.`,
         confirmLabel: "Konfirmasi",
         confirmVariant: "primary",
@@ -1049,7 +1049,7 @@ export default function DataBookingPage() {
                   </div>
 
                   <div className="relative">
-                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih Bilik PC</label>
+                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih PC</label>
                     <input
                       ref={pcInputRef}
                       type="text"

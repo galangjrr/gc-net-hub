@@ -242,7 +242,7 @@ export default function DataPC() {
                 Master Data PC dan Spek
               </h1>
               <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
-                Kelola inventaris bilik PC dan rincian spesifikasi hardware
+                Kelola inventaris PC dan rincian spesifikasi hardware
               </p>
             </div>
           </div>
@@ -265,9 +265,9 @@ export default function DataPC() {
         <div className="bg-surface border border-hairline p-3 xl:p-4 rounded-xl shadow-lg">
           <div className="relative w-full">
             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Cari bilik PC berdasarkan nama, ID, prosesor CPU, GPU, monitor, keyboard, atau storage..."
+            <input 
+              type="text" 
+              placeholder="Cari PC berdasarkan nama, ID, prosesor CPU, GPU, monitor, keyboard, atau storage..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full bg-surface-dark border border-hairline pl-11 pr-10 py-2.5 xl:py-3 rounded-xl text-xs xl:text-sm text-white placeholder:text-white/40 focus:border-nvidia-green outline-none"
@@ -289,7 +289,7 @@ export default function DataPC() {
             <table className="w-full text-left text-xs xl:text-sm">
               <thead className="bg-surface-soft text-white/50 text-[10px] xl:text-xs uppercase font-bold border-b border-hairline">
                 <tr>
-                  <th className="px-5 xl:px-6 py-4 font-bold border-b border-hairline w-[16%]">Unit Bilik PC</th>
+                  <th className="px-5 xl:px-6 py-4 font-bold border-b border-hairline w-[16%]">Unit PC</th>
                   <th className="px-5 xl:px-6 py-4 font-bold border-b border-hairline w-[25%]">Mesin dan Hardware Inti</th>
                   <th className="px-5 xl:px-6 py-4 font-bold border-b border-hairline w-[27%]">Peripheral dan Layar</th>
                   <th className="px-5 xl:px-6 py-4 font-bold border-b border-hairline w-[16%]">Storage dan Jaringan</th>
@@ -500,7 +500,7 @@ export default function DataPC() {
                 {/* Section 1: Identitas Unit */}
                 <div>
                   <h4 className="text-xs uppercase font-bold text-nvidia-green tracking-wider mb-3">
-                    Identitas Bilik PC
+                    Identitas Unit PC
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4">
                     <div>
@@ -751,7 +751,7 @@ export default function DataPC() {
                   <span className="font-bold text-white uppercase">{deletingPc.name || deletingPc.id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/50">ID Bilik:</span>
+                  <span className="text-white/50">ID PC:</span>
                   <span className="text-white/70 uppercase font-semibold tabular-nums">{deletingPc.id}</span>
                 </div>
                 <div className="flex justify-between">

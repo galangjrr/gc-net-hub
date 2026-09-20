@@ -172,7 +172,7 @@ export default function RekapKeuanganPage() {
               <div>
                 <h1 className="text-xl md:text-2xl 2xl:text-3xl font-bold uppercase tracking-tight">Rekap dan Pooling</h1>
                 <p className="text-xs text-white/50 tracking-tight mt-0.5">
-                  Analitik omzet kasir dan money pooling bilik warnet
+                  Analitik omzet kasir dan money pooling PC warnet
                 </p>
               </div>
             </div>
@@ -256,7 +256,7 @@ export default function RekapKeuanganPage() {
                   <ShoppingCart size={12} className="text-cyan-400" /> F&B Rp {fnbRevenue.toLocaleString("id-ID")}
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <Monitor size={12} className="text-nvidia-green" /> Bilik Rp {bookingRevenue.toLocaleString("id-ID")}
+                  <Monitor size={12} className="text-nvidia-green" /> Rental PC Rp {bookingRevenue.toLocaleString("id-ID")}
                 </span>
                 {effectivePdfRevenue > 0 && (
                   <span className="inline-flex items-center gap-1">
@@ -278,7 +278,7 @@ export default function RekapKeuanganPage() {
                 </p>
               </div>
               <p className="text-xs text-zinc-400 mt-3 pt-3 border-t border-hairline/80 truncate">
-                Gabungan pesanan kasir F&B dan sewa bilik PC
+                Gabungan pesanan kasir F&B dan sewa PC
               </p>
             </div>
 

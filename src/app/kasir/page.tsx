@@ -543,7 +543,7 @@ export default function KasirPage() {
                 {targetType === "pc" && (
                   <div className="pt-1 space-y-1.5">
                     <label className="text-xs text-zinc-400 font-semibold block">
-                      Pilih Nomor Bilik PC
+                      Pilih Nomor PC
                     </label>
                     <select
                       value={selectedPc}
@@ -654,7 +654,7 @@ export default function KasirPage() {
                   {cart.length} item • Total: Rp {total.toLocaleString("id-ID")}
                 </p>
                 <div className="text-xs text-zinc-400 mt-1">
-                  Tujuan: <strong className="text-white">{targetType === "pc" ? `Antar ke ${selectedPc || "PC Bilik"}` : "Bawa Sendiri"}</strong>
+                  Tujuan: <strong className="text-white">{targetType === "pc" ? `Antar ke ${selectedPc || "Meja PC"}` : "Bawa Sendiri"}</strong>
                 </div>
               </div>
 

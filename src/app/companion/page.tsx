@@ -284,7 +284,7 @@ export default function CompanionPage() {
                       </div>
                     ) : (
                       <div className="text-[11px] text-zinc-500 font-medium flex items-center gap-1">
-                        <Unlock size={12} /> Bilik Kosong
+                        <Unlock size={12} /> PC Kosong
                       </div>
                     )}
                   </div>
@@ -348,7 +348,7 @@ export default function CompanionPage() {
                     <div>
                       <h3 className="font-bold text-base text-white">{selectedPc.name}</h3>
                       <p className="text-xs text-zinc-400">
-                        {selectedPc.status === "occupied" ? "🟢 Sedang Aktif Main" : "⚪ Bilik Tersedia Standby"}
+                        {selectedPc.status === "occupied" ? "🟢 Sedang Aktif Main" : "⚪ PC Tersedia Standby"}
                       </p>
                     </div>
                   </div>
