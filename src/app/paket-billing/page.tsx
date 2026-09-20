@@ -131,7 +131,7 @@ export default function PaketBillingPage() {
                 Master Data Paket dan Tarif
               </h1>
               <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
-                Kelola daftar harga dan paket billing warnet
+                Kelola tarif dan paket main warnet
               </p>
             </div>
           </div>

@@ -230,7 +230,7 @@ export default function RekapKeuanganPage() {
                 className="flex items-center gap-2 px-3.5 py-2 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-[0_0_15px_rgba(118,185,0,0.2)] active:scale-95"
               >
                 <Upload size={14} className="stroke-[2.5]" />
-                <span>Unggah PDF Billing</span>
+                <span>Unggah PDF Cyberindo</span>
               </button>
             </div>
           </div>
@@ -482,7 +482,7 @@ export default function RekapKeuanganPage() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-                        Unggah Laporan PDF Billing
+                        Unggah Laporan PDF Cyberindo
                       </h3>
                       <p className="text-[11px] text-white/50">
                         Pilih tanggal database dan masukkan berkas laporan

@@ -446,7 +446,7 @@ export default function DataBookingPage() {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white">
-                    Data Antrean dan Booking
+                    Data Booking PC
                   </h1>
                   <span className="relative flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
@@ -454,7 +454,7 @@ export default function DataBookingPage() {
                   </span>
                 </div>
                 <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
-                  Verifikasi pembayaran QRIS, approval bilik, dan monitoring waktu realtime
+                  Verifikasi pembayaran QRIS, catat booking PC, dan pantau giliran main
                 </p>
               </div>
             </div>
@@ -1121,7 +1121,7 @@ export default function DataBookingPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih Paket Booking</label>
+                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilihan Paket Main</label>
                     {(() => {
                       const query = searchPaket.toLowerCase().trim();
                       let customPkg = null;
