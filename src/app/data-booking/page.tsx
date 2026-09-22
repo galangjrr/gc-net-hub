@@ -708,13 +708,13 @@ export default function DataBookingPage() {
                             }`}>
                               <Hourglass size={12} className={isExpired ? "animate-spin text-red-400" : isWarning ? "text-amber-400" : "text-zinc-400"} />
                               {isExpired 
-                                ? "Waktu Bermain Habis" 
-                                : `Sisa ${mins} menit`}
+                                ? "Sesi Pemain Habis" 
+                                : `Sedang Dimainkan (Sisa ${mins}m)`}
                             </span>
                           ) : (
                             <span className="text-xs font-semibold text-emerald-400/90 inline-flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                              PC Siap Main
+                              PC Kosong
                             </span>
                           )}
                         </div>
@@ -744,20 +744,20 @@ export default function DataBookingPage() {
                         </div>
                       </td>
 
-                      {/* 4. STATUS */}
+                      {/* 4. STATUS ANTREAN */}
                       <td className={`py-4 xl:py-5 px-4 border-y transition ${cardBorderClass}`}>
                         <div className="flex flex-col gap-1 items-start">
                           {isPending ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold tracking-wide">
-                              <Clock size={12} className="animate-spin" /> Verifikasi
+                              <Clock size={12} className="animate-spin" /> Menunggu Konfirmasi
                             </span>
-                          ) : isExpired ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold tracking-wide animate-pulse">
-                              <Hourglass size={12} /> Waktu Habis
+                          ) : isExpired || !pc?.expected_empty_time ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold tracking-wide animate-pulse">
+                              <CheckCircle2 size={12} /> Giliran Main
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold tracking-wide">
-                              <CheckCircle2 size={12} /> Aktif
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-bold tracking-wide">
+                              <Hourglass size={12} /> Menunggu Giliran
                             </span>
                           )}
                           <span className="text-xs text-zinc-400 pl-0.5 font-medium">
@@ -916,13 +916,13 @@ export default function DataBookingPage() {
                         <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                           <Clock size={11} className="animate-spin" /> Verifikasi
                         </span>
-                      ) : isExpired ? (
-                        <span className="px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/50 text-red-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1 animate-pulse">
-                          <Hourglass size={11} className="animate-spin" /> Selesai Main
+                      ) : isExpired || !pc?.expected_empty_time ? (
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider flex items-center gap-1 animate-pulse">
+                          <CheckCircle2 size={11} /> Giliran Main
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 size={11} /> Aktif
+                        <span className="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <Hourglass size={11} /> Menunggu Giliran
                         </span>
                       )}
                     </div>
@@ -969,14 +969,12 @@ export default function DataBookingPage() {
                         }`}>
                           <Hourglass size={10} className={isExpired ? "animate-spin" : ""} />
                           {isExpired 
-                            ? `Habis, giliran ${b.player_name} paket ${pkgTitle}` 
-                            : isWarning
-                            ? `Sisa ${mins}m, siapkan ${b.player_name}`
-                            : `Sisa ${mins}m, ${b.player_name}`}
+                            ? `Sesi habis, panggil ${b.player_name}` 
+                            : `Sedang main (sisa ${mins}m)`}
                         </span>
                       ) : (
                         <span className="text-xs text-emerald-400 font-semibold block mt-1">
-                          PC Siap Main
+                          PC Kosong
                         </span>
                       )}
                     </div>
