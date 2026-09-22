@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, Menu, X, LogOut, Lock, ShieldCheck, Smartphone } from "lucide-react";
+import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, Menu, X, LogOut, Lock, ShieldCheck, Smartphone, User } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
   { href: "/companion", label: "GC HUB MOBILE", icon: Smartphone, admin: true },
@@ -16,22 +17,49 @@ const NAV_ITEMS = [
   { href: "/stok-kasir", label: "STOK KASIR", icon: Package, admin: true },
   { href: "/admin/accounts", label: "AKUN STAFF", icon: ShieldCheck, admin: true },
   { href: "/", label: "PORTAL DEPAN", icon: Monitor, admin: false },
+  { href: "/member", label: "PORTAL MEMBER", icon: User, admin: false },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [memberUser, setMemberUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
+  const [clickCount, setClickCount] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
+
+  const handleSecretTrigger = () => {
+    const now = Date.now();
+    if (now - lastClickTime < 700) {
+      const next = clickCount + 1;
+      if (next >= 3) {
+        setClickCount(0);
+        window.location.href = "/login";
+      } else {
+        setClickCount(next);
+      }
+    } else {
+      setClickCount(1);
+    }
+    setLastClickTime(now);
+  };
+
   useEffect(() => {
     setMounted(true);
-    // Check if unlocked
-    const checkAuth = () => {
-      if (document.cookie.includes("admin_unlocked=true")) {
-        setIsUnlocked(true);
-      } else {
+    // Verifikasi sesi OP secara kriptografis ke server
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/verify");
+        if (res.ok) {
+          const data = await res.json();
+          setIsUnlocked(Boolean(data.authenticated));
+        } else {
+          setIsUnlocked(false);
+        }
+      } catch {
         setIsUnlocked(false);
       }
     };
@@ -50,15 +78,30 @@ export default function Sidebar() {
     checkAuth();
     fetchPending();
 
+    // Check member session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setMemberUser(session?.user || null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setMemberUser(session?.user || null);
+    });
+
     const interval = setInterval(() => {
       checkAuth();
       fetchPending();
-    }, 5000);
+    }, 10000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (_) {}
     document.cookie = "admin_unlocked=; path=/; max-age=0";
     document.cookie = "admin_forever=; path=/; max-age=0";
     setIsUnlocked(false);
@@ -68,14 +111,20 @@ export default function Sidebar() {
   // Ensure hydration mismatch doesn't happen by rendering default on server
   const visibleNavs = !mounted ? NAV_ITEMS.filter(item => !item.admin) : NAV_ITEMS.filter(item => !item.admin || isUnlocked);
 
+  const memberDisplayName = memberUser?.user_metadata?.username || memberUser?.email?.split("@")[0] || "Member";
+
   return (
     <>
       {/* Mobile Topbar */}
       <div className="md:hidden flex items-center justify-between px-4 h-14 bg-nvidia-green sticky top-0 z-50 shadow-[0_4px_20px_rgba(118,185,0,0.3)]">
-        {/* Brand left */}
-        <Link href="/" className="flex items-center gap-2 text-black font-black tracking-tight text-sm uppercase">
+        {/* Brand left with secret trigger */}
+        <div 
+          onClick={handleSecretTrigger} 
+          className="flex items-center gap-2 text-black font-black tracking-tight text-sm uppercase cursor-pointer select-none active:opacity-80"
+          title="GC NET"
+        >
           <span>GC NET HUB</span>
-        </Link>
+        </div>
         {/* Quick action + Hamburger */}
         <div className="flex items-center gap-2">
           {isUnlocked ? (
@@ -83,15 +132,15 @@ export default function Sidebar() {
               onClick={handleLogout}
               className="px-3 py-1 bg-black/10 hover:bg-black text-black hover:text-white border border-black/20 text-[10px] font-bold uppercase rounded transition"
             >
-              LOGOUT
+              LOGOUT OP
             </button>
           ) : (
             <Link
-              href="/login"
-              className="px-3 py-1 bg-black text-nvidia-green text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1"
+              href="/member"
+              className="px-2.5 py-1 bg-black text-white text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1.5"
             >
-              <Lock size={12} />
-              LOGIN
+              <User size={12} className="text-nvidia-green" />
+              <span>{memberUser ? `@${memberDisplayName}` : "MEMBER"}</span>
             </Link>
           )}
           <button 
@@ -108,7 +157,11 @@ export default function Sidebar() {
         <div className="hidden md:flex w-64 flex-col border-r border-hairline bg-surface-dark shrink-0 fixed h-screen overflow-y-auto">
           
           <div className="p-6 border-b border-hairline mb-4 flex justify-center">
-            <Link href="/" className="flex flex-col items-center justify-center group my-10 w-40">
+            <div 
+              onClick={handleSecretTrigger} 
+              className="flex flex-col items-center justify-center group my-10 w-40 cursor-pointer select-none"
+              title="GC-Net Warnet"
+            >
               <div className="relative w-full aspect-square flex items-center justify-center">
                 <motion.img 
                   src="/logo/GC Master Logo.svg" 
@@ -123,7 +176,7 @@ export default function Sidebar() {
                   style={{ filter: "invert(1) drop-shadow(0 0 20px rgba(118,185,0,0.8))" }}
                 />
               </div>
-            </Link>
+            </div>
           </div>
 
           <nav className="flex-1 px-4 space-y-1">
@@ -162,16 +215,16 @@ export default function Sidebar() {
                 className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[2px] text-xs font-bold uppercase tracking-wider text-error hover:bg-error/10 border border-error/20 transition-all"
               >
                 <LogOut size={16} />
-                LOGOUT ADMIN
+                LOGOUT OP
               </button>
             ) : (
-              <Link
-                href="/login"
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[2px] text-xs font-bold uppercase tracking-wider text-nvidia-green hover:bg-nvidia-green/10 border border-nvidia-green/30 transition-all"
+              <div 
+                onClick={handleSecretTrigger} 
+                className="text-center text-[10px] text-zinc-600 hover:text-zinc-400 cursor-pointer select-none transition py-2 font-mono"
+                title="GC-Net Gaming Warnet System"
               >
-                <Lock size={16} />
-                LOGIN ADMIN
-              </Link>
+                GC-NET v2.4
+              </div>
             )}
           </div>
 
@@ -225,17 +278,18 @@ export default function Sidebar() {
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase text-error hover:bg-error/10 transition-all"
                     >
                       <LogOut size={18} />
-                      LOGOUT ADMIN
+                      LOGOUT OP
                     </button>
                   ) : (
-                    <Link
-                      href="/login"
-                      onClick={() => setMobileOpen(false)}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase text-nvidia-green hover:bg-nvidia-green/10 transition-all"
+                    <div 
+                      onClick={() => {
+                        setMobileOpen(false);
+                        handleSecretTrigger();
+                      }}
+                      className="text-center text-[10px] text-zinc-600 hover:text-zinc-400 cursor-pointer select-none transition py-2 font-mono"
                     >
-                      <Lock size={18} />
-                      LOGIN ADMIN
-                    </Link>
+                      GC-NET v2.4
+                    </div>
                   )}
                 </div>
 

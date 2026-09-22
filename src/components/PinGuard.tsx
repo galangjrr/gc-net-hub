@@ -12,16 +12,38 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
   useEffect(() => {
-    if (document.cookie.includes("admin_unlocked=true")) {
-      setUnlocked(true);
-      // Refresh the session if it's not a forever cookie
-      if (!document.cookie.includes("admin_forever=true")) {
-        document.cookie = "admin_unlocked=true; path=/; max-age=43200";
-      }
-    } else {
-      setUnlocked(false);
+    // Halaman publik bebas akses tanpa perlu periksa sesi OP
+    if (pathname === "/" || pathname === "/specs" || pathname === "/member") {
+      setCheckingAuth(false);
+      return;
     }
+
+    async function verifySession() {
+      try {
+        const res = await fetch("/api/auth/verify");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            setUnlocked(true);
+          } else {
+            setUnlocked(false);
+            document.cookie = "admin_unlocked=; path=/; max-age=0";
+          }
+        } else {
+          setUnlocked(false);
+          document.cookie = "admin_unlocked=; path=/; max-age=0";
+        }
+      } catch {
+        setUnlocked(false);
+      } finally {
+        setCheckingAuth(false);
+      }
+    }
+
+    verifySession();
   }, [pathname]);
 
   const handleUnlock = async () => {
@@ -34,6 +56,9 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         setUnlocked(true);
         setError(false);
+        if (pathname === "/" || pathname === "/login") {
+          window.location.href = "/data-booking";
+        }
       } else {
         setError(true);
         setPassword("");
@@ -44,8 +69,25 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Only lock if not on the main portal page or specs page
-  if (pathname === "/" || pathname === "/specs" || unlocked) {
+  // Halaman publik langsung render
+  if (pathname === "/" || pathname === "/specs" || pathname === "/member") {
+    return <>{children}</>;
+  }
+
+  // Loading indicator saat verifikasi kriptografis sedang berjalan
+  if (checkingAuth) {
+    return (
+      <div className="flex-1 min-h-screen bg-surface-dark flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-nvidia-green border-t-transparent animate-spin" />
+          <span className="text-xs text-zinc-400 font-medium">Memverifikasi Otoritas Sesi...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Jika sudah terverifikasi secara sah oleh server
+  if (unlocked) {
     return <>{children}</>;
   }
 

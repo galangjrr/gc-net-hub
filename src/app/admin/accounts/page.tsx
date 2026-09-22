@@ -9,7 +9,7 @@ import PinGuard from "@/components/PinGuard";
 interface Account {
   id: string;
   username: string;
-  role: 'owner' | 'admin' | 'operator';
+  role: 'super_admin' | 'owner' | 'admin' | 'operator';
   fullName: string;
   createdAt: string;
   active: boolean;
@@ -26,7 +26,7 @@ export default function AccountsManagementPage() {
   const [formUsername, setFormUsername] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [formFullName, setFormFullName] = useState("");
-  const [formRole, setFormRole] = useState<'owner' | 'admin' | 'operator'>('operator');
+  const [formRole, setFormRole] = useState<'super_admin' | 'owner' | 'admin' | 'operator'>('operator');
   const [formActive, setFormActive] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -115,8 +115,8 @@ export default function AccountsManagementPage() {
   };
 
   const handleDelete = async (acc: Account) => {
-    if (acc.username.toLowerCase() === "gcnet") {
-      alert("Akun master owner tidak dapat dihapus.");
+    if (acc.username.toLowerCase() === "gcnet" || acc.role === "super_admin") {
+      alert("Akun Super Admin master tidak dapat dihapus.");
       return;
     }
     if (!confirm(`Hapus akun staff "${acc.username}"?`)) return;
@@ -217,14 +217,16 @@ export default function AccountsManagementPage() {
 
                       <span
                         className={`text-[10px] xl:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
-                          acc.role === "owner"
+                          acc.role === "super_admin"
+                            ? "bg-purple-500/10 text-purple-300 border-purple-500/30 font-black"
+                            : acc.role === "owner"
                             ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
                             : acc.role === "admin"
                             ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
                             : "bg-nvidia-green/10 text-nvidia-green border-nvidia-green/30"
                         }`}
                       >
-                        {acc.role}
+                        {acc.role === "super_admin" ? "Super Admin" : acc.role}
                       </span>
                     </div>
 
@@ -246,7 +248,7 @@ export default function AccountsManagementPage() {
                       <Pencil size={15} />
                       Ubah Akun
                     </button>
-                    {acc.username.toLowerCase() !== "gcnet" && (
+                    {acc.username.toLowerCase() !== "gcnet" && acc.role !== "super_admin" && (
                       <button
                         onClick={() => handleDelete(acc)}
                         className="p-2.5 xl:p-3 bg-error/10 hover:bg-error text-error hover:text-white rounded-xl transition border border-error/30 shrink-0"
@@ -330,7 +332,8 @@ export default function AccountsManagementPage() {
                       >
                         <option value="operator">Operator Kasir: Shift Harian</option>
                         <option value="admin">Admin: Akses Penuh Manajemen dan Rekap</option>
-                        <option value="owner">Owner: Hak Akses Tertinggi</option>
+                        <option value="owner">Owner: Hak Akses Pemilik</option>
+                        <option value="super_admin">Super Admin: Hak Akses Sistem Mutlak</option>
                       </select>
                     </div>
                   </div>
@@ -409,16 +412,17 @@ export default function AccountsManagementPage() {
                       <select
                         value={formRole}
                         onChange={e => setFormRole(e.target.value as any)}
-                        disabled={selectedAcc.username.toLowerCase() === "gcnet"}
-                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none"
+                        disabled={selectedAcc.username.toLowerCase() === "gcnet" || selectedAcc.role === "super_admin"}
+                        className="w-full bg-surface-dark border border-hairline p-3 rounded-xl text-xs xl:text-sm text-white focus:border-nvidia-green outline-none disabled:opacity-50"
                       >
                         <option value="operator">Operator Kasir</option>
                         <option value="admin">Admin</option>
                         <option value="owner">Owner</option>
+                        <option value="super_admin">Super Admin</option>
                       </select>
                     </div>
 
-                    {selectedAcc.username.toLowerCase() !== "gcnet" && (
+                    {selectedAcc.username.toLowerCase() !== "gcnet" && selectedAcc.role !== "super_admin" && (
                       <div className="flex items-center gap-2.5 pt-2">
                         <input
                           type="checkbox"

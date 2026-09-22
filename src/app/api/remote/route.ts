@@ -4,9 +4,8 @@ import { isAdminRequest } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
-    // 0. HARDENING: Verify Admin / Operator Cookie
-    const isAuth = isAdminRequest(req) || req.headers.get('cookie')?.includes('admin_unlocked=true');
-    if (!isAuth) {
+    // 0. HARDENING: Verify Admin / Operator Cookie with HMAC token
+    if (!isAdminRequest(req)) {
       return NextResponse.json({ error: 'Akses ditolak. Silakan login kasir terlebih dahulu.' }, { status: 401 });
     }
 
@@ -26,8 +25,16 @@ export async function POST(req: Request) {
       const paketId = payload?.paket_id || payload?.paketId || 'paket-1';
       const playerName = payload?.player_name || payload?.username || 'Pelanggan';
 
-      // Insert active booking
-      const bookingId = `book-${Date.now()}`;
+      // Insert active booking (Format: GC + 4 angka unik)
+      let bookingId = `GC${Math.floor(1000 + Math.random() * 9000)}`;
+      for (let i = 0; i < 8; i++) {
+        const candidate = `GC${Math.floor(1000 + Math.random() * 9000)}`;
+        const { data: existing } = await supabaseAdmin.from('bookings').select('id').eq('id', candidate).maybeSingle();
+        if (!existing) {
+          bookingId = candidate;
+          break;
+        }
+      }
       await supabaseAdmin.from('bookings').insert({
         id: bookingId,
         pc_id: pcId,

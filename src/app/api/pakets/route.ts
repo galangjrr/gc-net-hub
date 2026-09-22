@@ -24,10 +24,14 @@ export async function POST(req: Request) {
     }
 
     const newPaket = {
-      id: `paket-custom-${crypto.randomUUID()}`,
-      name: data.name,
+      id: data.id || `paket-${Date.now()}`,
+      name: data.name.trim(),
       price: Number(data.price),
-      is_custom: data.is_custom || false,
+      duration_minutes: data.duration_minutes ? Number(data.duration_minutes) : null,
+      fixed_start_time: data.fixed_start_time || null,
+      fixed_end_time: data.fixed_end_time || null,
+      days: Array.isArray(data.days) && data.days.length > 0 ? data.days : null,
+      is_custom: Boolean(data.is_custom),
     };
     const { error } = await supabaseAdmin.from('pakets').insert(newPaket);
     if (error) throw error;
@@ -43,9 +47,29 @@ export async function PUT(req: Request) {
   }
   try {
     const data = await req.json();
+    if (!data.id) return NextResponse.json({ error: 'ID Paket wajib diisi' }, { status: 400 });
+
+    const updatePayload: Record<string, any> = {
+      name: data.name?.trim(),
+      price: Number(data.price),
+    };
+
+    if (data.duration_minutes !== undefined) {
+      updatePayload.duration_minutes = data.duration_minutes ? Number(data.duration_minutes) : null;
+    }
+    if (data.fixed_start_time !== undefined) {
+      updatePayload.fixed_start_time = data.fixed_start_time || null;
+    }
+    if (data.fixed_end_time !== undefined) {
+      updatePayload.fixed_end_time = data.fixed_end_time || null;
+    }
+    if (data.days !== undefined) {
+      updatePayload.days = Array.isArray(data.days) && data.days.length > 0 ? data.days : null;
+    }
+
     const { error } = await supabaseAdmin
       .from('pakets')
-      .update({ name: data.name, price: Number(data.price) })
+      .update(updatePayload)
       .eq('id', data.id);
 
     if (error) throw error;

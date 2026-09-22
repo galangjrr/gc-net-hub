@@ -2,11 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { 
+  ChevronLeft, ChevronRight, X, 
+  Cpu, Gamepad2, Layers, Zap, HardDrive, 
+  Monitor, Keyboard, Mouse, Headphones, 
+  ChevronDown, ArrowRight, Sparkles 
+} from "lucide-react";
 import type { PC } from "@/lib/db";
 
 interface PCCarouselProps {
   pcs: PC[];
+  onSelectPc?: (pcId: string) => void;
 }
 
 const THEMES = [
@@ -17,6 +23,8 @@ const THEMES = [
     border30: "border-[#76b900]/30",
     text: "text-[#76b900]",
     text70: "text-[#76b900]/70",
+    bg: "bg-[#76b900]",
+    bgLight: "bg-[#76b900]/15",
     shadow: "shadow-[0_0_15px_rgba(118,185,0,0.2)]",
     shadowHover: "group-hover:shadow-[0_0_60px_rgba(118,185,0,0.3)]",
     hoverBorder: "hover:border-[#76b900]",
@@ -29,6 +37,8 @@ const THEMES = [
     border30: "border-cyan-500/30",
     text: "text-cyan-500",
     text70: "text-cyan-500/70",
+    bg: "bg-cyan-500",
+    bgLight: "bg-cyan-500/15",
     shadow: "shadow-[0_0_15px_rgba(6,182,212,0.2)]",
     shadowHover: "group-hover:shadow-[0_0_60px_rgba(6,182,212,0.3)]",
     hoverBorder: "hover:border-cyan-500",
@@ -41,6 +51,8 @@ const THEMES = [
     border30: "border-purple-500/30",
     text: "text-purple-500",
     text70: "text-purple-500/70",
+    bg: "bg-purple-500",
+    bgLight: "bg-purple-500/15",
     shadow: "shadow-[0_0_15px_rgba(168,85,247,0.2)]",
     shadowHover: "group-hover:shadow-[0_0_60px_rgba(168,85,247,0.3)]",
     hoverBorder: "hover:border-purple-500",
@@ -53,6 +65,8 @@ const THEMES = [
     border30: "border-orange-500/30",
     text: "text-orange-500",
     text70: "text-orange-500/70",
+    bg: "bg-orange-500",
+    bgLight: "bg-orange-500/15",
     shadow: "shadow-[0_0_15px_rgba(249,115,22,0.2)]",
     shadowHover: "group-hover:shadow-[0_0_60px_rgba(249,115,22,0.3)]",
     hoverBorder: "hover:border-orange-500",
@@ -65,6 +79,8 @@ const THEMES = [
     border30: "border-rose-500/30",
     text: "text-rose-500",
     text70: "text-rose-500/70",
+    bg: "bg-rose-500",
+    bgLight: "bg-rose-500/15",
     shadow: "shadow-[0_0_15px_rgba(244,63,94,0.2)]",
     shadowHover: "group-hover:shadow-[0_0_60px_rgba(244,63,94,0.3)]",
     hoverBorder: "hover:border-rose-500",
@@ -72,12 +88,13 @@ const THEMES = [
   }
 ];
 
-export default function PCCarousel({ pcs }: PCCarouselProps) {
+export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showSpecs, setShowSpecs] = useState(false);
   const [expandedAbility, setExpandedAbility] = useState<string | null>(null);
   const [currentAbilityIndex, setCurrentAbilityIndex] = useState(4); // Start in middle
   const [isMobile, setIsMobile] = useState(false);
+  const [specCategory, setSpecCategory] = useState<'all' | 'core' | 'gear'>('all');
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -91,6 +108,7 @@ export default function PCCarousel({ pcs }: PCCarouselProps) {
     setShowSpecs(false);
     setExpandedAbility(null);
     setCurrentAbilityIndex(4);
+    setSpecCategory('all');
   };
 
   const handlePrev = () => {
@@ -98,11 +116,51 @@ export default function PCCarousel({ pcs }: PCCarouselProps) {
     setShowSpecs(false);
     setExpandedAbility(null);
     setCurrentAbilityIndex(4);
+    setSpecCategory('all');
   };
 
   if (!pcs || pcs.length === 0) return null;
 
   const activeTheme = THEMES[currentIndex % THEMES.length];
+  const activePc = pcs[currentIndex];
+  const s = activePc?.specs || { cpu: "-", gpu: "-", monitor: "-", keyboard: "-", mouse: "-", headset: "-" };
+
+  const getSpecMeta = (title: string) => {
+    switch (title) {
+      case "PROCESSOR":
+        return { icon: Cpu, color: "text-amber-400", border: "border-amber-500/40", bg: "bg-amber-500/15", tag: "CPU CORE", category: "core" };
+      case "GRAPHICS":
+        return { icon: Gamepad2, color: "text-emerald-400", border: "border-emerald-500/40", bg: "bg-emerald-500/15", tag: "VGA GAMING", category: "core" };
+      case "MAINBOARD":
+        return { icon: Layers, color: "text-blue-400", border: "border-blue-500/40", bg: "bg-blue-500/15", tag: "LOGIC BOARD", category: "core" };
+      case "MEMORY":
+        return { icon: Zap, color: "text-purple-400", border: "border-purple-500/40", bg: "bg-purple-500/15", tag: "DUAL CHANNEL", category: "core" };
+      case "STORAGE":
+        return { icon: HardDrive, color: "text-cyan-400", border: "border-cyan-500/40", bg: "bg-cyan-500/15", tag: "ULTRA SSD", category: "core" };
+      case "DISPLAY":
+        return { icon: Monitor, color: "text-cyan-300", border: "border-cyan-400/40", bg: "bg-cyan-500/20", tag: "240Hz PRO", category: "gear" };
+      case "KEYBOARD":
+        return { icon: Keyboard, color: "text-rose-400", border: "border-rose-500/40", bg: "bg-rose-500/15", tag: "MECHANICAL", category: "gear" };
+      case "MOUSE":
+        return { icon: Mouse, color: "text-orange-400", border: "border-orange-500/40", bg: "bg-orange-500/15", tag: "RGB SENSOR", category: "gear" };
+      case "HEADSET":
+        return { icon: Headphones, color: "text-indigo-400", border: "border-indigo-500/40", bg: "bg-indigo-500/15", tag: "7.1 SURROUND", category: "gear" };
+      default:
+        return { icon: Cpu, color: "text-zinc-400", border: "border-zinc-700", bg: "bg-zinc-800", tag: "HARDWARE", category: "core" };
+    }
+  };
+
+  const activePcSpecs = [
+    { title: "PROCESSOR", value: s.cpu, desc: "Otak utama komputasi game. Menjamin FPS stabil saat pertarungan ramai tanpa stutter." },
+    { title: "GRAPHICS", value: s.gpu, desc: "Kartu grafis gaming bertenaga tinggi untuk visual tajam dan frame rate mulus maksimal." },
+    { title: "MAINBOARD", value: s.mainboard || "-", desc: "Papan induk stabil penyuplai daya konsisten ke seluruh komponen hardware." },
+    { title: "MEMORY", value: s.ram || "-", desc: "RAM kecepatan tinggi multi channel agar multitasking dan loading asset game lancar." },
+    { title: "STORAGE", value: s.storage || "-", desc: "SSD ultra cepat, boot game dan loading map selesai dalam hitungan detik." },
+    { title: "DISPLAY", value: s.monitor, desc: "Monitor esports refresh rate tinggi, gerakan musuh terlihat sangat mulus dan responsif." },
+    { title: "KEYBOARD", value: s.keyboard, desc: "Keyboard mechanical presisi dengan respon instan untuk eksekusi kombo tanpa delay." },
+    { title: "MOUSE", value: s.mouse, desc: "Mouse gaming sensor akurat, bidikan crosshair konsisten dan mantap." },
+    { title: "HEADSET", value: s.headset, desc: "Headset gaming audio surround jernih, deteksi arah langkah kaki musuh lebih akurat." },
+  ];
 
   return (
     <div className="relative w-full max-w-[1200px] mx-auto h-[700px] md:h-[700px] flex items-center justify-center perspective-[1200px] overflow-hidden">
@@ -322,9 +380,9 @@ export default function PCCarousel({ pcs }: PCCarouselProps) {
                       )}
                     </AnimatePresence>
 
-                  {/* Transformer Pop-out Specifications */}
+                  {/* Transformer Pop-out Specifications (Desktop Only) */}
                   <AnimatePresence>
-                    {isActive && showSpecs && (
+                    {isActive && showSpecs && !isMobile && (
                       <div className="absolute inset-0 pointer-events-none z-30" style={{ transformStyle: "preserve-3d", transform: "rotateX(15deg)" }}>
                         {pcSpecsData.map((spec, i) => {
                           // HUD Layout for 9 Specs (4 Left, 5 Right)
@@ -340,36 +398,12 @@ export default function PCCarousel({ pcs }: PCCarouselProps) {
                             { x: 380, y: 225 },   // 8: HEADSET
                           ];
 
-                          const desktopPopX = desktopLayout[i % desktopLayout.length].x;
-                          const desktopPopY = desktopLayout[i % desktopLayout.length].y;
-                          const desktopPopZ = 0; 
-                          const desktopRotY = i < 4 ? 15 : -15; // Inward tilt for HUD feel
-                          const desktopRotX = 0; 
+                          const popX = desktopLayout[i % desktopLayout.length].x;
+                          const popY = desktopLayout[i % desktopLayout.length].y;
+                          const popZ = 0; 
+                          const rotY = i < 4 ? 15 : -15; // Inward tilt for HUD feel
+                          const rotX = 0; 
 
-                          let popX, popY;
-                          if (isMobile) {
-                            if (i < 4) {
-                              popX = i % 2 === 0 ? -95 : 95;
-                              popY = -225 + Math.floor(i / 2) * 70; 
-                            } else {
-                              const botI = i - 4; 
-                              if (botI < 4) {
-                                popX = botI % 2 === 0 ? -95 : 95;
-                                popY = 145 + Math.floor(botI / 2) * 70; 
-                              } else {
-                                popX = 0;
-                                popY = 145 + 2 * 70; // 285px - fits comfortably
-                              }
-                            }
-                          } else {
-                            popX = desktopPopX;
-                            popY = desktopPopY;
-                          }
-
-                          const popZ = isMobile ? 0 : desktopPopZ; 
-                          const rotY = isMobile ? 0 : desktopRotY;
-                          const rotX = isMobile ? 0 : desktopRotX;
-                          
                           const isExpanded = expandedAbility === spec.title;
                           const baseOpacity = 1;
                           const baseScale = isExpanded ? 1.2 : 1;
@@ -538,6 +572,216 @@ export default function PCCarousel({ pcs }: PCCarouselProps) {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Mobile Dedicated Cyberpunk Spec HUD Sheet */}
+      <AnimatePresence>
+        {isMobile && showSpecs && (
+          <motion.div
+            initial={{ opacity: 0, y: 25, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 25, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 350, damping: 26 }}
+            className={`absolute inset-2 sm:inset-4 z-[60] rounded-2xl bg-[#090a0e]/95 backdrop-blur-2xl border ${activeTheme.border50} p-3.5 sm:p-4 flex flex-col shadow-[0_12px_60px_rgba(0,0,0,0.95)] overflow-hidden`}
+          >
+            {/* Tech Corner Brackets */}
+            <div className={`absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 ${activeTheme.border} opacity-70 pointer-events-none`} />
+            <div className={`absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 ${activeTheme.border} opacity-70 pointer-events-none`} />
+            <div className={`absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 ${activeTheme.border} opacity-70 pointer-events-none`} />
+            <div className={`absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 ${activeTheme.border} opacity-70 pointer-events-none`} />
+
+            {/* Background Ambient Glow & Cyber Grid */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
+            <div className={`absolute -top-12 -right-12 w-36 h-36 ${activeTheme.glow} rounded-full blur-2xl pointer-events-none`} />
+
+            {/* Header Section */}
+            <div className="flex items-center justify-between pb-2.5 border-b border-hairline relative z-10">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className={`w-9 h-9 rounded-xl ${activeTheme.bgLight} border ${activeTheme.border50} flex items-center justify-center shrink-0`}>
+                  <Sparkles size={16} className={activeTheme.text} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${activeTheme.text}`}>
+                      SPECIFICATION HUD
+                    </span>
+                    <span className="text-[10px] text-zinc-600">•</span>
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">ONLINE</span>
+                    </div>
+                  </div>
+                  <h4 className="text-sm sm:text-base font-black text-white uppercase tracking-tight truncate">
+                    {activePc?.name}
+                  </h4>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSpecs(false);
+                  setExpandedAbility(null);
+                }}
+                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-white/70 hover:text-white border border-hairline flex items-center justify-center transition shrink-0 ml-2"
+                title="Tutup"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Telemetry Highlights */}
+            <div className="grid grid-cols-3 gap-1.5 pt-2 pb-1 relative z-10 shrink-0">
+              <div className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-hairline flex flex-col items-center justify-center text-center">
+                <span className="text-[9px] font-mono text-zinc-400 uppercase">GPU TIER</span>
+                <span className="text-[10px] font-extrabold text-emerald-400 tracking-tight">HIGH FPS</span>
+              </div>
+              <div className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-hairline flex flex-col items-center justify-center text-center">
+                <span className="text-[9px] font-mono text-zinc-400 uppercase">MONITOR</span>
+                <span className="text-[10px] font-extrabold text-cyan-400 tracking-tight">240Hz PRO</span>
+              </div>
+              <div className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-hairline flex flex-col items-center justify-center text-center">
+                <span className="text-[9px] font-mono text-zinc-400 uppercase">AUDIO</span>
+                <span className="text-[10px] font-extrabold text-purple-400 tracking-tight">SURROUND 7.1</span>
+              </div>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-1.5 py-1.5 relative z-10 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSpecCategory('all')}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
+                  specCategory === 'all'
+                    ? `${activeTheme.bg} text-black font-black shadow-[0_0_12px_rgba(255,255,255,0.2)]`
+                    : 'bg-white/5 text-zinc-400 hover:text-white border border-hairline'
+                }`}
+              >
+                Semua (9)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSpecCategory('core')}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
+                  specCategory === 'core'
+                    ? `${activeTheme.bg} text-black font-black shadow-[0_0_12px_rgba(255,255,255,0.2)]`
+                    : 'bg-white/5 text-zinc-400 hover:text-white border border-hairline'
+                }`}
+              >
+                Mesin PC (5)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSpecCategory('gear')}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
+                  specCategory === 'gear'
+                    ? `${activeTheme.bg} text-black font-black shadow-[0_0_12px_rgba(255,255,255,0.2)]`
+                    : 'bg-white/5 text-zinc-400 hover:text-white border border-hairline'
+                }`}
+              >
+                Monitor & Gear (4)
+              </button>
+            </div>
+
+            {/* Scrollable Specs List */}
+            <div className="flex-1 overflow-y-auto py-1 space-y-2 pr-1 relative z-10">
+              {activePcSpecs
+                .filter((spec) => {
+                  const meta = getSpecMeta(spec.title);
+                  if (specCategory === 'core') return meta.category === 'core';
+                  if (specCategory === 'gear') return meta.category === 'gear';
+                  return true;
+                })
+                .map((spec) => {
+                  const meta = getSpecMeta(spec.title);
+                  const IconComponent = meta.icon;
+                  const isExpanded = expandedAbility === spec.title;
+                  return (
+                    <div
+                      key={spec.title}
+                      onClick={() => setExpandedAbility(isExpanded ? null : spec.title)}
+                      className={`p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer border ${
+                        isExpanded
+                          ? `${meta.border} bg-white/[0.06] shadow-[0_0_15px_rgba(0,0,0,0.6)]`
+                          : "bg-[#111319]/90 border-white/[0.06] hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5 sm:gap-3">
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 border ${meta.border} ${meta.bg} ${meta.color} shadow-sm`}>
+                          <IconComponent size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <span className={`text-[10px] font-black uppercase tracking-wider ${meta.color}`}>
+                              {spec.title}
+                            </span>
+                            <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${meta.border} ${meta.color} bg-black/50 shrink-0`}>
+                              {meta.tag}
+                            </span>
+                          </div>
+                          <div className="text-xs sm:text-sm font-bold text-white leading-snug break-words">
+                            {spec.value}
+                          </div>
+                        </div>
+                        <div className="pt-1 text-zinc-500 shrink-0">
+                          <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180 text-white' : ''}`} />
+                        </div>
+                      </div>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="mt-2.5 pt-2 border-t border-hairline overflow-hidden"
+                          >
+                            <div className="flex items-start gap-2 bg-white/[0.02] p-2 rounded-lg border border-hairline">
+                              <div className={`w-1 h-3 rounded-full ${meta.color.replace('text-', 'bg-')} shrink-0 mt-0.5`} />
+                              <p className="text-[11px] text-zinc-300 leading-relaxed font-medium">
+                                {spec.desc}
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Footer Action Buttons */}
+            <div className="pt-2.5 border-t border-hairline relative z-10 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSpecs(false);
+                  setExpandedAbility(null);
+                }}
+                className="py-2.5 px-4 rounded-xl border border-hairline hover:bg-white/10 active:scale-95 text-white/70 hover:text-white font-bold text-xs uppercase tracking-wider transition shrink-0"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSpecs(false);
+                  setExpandedAbility(null);
+                  if (onSelectPc && activePc) {
+                    onSelectPc(activePc.id);
+                  }
+                }}
+                className="flex-1 py-2.5 px-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition bg-nvidia-green hover:bg-white active:scale-95 text-black flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.35)] truncate"
+              >
+                <span className="truncate">Booking {activePc?.name}</span>
+                <ArrowRight size={14} className="shrink-0" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

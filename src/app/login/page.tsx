@@ -163,6 +163,13 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div className="p-3 rounded-lg bg-white/[0.03] border border-hairline/60 text-center space-y-1">
+          <span className="text-[11px] font-bold text-zinc-300 block">Belum Punya Akun Staf?</span>
+          <p className="text-[10px] text-zinc-400 leading-relaxed">
+            Masuk menggunakan akun Master Owner (<span className="text-nvidia-green font-mono font-bold">gcnet</span>) untuk membuka kunci dasbor dan membuat akun kasir baru di menu Akun Staff.
+          </p>
+        </div>
+
         <div className="pt-2 text-center border-t border-hairline">
           <Link
             href="/"

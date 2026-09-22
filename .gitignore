@@ -39,6 +39,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# agent tooling
+.agents/
+skills-lock.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -48,6 +52,7 @@ next-env.d.ts
 /scripts/
 *.ps1
 *.bat
+client_secret*.json
 AGENTS.md
 generate_sql.js
 audit_report.md

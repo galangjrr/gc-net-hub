@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ADMIN_USERNAME, ADMIN_PASSWORD } from "@/lib/auth";
+import { ADMIN_USERNAME, ADMIN_PASSWORD, createAdminSessionToken, hashStaffPassword } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 
 // In-Memory Rate Limiting Store (Memory-safe sliding window per IP)
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     // 1. Primary GC Net Master Owner Credential
     if (normalizedUser === "gcnet" && cleanPass === (ADMIN_PASSWORD || "gcnet1975")) {
       isAuthenticated = true;
-      matchedRole = 'owner';
+      matchedRole = 'super_admin';
     }
 
     // 2. Match against Environment Variables if custom set in Vercel
@@ -83,26 +83,22 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Match against Database Managed Staff Accounts
+    // 3. Match against Dedicated staff Table
     if (!isAuthenticated) {
       try {
-        const { data: rows } = await supabaseAdmin
-          .from("inventory")
+        const { data: staffMember } = await supabaseAdmin
+          .from("staff")
           .select("*")
-          .eq("category", "staff_account")
-          .neq("stock", 0); // active accounts only
+          .eq("username", normalizedUser)
+          .eq("is_active", true)
+          .maybeSingle();
 
-        if (rows && rows.length > 0) {
-          for (const r of rows) {
-            try {
-              const acc = JSON.parse(r.name);
-              if (acc.username?.toLowerCase() === normalizedUser && acc.password === cleanPass) {
-                isAuthenticated = true;
-                matchedUser = acc.fullName || acc.username;
-                matchedRole = acc.role || 'operator';
-                break;
-              }
-            } catch (_) {}
+        if (staffMember) {
+          const hashedInput = hashStaffPassword(cleanPass);
+          if (staffMember.password_hash === hashedInput || staffMember.password_hash === cleanPass) {
+            isAuthenticated = true;
+            matchedUser = staffMember.full_name || staffMember.username;
+            matchedRole = staffMember.role || 'operator';
           }
         }
       } catch (_) {}
@@ -110,9 +106,21 @@ export async function POST(req: Request) {
 
     if (isAuthenticated) {
       resetAttempts(ip);
-      const response = NextResponse.json({ success: true, user: matchedUser, role: matchedRole });
       const maxAge = rememberMe ? 31536000 : 43200; // 1 year or 12 hours
+      const sessionToken = createAdminSessionToken(matchedUser, matchedRole, maxAge);
 
+      const response = NextResponse.json({ success: true, user: matchedUser, role: matchedRole });
+
+      // 1. Kriptografis HttpOnly Cookie (Inaccessible via JavaScript / DevTools document.cookie)
+      response.cookies.set("admin_session_token", sessionToken, {
+        path: "/",
+        maxAge: maxAge,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+
+      // 2. UI Indicator Cookie (Hanya untuk indikator visual frontend, bukan validasi otoritas API)
       response.cookies.set("admin_unlocked", "true", {
         path: "/",
         maxAge: maxAge,

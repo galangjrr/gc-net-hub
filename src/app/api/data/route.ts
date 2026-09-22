@@ -7,8 +7,11 @@ export const revalidate = 0;
 
 export async function GET(req: Request) {
   try {
-    const db = await getDB();
+    const url = new URL(req.url);
+    const includeLogs = url.searchParams.get("includeLogs") === "true";
     const isAdmin = isAdminRequest(req);
+
+    const db = await getDB({ includeLogs: includeLogs && isAdmin });
 
     return NextResponse.json(db, {
       headers: {

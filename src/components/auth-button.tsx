@@ -9,35 +9,32 @@ export default function AuthButton() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setIsAdmin(document.cookie.includes("admin_unlocked=true"));
   }, []);
 
-  const handleLogout = () => {
-    document.cookie = "admin_unlocked=; path=/; max-age=0";
-    document.cookie = "admin_forever=; path=/; max-age=0";
-    setIsAdmin(false);
-    // Optionally redirect to home if on an admin page
-    if (window.location.pathname !== "/") {
-      window.location.href = "/";
-    } else {
-      window.location.reload();
-    }
-  };
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Shortcut rahasia OP: Ctrl + Shift + O atau Ctrl + Shift + L
+      if (e.ctrlKey && e.shiftKey && (e.key === "O" || e.key === "o" || e.key === "L" || e.key === "l")) {
+        e.preventDefault();
+        setShowLogin(prev => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleLogin = async () => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, rememberMe: false })
+        body: JSON.stringify({ username, password, rememberMe: true })
       });
       if (res.ok) {
-        setIsAdmin(true);
         setShowLogin(false);
         window.location.href = "/data-booking";
       } else {
@@ -54,33 +51,7 @@ export default function AuthButton() {
 
   return (
     <>
-      {/* On desktop: fixed top-right. On mobile: hidden because sidebar handles auth */}
-      <div className="hidden md:block fixed top-6 right-6 z-[90]">
-        {isAdmin ? (
-          <motion.button
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-            onClick={handleLogout}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-error/10 border border-error/50 text-error hover:bg-error hover:text-white hover:shadow-[0_0_20px_rgba(255,0,0,0.6)] rounded-full transition-all tracking-tight font-bold text-[10px] uppercase tracking-widest group whitespace-nowrap"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-error group-hover:bg-white"></span>
-            </span>
-            LOGOUT
-          </motion.button>
-        ) : (
-          <motion.button
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-            onClick={() => setShowLogin(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-nvidia-green/10 border border-nvidia-green/50 text-nvidia-green hover:bg-nvidia-green hover:text-black hover:shadow-[0_0_20px_rgba(118,185,0,0.6)] rounded-full transition-all tracking-tight font-bold text-[10px] uppercase tracking-widest group whitespace-nowrap"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75 group-hover:bg-black"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green group-hover:bg-black"></span>
-            </span>
-            ADMIN LOGIN
-          </motion.button>
-        )}
-      </div>
+      {/* Tombol melayang di pojok kanan atas dihapus (Opsi 2). Akses Member Portal ada di Sidebar. */}
 
       <AnimatePresence>
         {showLogin && (

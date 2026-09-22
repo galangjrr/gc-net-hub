@@ -53,6 +53,14 @@ export type Booking = {
   status: 'pending' | 'active';
   created_at: string; // ISO String
   ss_bukti?: string; // URL or base64 if needed
+  member_id?: string;
+  payment_method?: 'qris' | 'kasir';
+  dana_partner_ref?: string;
+  dana_reference_no?: string;
+  dana_qr_content?: string;
+  dana_payment_verified?: boolean;
+  dana_paid_at?: string;
+  dana_paid_amount?: number;
 };
 
 export type LogEntry = {
@@ -93,7 +101,9 @@ const DEFAULT_INVENTORY: InventoryItem[] = [
   { id: "inv-9", name: "Royal Gelas", price: 500, stock: 48, category: "drink" }
 ];
 
-export async function getDB(): Promise<DatabaseSchema> {
+export async function getDB(options?: { includeLogs?: boolean }): Promise<DatabaseSchema> {
+  const shouldFetchLogs = options?.includeLogs ?? false;
+
   const [
     settingsRes,
     inventoryRes,
@@ -106,8 +116,10 @@ export async function getDB(): Promise<DatabaseSchema> {
     supabaseAdmin.from('inventory').select('id, name, price, stock, category').neq('category', 'staff_account'),
     supabaseAdmin.from('pcs').select('id, name, status, expected_empty_time, image, specs').order('id', { ascending: true }),
     supabaseAdmin.from('pakets').select('id, name, price, duration_minutes, fixed_start_time, fixed_end_time, days, is_custom').order('price', { ascending: true }),
-    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at').order('created_at', { ascending: false }).limit(100),
-    supabaseAdmin.from('logs').select('*').order('end_time', { ascending: false }).limit(200)
+    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at').order('created_at', { ascending: false }).limit(60),
+    shouldFetchLogs 
+      ? supabaseAdmin.from('logs').select('*').order('end_time', { ascending: false }).limit(200)
+      : Promise.resolve({ data: [] })
   ]);
 
   const settings = settingsRes.data;

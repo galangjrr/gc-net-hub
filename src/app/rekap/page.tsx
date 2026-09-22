@@ -28,7 +28,7 @@ export default function RekapKeuanganPage() {
 
   const loadData = async () => {
     try {
-      const res = await fetch("/api/data", { cache: "no-store" });
+      const res = await fetch("/api/data?includeLogs=true", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setDb(data);
@@ -38,7 +38,7 @@ export default function RekapKeuanganPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
   }, []);
 

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { isAdminRequest } from '@/lib/auth';
+import { isAdminRequest, hashStaffPassword } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export interface StaffAccount {
   id: string;
   username: string;
   password?: string;
-  role: 'owner' | 'admin' | 'operator';
+  role: 'super_admin' | 'owner' | 'admin' | 'operator';
   fullName: string;
   createdAt: string;
   active: boolean;
@@ -19,50 +19,36 @@ export async function GET(req: Request) {
 
   try {
     const { data: rows, error } = await supabaseAdmin
-      .from('inventory')
+      .from('staff')
       .select('*')
-      .eq('category', 'staff_account');
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    const accounts: StaffAccount[] = (rows || []).map(r => {
-      try {
-        const parsed = JSON.parse(r.name);
-        return {
-          id: r.id,
-          username: parsed.username || '',
-          role: parsed.role || 'operator',
-          fullName: parsed.fullName || parsed.username,
-          createdAt: parsed.createdAt || new Date().toISOString(),
-          active: r.stock !== 0
-        };
-      } catch {
-        return {
-          id: r.id,
-          username: r.name,
-          role: 'operator',
-          fullName: r.name,
-          createdAt: new Date().toISOString(),
-          active: r.stock !== 0
-        };
-      }
-    });
+    const accounts: StaffAccount[] = (rows || []).map(r => ({
+      id: r.id,
+      username: r.username,
+      role: r.role || 'operator',
+      fullName: r.full_name || r.username,
+      createdAt: r.created_at || new Date().toISOString(),
+      active: r.is_active !== false,
+    }));
 
-    // Ensure default master owner account is present in list if empty
+    // Ensure default master owner account is present in list
     if (!accounts.some(a => a.username.toLowerCase() === 'gcnet')) {
       accounts.unshift({
         id: 'acc-owner-gcnet',
         username: 'gcnet',
-        role: 'owner',
-        fullName: 'GC Net Master Owner',
+        role: 'super_admin',
+        fullName: 'GC Net Super Admin',
         createdAt: new Date().toISOString(),
-        active: true
+        active: true,
       });
     }
 
     return NextResponse.json(accounts);
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Failed to fetch accounts' }, { status: 500 });
   }
 }
 
@@ -81,54 +67,50 @@ export async function POST(req: Request) {
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    // Check if username already exists
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(cleanUser)) {
+      return NextResponse.json({ error: 'Username hanya boleh huruf, angka, dan garis bawah 3-20 karakter!' }, { status: 400 });
+    }
+
+    if (cleanPass.length < 4) {
+      return NextResponse.json({ error: 'Password minimal 4 karakter!' }, { status: 400 });
+    }
+
+    // Check if username already exists in staff
     const { data: existing } = await supabaseAdmin
-      .from('inventory')
-      .select('*')
-      .eq('category', 'staff_account');
+      .from('staff')
+      .select('id')
+      .eq('username', cleanUser)
+      .maybeSingle();
 
-    const isDuplicate = (existing || []).some(r => {
-      try {
-        const p = JSON.parse(r.name);
-        return p.username?.toLowerCase() === cleanUser;
-      } catch {
-        return false;
-      }
-    });
-
-    if (isDuplicate || cleanUser === 'gcnet') {
+    if (existing || cleanUser === 'gcnet') {
       return NextResponse.json({ error: 'Username sudah digunakan!' }, { status: 409 });
     }
 
-    const newAccId = `acc-${crypto.randomUUID()}`;
-    const accountPayload = {
-      username: cleanUser,
-      password: cleanPass,
-      role: role || 'operator',
-      fullName: fullName?.trim() || cleanUser,
-      createdAt: new Date().toISOString()
-    };
-
-    const { error: insertError } = await supabaseAdmin.from('inventory').insert({
-      id: newAccId,
-      name: JSON.stringify(accountPayload),
-      price: 0,
-      stock: 1, // 1 = active, 0 = disabled
-      category: 'staff_account'
-    });
+    const hashedPassword = hashStaffPassword(cleanPass);
+    const { data: inserted, error: insertError } = await supabaseAdmin
+      .from('staff')
+      .insert({
+        username: cleanUser,
+        password_hash: hashedPassword,
+        full_name: fullName?.trim() || cleanUser,
+        role: role || 'operator',
+        is_active: true,
+      })
+      .select()
+      .single();
 
     if (insertError) throw insertError;
 
     return NextResponse.json({
-      id: newAccId,
-      username: cleanUser,
-      role: accountPayload.role,
-      fullName: accountPayload.fullName,
-      createdAt: accountPayload.createdAt,
-      active: true
+      id: inserted.id,
+      username: inserted.username,
+      role: inserted.role,
+      fullName: inserted.full_name,
+      createdAt: inserted.created_at,
+      active: inserted.is_active,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to create account' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Failed to create account' }, { status: 500 });
   }
 }
 
@@ -141,40 +123,39 @@ export async function PUT(req: Request) {
     const { id, password, role, fullName, active } = await req.json();
     if (!id) return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
 
-    const { data: row, error: fetchErr } = await supabaseAdmin
-      .from('inventory')
-      .select('*')
+    if (id === 'acc-owner-gcnet') {
+      return NextResponse.json({ error: 'Akun Master Super Admin diatur via sistem terisolasi!' }, { status: 403 });
+    }
+
+    // Check if target is gcnet master account
+    const { data: targetAccount } = await supabaseAdmin
+      .from('staff')
+      .select('username, role')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (fetchErr || !row) {
-      return NextResponse.json({ error: 'Account not found' }, { status: 404 });
-    }
+    const isGcnet = targetAccount?.username?.toLowerCase() === 'gcnet';
 
-    let parsed: any = {};
-    try { parsed = JSON.parse(row.name); } catch {}
-
+    const updatePayload: any = {
+      updated_at: new Date().toISOString(),
+    };
+    if (fullName) updatePayload.full_name = fullName.trim();
+    if (role && !isGcnet) updatePayload.role = role;
+    if (typeof active === 'boolean' && !isGcnet) updatePayload.is_active = active;
     if (password && password.trim()) {
-      parsed.password = password.trim();
+      updatePayload.password_hash = hashStaffPassword(password.trim());
     }
-    if (role) parsed.role = role;
-    if (fullName) parsed.fullName = fullName.trim();
-
-    const stockVal = active === false ? 0 : 1;
 
     const { error: updateErr } = await supabaseAdmin
-      .from('inventory')
-      .update({
-        name: JSON.stringify(parsed),
-        stock: stockVal
-      })
+      .from('staff')
+      .update(updatePayload)
       .eq('id', id);
 
     if (updateErr) throw updateErr;
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to update account' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Failed to update account' }, { status: 500 });
   }
 }
 
@@ -188,14 +169,24 @@ export async function DELETE(req: Request) {
     if (!id) return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
 
     if (id === 'acc-owner-gcnet') {
-      return NextResponse.json({ error: 'Akun Master Owner tidak dapat dihapus!' }, { status: 403 });
+      return NextResponse.json({ error: 'Akun Super Admin master tidak dapat dihapus!' }, { status: 403 });
     }
 
-    const { error } = await supabaseAdmin.from('inventory').delete().eq('id', id);
+    const { data: targetAccount } = await supabaseAdmin
+      .from('staff')
+      .select('username, role')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (targetAccount?.username?.toLowerCase() === 'gcnet' || targetAccount?.role === 'super_admin') {
+      return NextResponse.json({ error: 'Akun Super Admin master tidak dapat dihapus!' }, { status: 403 });
+    }
+
+    const { error } = await supabaseAdmin.from('staff').delete().eq('id', id);
     if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Failed to delete account' }, { status: 500 });
   }
 }

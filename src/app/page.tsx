@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, Variants } from "motion/react";
-import { Monitor, ArrowRight, Gamepad2, AlertCircle, CheckCircle2, Crosshair, Upload, ChevronLeft, ChevronRight, Sparkles, Clock, User, Package, Crown, UtensilsCrossed, Ban, Banknote, AlertTriangle, Star, Check, X, Hourglass, Play, QrCode, Flame } from "lucide-react";
+import { Monitor, ArrowRight, Gamepad2, AlertCircle, CheckCircle2, Crosshair, Upload, ChevronLeft, ChevronRight, Sparkles, Clock, User, Users, Package, Crown, UtensilsCrossed, Ban, Banknote, AlertTriangle, Star, Check, X, Hourglass, Play, QrCode, Flame, Cpu, Search, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { DatabaseSchema, PC, Paket } from "@/lib/db";
@@ -30,7 +30,8 @@ export default function Home() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [ssFile, setSsFile] = useState<File | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'qris' | 'kasir'>('qris');
+  const [ssPreviewUrl, setSsPreviewUrl] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'qris' | 'kasir'>('kasir');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -42,11 +43,173 @@ export default function Home() {
   const [showTcModal, setShowTcModal] = useState(false);
   const [showQueueWarning, setShowQueueWarning] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [latestBookingCode, setLatestBookingCode] = useState<string | null>(null);
   const [bookingStep, setBookingStep] = useState<1 | 2>(1);
   const [antreanSearch, setAntreanSearch] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  const [bookingPaketTab, setBookingPaketTab] = useState<'jam' | 'spesial' | 'nominal'>('jam');
+  const [customNominalInput, setCustomNominalInput] = useState("");
   const carouselRef = useRef<HTMLDivElement>(null);
   const triggeredExpiredPcIds = useRef<Set<string>>(new Set());
+  // DANA QRIS dynamic payment states
+  const [danaQrContent, setDanaQrContent] = useState<string | null>(null);
+  const [danaBookingId, setDanaBookingId] = useState<string | null>(null);
+  const [danaPaymentStatus, setDanaPaymentStatus] = useState<'idle' | 'generating' | 'waiting' | 'paid' | 'error'>('idle');
+  const danaPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [memberSession, setMemberSession] = useState<any>(null);
+  const [memberProfile, setMemberProfile] = useState<any>(null);
+
+  const getSlangName = useCallback((price: number, originalName: string) => {
+    if (originalName && !originalName.toLowerCase().startsWith("rp")) return originalName;
+    if (price === 5000) return "Paket Goceng";
+    if (price === 10000) return "Paket Ceban";
+    if (price === 3000) return "Paket Kilat";
+    if (price === 6000) return "Paket Santai";
+    if (price === 7000) return "Paket Puas";
+    if (price === 9000) return "Paket Seru";
+    if (price === 15000) return "Paket Marathon";
+    return originalName.replace(/rp\.?\s*/i, "Paket ");
+  }, []);
+
+  const formatDuration = useCallback((mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0 && m > 0) return `${h} Jam ${m} Menit`;
+    if (h > 0) return `${h} Jam`;
+    return `${m} Menit`;
+  }, []);
+
+  const getPaketVibeInfo = useCallback((pkg: {
+    id: string;
+    name: string;
+    price: number;
+    duration_minutes?: number | null;
+    fixed_start_time?: string | null;
+    fixed_end_time?: string | null;
+    is_custom?: boolean;
+  }) => {
+    // 1. Paket Kustom
+    if (pkg.id.startsWith("custom-")) {
+      const mins = pkg.duration_minutes || Math.floor((pkg.price / 4000) * 60);
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const durTitle = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
+      return {
+        title: durTitle,
+        badge: "Uang Pas",
+        badgeColor: "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/30",
+        description: "Durasi dihitung otomatis sesuai uang pas yang kamu ketik.",
+        detailTime: `± ${mins} Menit`,
+      };
+    }
+
+    // 2. Paket Jam Reguler
+    if (pkg.name.endsWith(" Jam") && !pkg.fixed_start_time && !pkg.is_custom) {
+      const hoursMatch = pkg.name.match(/(\d+)\s*Jam/i);
+      const hours = hoursMatch ? parseInt(hoursMatch[1]) : Math.round((pkg.duration_minutes || 60) / 60);
+      let badge = "Reguler";
+      let badgeColor = "bg-zinc-800 text-zinc-300 border border-zinc-700/60";
+      let description = "Pemanasan santai sambil cek update game atau browsing.";
+
+      if (hours === 1) {
+        badge = "Pemanasan";
+        badgeColor = "bg-zinc-800 text-zinc-300 border border-zinc-700/60";
+        description = "Satu jam pemanasan santai sambil cek update game atau browsing.";
+      } else if (hours === 2) {
+        badge = "Favorit";
+        badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        description = "Waktu paling pas buat dua match ranked tanpa buru-buru.";
+      } else if (hours === 3) {
+        badge = "Favorit";
+        badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        description = "Pilihan utama anak tongkrongan, mabar squad sampai puas.";
+      } else if (hours === 4) {
+        badge = "Marathon";
+        badgeColor = "bg-blue-500/20 text-blue-300 border border-blue-500/30";
+        description = "Cocok buat grinding battle pass pas lagi libur santai.";
+      } else if (hours === 5) {
+        badge = "Hemat";
+        badgeColor = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        description = "Lima jam marathon tanpa pusing mikirin sisa billing.";
+      } else if (hours >= 6) {
+        badge = "Super Hemat";
+        badgeColor = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        description = "Sesi panjang seharian, harga per jam jauh lebih miring.";
+      }
+
+      return {
+        title: `${hours} Jam`,
+        badge,
+        badgeColor,
+        description,
+        detailTime: `${hours * 60} Menit`,
+      };
+    }
+
+    // 3. Paket Spesial (Malam / Subuh / Ramadan)
+    if (pkg.fixed_start_time) {
+      const nameLower = pkg.name.toLowerCase();
+      let badge = "Spesial";
+      let badgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+      let description = "Server sepi ping adem, begadang bareng kawan sampai subuh.";
+
+      if (nameLower.includes("malam") || nameLower.includes("night")) {
+        badge = "Begadang";
+        badgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+        description = "Server sepi ping adem, begadang bareng kawan sampai subuh.";
+      } else if (nameLower.includes("pagi") || nameLower.includes("subuh")) {
+        badge = "Subuh";
+        badgeColor = "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+        description = "Udara pagi sejuk, warnet tenang buat fokus grinding.";
+      } else if (nameLower.includes("sahur") || nameLower.includes("ngabuburit")) {
+        badge = "Ramadan";
+        badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        description = "Teman nunggu sahur atau ngabuburit paling asik di warnet.";
+      }
+
+      return {
+        title: pkg.name,
+        badge,
+        badgeColor,
+        description,
+        detailTime: `${pkg.fixed_start_time} - ${pkg.fixed_end_time} WIB`,
+      };
+    }
+
+    // 4. Paket Nominal / Pecahan
+    const durationMins = pkg.duration_minutes || Math.round((pkg.price / 1000) * 15);
+    const h = Math.floor(durationMins / 60);
+    const m = durationMins % 60;
+    const durTitle = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
+
+    let badge = getSlangName(pkg.price, pkg.name);
+    let badgeColor = "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/30";
+    let description = "Tarif pecahan fleksibel, pas di kantong anak warnet.";
+
+    if (pkg.price === 3000) {
+      description = "Nanggung mau pulang, habisin rokok sebatang atau cetak tugas.";
+    } else if (pkg.price === 5000) {
+      description = "Modal goceng dapet sejam lebih, pas buat nunggu maghrib.";
+    } else if (pkg.price === 6000) {
+      description = "Satu setengah jam pas buat kelarin daily quest bareng kawan.";
+    } else if (pkg.price === 7000) {
+      description = "Main leluasa tanpa takut kepotong di tengah match seru.";
+    } else if (pkg.price === 9000) {
+      description = "Dua jam lebih sedikit, cukup buat push rank sampai naik bintang.";
+    } else if (pkg.price === 10000) {
+      description = "Uang pas ceban dapet dua setengah jam, auto balik modal.";
+    } else if (pkg.price === 15000) {
+      description = "Duduk anteng dari sore ke malem, puas no debat.";
+    }
+
+    return {
+      title: durTitle,
+      badge,
+      badgeColor,
+      description,
+      detailTime: `± ${durationMins} Menit`,
+    };
+  }, [getSlangName]);
 
   const selectedPaketObj = useMemo(() => {
     if (!selectedPaket) return null;
@@ -56,10 +219,30 @@ export default function Home() {
       const h = Math.floor(mins / 60);
       const m = mins % 60;
       const timeStr = [h > 0 ? `${h}j` : '', m > 0 ? `${m}m` : ''].filter(Boolean).join(' ') || '0m';
-      return { id: selectedPaket, name: `Paket Custom (± ${timeStr})`, price };
+      return { id: selectedPaket, name: `Paket Kustom (± ${timeStr})`, price, duration_minutes: mins };
     }
     return db?.pakets?.find(p => p.id === selectedPaket) || null;
   }, [selectedPaket, db?.pakets]);
+
+  const selectedPaketDuration = useMemo(() => {
+    if (!selectedPaketObj) return "-";
+    if (selectedPaketObj.duration_minutes) {
+      const hours = Math.floor(selectedPaketObj.duration_minutes / 60);
+      const mins = selectedPaketObj.duration_minutes % 60;
+      if (hours > 0 && mins > 0) return `${hours} Jam ${mins} Menit`;
+      if (hours > 0) return `${hours} Jam`;
+      return `${mins} Menit`;
+    }
+    if (selectedPaketObj.fixed_start_time && selectedPaketObj.fixed_end_time) {
+      return `${selectedPaketObj.fixed_start_time} - ${selectedPaketObj.fixed_end_time} WIB`;
+    }
+    return "Sesi Sesuai Tarif";
+  }, [selectedPaketObj]);
+
+  const selectedPaketVibe = useMemo(() => {
+    if (!selectedPaketObj) return null;
+    return getPaketVibeInfo(selectedPaketObj);
+  }, [selectedPaketObj, getPaketVibeInfo]);
 
   useEffect(() => {
     const el = carouselRef.current;
@@ -107,9 +290,36 @@ export default function Home() {
     handleResize();
     window.addEventListener("resize", handleResize);
 
+    const fetchMemberProfile = async (userId: string) => {
+      try {
+        const res = await fetch(`/api/member/profile?user_id=${userId}`);
+        const data = await res.json();
+        if (res.ok && data.member) {
+          setMemberProfile(data.member);
+        }
+      } catch (_) {}
+    };
 
+    // Track Supabase Member Session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setMemberSession(session.user);
+        const uname = session.user.user_metadata?.username || session.user.email?.split("@")[0] || "";
+        if (uname) setPlayerName(uname);
+        fetchMemberProfile(session.user.id);
+      }
+    });
 
-    // Throttled scroll handler (fires max every 100ms instead of every frame)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setMemberSession(session?.user || null);
+      if (session?.user) {
+        const uname = session.user.user_metadata?.username || session.user.email?.split("@")[0] || "";
+        if (uname) setPlayerName(uname);
+        fetchMemberProfile(session.user.id);
+      } else {
+        setMemberProfile(null);
+      }
+    });
     let scrollTicking = false;
     const handleScroll = () => {
       if (scrollTicking) return;
@@ -181,17 +391,148 @@ export default function Home() {
     });
   }, [now, db?.pcs]);
 
+  useEffect(() => {
+    if (!ssFile) {
+      setSsPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(ssFile);
+    setSsPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [ssFile]);
+
+  // DANA QRIS polling: check payment status every 4s
+  useEffect(() => {
+    return () => {
+      if (danaPollingRef.current) clearInterval(danaPollingRef.current);
+    };
+  }, []);
+
+  const stopDanaPolling = useCallback(() => {
+    if (danaPollingRef.current) {
+      clearInterval(danaPollingRef.current);
+      danaPollingRef.current = null;
+    }
+  }, []);
+
+  const startDanaPolling = useCallback((bookingId: string) => {
+    stopDanaPolling();
+    danaPollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch("/api/dana/qris/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ booking_id: bookingId }),
+        });
+        const data = await res.json();
+        if (data.paid) {
+          stopDanaPolling();
+          setDanaPaymentStatus('paid');
+          setLatestBookingCode(bookingId);
+          setShowSuccessModal(true);
+          setDanaQrContent(null);
+          setDanaBookingId(null);
+          setPlayerName("");
+          setBookingStep(1);
+          loadData();
+        }
+      } catch {
+        // Silent fail on poll, will retry next interval
+      }
+    }, 4000);
+  }, [stopDanaPolling]);
+
   const totalPcs = db?.pcs?.length || 0;
   const bookedPcsCount = db?.pcs?.filter(pc => (pc.status === 'occupied' || Boolean(pc.expected_empty_time)) || db?.bookings?.some(b => b.pc_id === pc.id)).length || 0;
 
+  // ── Memoized computed data (avoid recompute on every polling render) ──
+  const generatedJamPakets = useMemo(() => {
+    return [...(db?.pakets?.filter(p =>
+      p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
+    ) || [])].sort((a, b) => (a.duration_minutes || 0) - (b.duration_minutes || 0));
+  }, [db?.pakets]);
+
+  const hargaPakets = useMemo(() => {
+    return [...(db?.pakets?.filter(p =>
+      !p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
+    ) || [])].sort((a, b) => a.price - b.price);
+  }, [db?.pakets]);
+
+  const spesialPakets = useMemo(() => {
+    const isRamadan = new Intl.DateTimeFormat('en-US-u-ca-islamic', { month: 'numeric' }).format(new Date()) === '9';
+    return [...(db?.pakets?.filter(p => {
+      if (!p.fixed_start_time || p.is_custom) return false;
+      const name = p.name.toLowerCase();
+      const isRamadanPaket = name.includes('sahur') || name.includes('ngabuburit');
+      if (isRamadanPaket && !isRamadan) return false;
+      return true;
+    }) || [])].sort((a, b) => a.price - b.price);
+  }, [db?.pakets]);
+
+  const searchPaketQuery = (searchPaket || "").trim().toLowerCase();
+  const filteredJamPakets = useMemo(() => {
+    if (!searchPaketQuery) return generatedJamPakets;
+    return generatedJamPakets.filter(p =>
+      p.name.toLowerCase().includes(searchPaketQuery) ||
+      p.price.toString().includes(searchPaketQuery) ||
+      (p.duration_minutes && `${p.duration_minutes}`.includes(searchPaketQuery))
+    );
+  }, [generatedJamPakets, searchPaketQuery]);
+
+  const filteredSpesialPakets = useMemo(() => {
+    if (!searchPaketQuery) return spesialPakets;
+    return spesialPakets.filter(p =>
+      p.name.toLowerCase().includes(searchPaketQuery) ||
+      p.price.toString().includes(searchPaketQuery) ||
+      (p.fixed_start_time && `${p.fixed_start_time}-${p.fixed_end_time}`.includes(searchPaketQuery))
+    );
+  }, [spesialPakets, searchPaketQuery]);
+
+  const filteredHargaPakets = useMemo(() => {
+    if (!searchPaketQuery) return hargaPakets;
+    return hargaPakets.filter(p =>
+      p.name.toLowerCase().includes(searchPaketQuery) ||
+      getSlangName(p.price, p.name).toLowerCase().includes(searchPaketQuery) ||
+      p.price.toString().includes(searchPaketQuery)
+    );
+  }, [hargaPakets, searchPaketQuery, getSlangName]);
+
+  const ensureSensiblePaketSelection = useCallback((currentPaketId?: string | null) => {
+    const targetId = currentPaketId || selectedPaket;
+    if (!targetId && db?.pakets && db.pakets.length > 0) {
+      const defaultJam = generatedJamPakets.find(p => p.name.includes("2 Jam") || p.name.includes("3 Jam")) || generatedJamPakets[0] || db.pakets[0];
+      if (defaultJam) {
+        setSelectedPaket(defaultJam.id);
+        setBookingPaketTab('jam');
+        return;
+      }
+    }
+    if (targetId) {
+      if (targetId.startsWith("custom-")) {
+        setBookingPaketTab('nominal');
+      } else if (generatedJamPakets.some(p => p.id === targetId)) {
+        setBookingPaketTab('jam');
+      } else if (spesialPakets.some(p => p.id === targetId)) {
+        setBookingPaketTab('spesial');
+      } else if (hargaPakets.some(p => p.id === targetId)) {
+        setBookingPaketTab('nominal');
+      }
+    }
+  }, [selectedPaket, db?.pakets, generatedJamPakets, spesialPakets, hargaPakets]);
+
   const handlePcClick = (pcId: string) => {
     setSelectedPc(pcId);
-    if (db?.pakets && db.pakets.length > 0) {
-      setSelectedPaket(db.pakets[0].id);
+    if (!selectedPaket && db?.pakets && db.pakets.length > 0) {
+      const defaultJam = generatedJamPakets.find(p => p.name.includes("2 Jam") || p.name.includes("3 Jam")) || generatedJamPakets[0] || db.pakets[0];
+      if (defaultJam) {
+        setSelectedPaket(defaultJam.id);
+        setBookingPaketTab('jam');
+      }
     }
   };
 
   const handleNextStep = () => {
+    ensureSensiblePaketSelection();
     const selectedPcBookings = db?.bookings?.filter(b => b.pc_id === selectedPc) || [];
     const targetPc = db?.pcs?.find(p => p.id === selectedPc);
     const hasActiveTimer = targetPc?.expected_empty_time && new Date(targetPc.expected_empty_time).getTime() > Date.now();
@@ -200,6 +541,10 @@ export default function Home() {
       return;
     }
     setBookingStep(2);
+    setTimeout(() => {
+      const elem = document.getElementById("booking");
+      if (elem) elem.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
   };
 
   const handlePayment = async () => {
@@ -207,19 +552,6 @@ export default function Home() {
     const trimmedName = playerName.trim();
     if (!selectedPc || !selectedPaket || !trimmedName) {
       setFormError("Lengkapi data: pilih PC, paket, dan isi nama panggilan lu");
-      return;
-    }
-    if (paymentMethod === 'qris' && !ssFile) {
-      setFormError("Wajib upload bukti transfer DANA jika memilih QRIS");
-      return;
-    }
-    if (paymentMethod === 'qris' && ssFile && !ssFile.type.startsWith('image/')) {
-      setFormError("Bukti transfer wajib berupa file gambar JPG atau PNG");
-      return;
-    }
-    // Validasi ukuran file max 2MB
-    if (paymentMethod === 'qris' && ssFile && ssFile.size > 2 * 1024 * 1024) {
-      setFormError("Ukuran file bukti transfer maksimal 2MB");
       return;
     }
     setLoading(true);
@@ -234,7 +566,6 @@ export default function Home() {
       if (hours > 0) timeStr += `${hours} Jam `;
       if (remMins > 0) timeStr += `${remMins} Menit`;
 
-      // Check if db.pakets already has this exact custom package
       const existingCustom = db?.pakets?.find(p => p.is_custom && p.price === price);
       if (existingCustom) {
         finalPaketId = existingCustom.id;
@@ -260,49 +591,69 @@ export default function Home() {
       }
     }
 
-    const sendBooking = async (base64SS?: string) => {
-      try {
-        const res = await fetch("/api/bookings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            pc_id: selectedPc,
-            paket_id: finalPaketId,
-            player_name: trimmedName,
-            ss_bukti: paymentMethod === 'qris' ? base64SS : undefined
-          })
-        });
-        const resData = await res.json();
-        if (!res.ok) {
-          setFormError(resData?.error || "Gagal membuat booking. Silakan coba lagi.");
+    try {
+      // Step 1: Create booking (pending status)
+      const bookingRes = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pc_id: selectedPc,
+          paket_id: finalPaketId,
+          player_name: trimmedName,
+          member_id: memberSession?.id || null,
+        })
+      });
+      const bookingData = await bookingRes.json();
+      if (!bookingRes.ok) {
+        setFormError(bookingData?.error || "Gagal membuat booking. Silakan coba lagi.");
+        setLoading(false);
+        return;
+      }
+
+      if (paymentMethod === 'qris') {
+        // Step 2: Generate dynamic QRIS from DANA
+        setDanaPaymentStatus('generating');
+        try {
+          const qrisRes = await fetch("/api/dana/qris/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ booking_id: bookingData.id })
+          });
+          const qrisData = await qrisRes.json();
+          if (!qrisRes.ok) {
+            setFormError(qrisData?.error || "Gagal membuat kode QRIS. Booking tetap tercatat, bayar via OP.");
+            setDanaPaymentStatus('error');
+            setLoading(false);
+            loadData();
+            return;
+          }
+          setDanaQrContent(qrisData.qrContent);
+          setDanaBookingId(bookingData.id);
+          setDanaPaymentStatus('waiting');
+          setShowQrModal(true);
           setLoading(false);
-          return;
+          // Step 3: Start polling for payment confirmation
+          startDanaPolling(bookingData.id);
+          loadData();
+        } catch (err: any) {
+          setFormError("Gagal menghubungi server DANA. Booking tetap tercatat, bayar via OP.");
+          setDanaPaymentStatus('error');
+          setLoading(false);
+          loadData();
         }
+      } else {
+        // Kasir (cash) flow: booking created, done
+        setLatestBookingCode(bookingData.id);
         setShowSuccessModal(true);
         setPlayerName("");
         setSsFile(null);
         setBookingStep(1);
         setLoading(false);
         loadData();
-      } catch (err: any) {
-        setFormError("Terjadi kesalahan jaringan saat mengirim booking");
-        setLoading(false);
       }
-    };
-
-    if (paymentMethod === 'qris' && ssFile) {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64SS = reader.result as string;
-        await sendBooking(base64SS);
-      };
-      reader.onerror = () => {
-        setFormError("Gagal membaca file gambar screenshot");
-        setLoading(false);
-      };
-      reader.readAsDataURL(ssFile);
-    } else {
-      await sendBooking();
+    } catch (err: any) {
+      setFormError("Terjadi kesalahan jaringan saat mengirim booking");
+      setLoading(false);
     }
   };
 
@@ -335,47 +686,6 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ── Memoized computed data (avoid recompute on every polling render) ──
-  const generatedJamPakets = useMemo(() => {
-    return [...(db?.pakets?.filter(p =>
-      p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
-    ) || [])].sort((a, b) => (a.duration_minutes || 0) - (b.duration_minutes || 0));
-  }, [db?.pakets]);
-
-  const hargaPakets = useMemo(() => {
-    return [...(db?.pakets?.filter(p =>
-      !p.name.endsWith(" Jam") && !p.fixed_start_time && !p.is_custom
-    ) || [])].sort((a, b) => a.price - b.price);
-  }, [db?.pakets]);
-
-  const spesialPakets = useMemo(() => {
-    const isRamadan = new Intl.DateTimeFormat('en-US-u-ca-islamic', { month: 'numeric' }).format(new Date()) === '9';
-    return [...(db?.pakets?.filter(p => {
-      if (!p.fixed_start_time || p.is_custom) return false;
-      const name = p.name.toLowerCase();
-      const isRamadanPaket = name.includes('sahur') || name.includes('ngabuburit');
-      if (isRamadanPaket && !isRamadan) return false;
-      return true;
-    }) || [])].sort((a, b) => a.price - b.price);
-  }, [db?.pakets]);
-
-  const getSlangName = useCallback((price: number, originalName: string) => {
-    if (price === 5000) return "Paket Goceng";
-    if (price === 10000) return "Paket Ceban";
-    if (price === 3000) return "Paket 3 Ribu";
-    if (price === 9000) return "Paket 9 Ribu";
-    if (price === 15000) return "Paket 15 Ribu";
-    return originalName.replace(/rp\.?\s*/i, "Paket ");
-  }, []);
-
-  const formatDuration = useCallback((mins: number) => {
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    if (h > 0 && m > 0) return `${h} Jam ${m} Menit`;
-    if (h > 0) return `${h} Jam`;
-    return `${m} Menit`;
-  }, []);
-
   const filteredBookings = useMemo(() => {
     if (!db?.bookings) return [];
     return db.bookings.filter((b) => {
@@ -386,6 +696,17 @@ export default function Home() {
       return playerName.toLowerCase().includes(search) || pcName.toLowerCase().includes(search);
     });
   }, [db?.bookings, db?.pcs, antreanSearch]);
+
+  // Cek apakah member yang login punya booking aktif / antrean berjalan
+  const myActiveBooking = useMemo(() => {
+    if (!db?.bookings || !memberSession) return null;
+    const currentUsername = (memberProfile?.username || memberSession.user_metadata?.username || memberSession.email?.split("@")[0] || "").toLowerCase();
+    return db.bookings.find(b => {
+      const matchName = (b.player_name || "").trim().toLowerCase() === currentUsername;
+      const matchMemberId = (b as any).member_id === memberSession.id;
+      return (matchName || matchMemberId) && (b.status === "pending" || b.status === "active");
+    }) || null;
+  }, [db?.bookings, memberSession, memberProfile]);
 
   const CAROUSEL_THEMES = useMemo(() => [
     {
@@ -414,9 +735,16 @@ export default function Home() {
     { id: "spesial", title: "Paket Spesial", items: spesialPakets, type: "spesial" }
   ], [hargaPakets, generatedJamPakets, spesialPakets]);
 
-  if (!db) return <div className="min-h-screen bg-surface-dark p-8 tracking-tight text-white/50">INITIALIZING SYSTEM...</div>;
+  if (!db) return <div suppressHydrationWarning className="min-h-screen bg-surface-dark p-8 tracking-tight text-white/50">INITIALIZING SYSTEM...</div>;
 
   const selectedPcObj = db.pcs?.find(p => p.id === selectedPc);
+  const selectedPcBookings = selectedPc ? (db?.bookings?.filter(b => b.pc_id === selectedPc) || []) : [];
+  const selectedPcFirstBooking = selectedPcBookings[0];
+  const selectedPcDiff = selectedPcObj?.expected_empty_time ? new Date(selectedPcObj.expected_empty_time).getTime() - now : 0;
+  const selectedPcHasTimer = Boolean(selectedPcObj?.expected_empty_time);
+  const selectedPcExpired = selectedPcHasTimer && selectedPcDiff <= 0;
+  const selectedPcWarning = selectedPcHasTimer && selectedPcDiff > 0 && selectedPcDiff <= 10 * 60 * 1000;
+  const selectedPcMins = Math.max(0, Math.floor(selectedPcDiff / 60000));
 
   return (
     <div className="relative bg-surface-dark">
@@ -475,42 +803,75 @@ export default function Home() {
               className="nvidia-card p-8 w-full max-w-sm relative flex flex-col items-center border-nvidia-green/50 shadow-[0_0_40px_rgba(118,185,0,0.15)]"
             >
               <button
-                onClick={() => setShowQrModal(false)}
+                onClick={() => {
+                  setShowQrModal(false);
+                  if (danaPaymentStatus !== 'waiting') {
+                    stopDanaPolling();
+                  }
+                }}
                 className="absolute top-4 right-4 text-white/50 hover:text-error transition-colors"
               >
                 TUTUP
               </button>
               <div className="nvidia-corner bg-nvidia-green"></div>
 
-              <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase tracking-widest text-center">Scan QRIS</h2>
-              <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Pembayaran menggunakan DANA / QRIS</p>
+              {danaPaymentStatus === 'paid' ? (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-nvidia-green/20 flex items-center justify-center mb-4">
+                    <CheckCircle2 size={32} className="text-nvidia-green" />
+                  </div>
+                  <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase tracking-widest text-center">Pembayaran Berhasil</h2>
+                  <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Booking lu sudah tercatat dan menunggu aktivasi oleh OP</p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase tracking-widest text-center">Scan QRIS</h2>
+                  <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Pembayaran menggunakan DANA / QRIS</p>
 
-              {selectedPaket && (
-                <div className="w-full bg-black/40 border border-nvidia-green/30 rounded p-3 mb-6 flex flex-col items-center">
-                  <span className="text-[10px] text-white/60 tracking-tight uppercase tracking-widest mb-1">Total Tagihan</span>
-                  <span className="text-2xl font-bold text-nvidia-green tracking-tight drop-shadow-[0_0_8px_rgba(118,185,0,0.5)]">
-                    RP {(selectedPaket.startsWith('custom-') ? parseInt(selectedPaket.replace('custom-', '')) : db?.pakets?.find(p => p.id === selectedPaket)?.price || 0).toLocaleString("id-ID")}
-                  </span>
-                </div>
+                  {selectedPaket && (
+                    <div className="w-full bg-black/40 border border-nvidia-green/30 rounded p-3 mb-6 flex flex-col items-center">
+                      <span className="text-[10px] text-white/60 tracking-tight uppercase tracking-widest mb-1">Total Tagihan</span>
+                      <span className="text-2xl font-bold text-nvidia-green tracking-tight drop-shadow-[0_0_8px_rgba(118,185,0,0.5)]">
+                        Rp {(selectedPaketObj?.price || 0).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="w-48 h-48 mx-auto flex items-center justify-center mb-4 rounded-[2px] overflow-hidden border border-nvidia-green bg-white p-2 shadow-[0_0_15px_rgba(118,185,0,0.3)]">
+                    {danaQrContent ? (
+                      <img
+                        src={`https://chart.googleapis.com/chart?cht=qr&chs=400x400&chl=${encodeURIComponent(danaQrContent)}&choe=UTF-8`}
+                        alt="QRIS Barcode"
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Loader2 size={24} className="text-zinc-400 animate-spin" />
+                        <span className="text-[10px] text-zinc-500">Generating QR...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {danaPaymentStatus === 'waiting' && (
+                    <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                      <Loader2 size={14} className="text-amber-400 animate-spin shrink-0" />
+                      <span className="text-[11px] text-amber-300 font-medium">Menunggu pembayaran... scan barcode di atas dengan aplikasi e-wallet</span>
+                    </div>
+                  )}
+                </>
               )}
 
-              <div className="w-48 h-48 mx-auto flex items-center justify-center mb-6 rounded-[2px] overflow-hidden border border-nvidia-green bg-black p-2 shadow-[0_0_15px_rgba(118,185,0,0.3)]">
-                <img src="/qris.png" alt="QRIS DANA" className="w-full h-full object-contain" />
-              </div>
-
-              <div className="w-full flex gap-3">
-                <a
-                  href="/qris.png"
-                  download="QRIS_DANA.png"
-                  className="flex-1 text-center bg-transparent border border-nvidia-green text-nvidia-green hover:bg-nvidia-green hover:text-black font-bold tracking-tight text-xs py-3 rounded-[2px] transition-colors uppercase tracking-widest"
-                >
-                  Download
-                </a>
+              <div className="w-full flex gap-3 mt-2">
                 <button
-                  onClick={() => setShowQrModal(false)}
+                  onClick={() => {
+                    setShowQrModal(false);
+                    if (danaPaymentStatus === 'paid') {
+                      setDanaPaymentStatus('idle');
+                    }
+                  }}
                   className="flex-1 nvidia-button uppercase text-xs tracking-widest"
                 >
-                  Selesai
+                  {danaPaymentStatus === 'paid' ? 'Selesai' : 'Tutup'}
                 </button>
               </div>
             </motion.div>
@@ -564,15 +925,132 @@ export default function Home() {
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
               />
             </div>
-            <div className="flex items-center gap-3 mb-6 bg-[#16171b] border border-hairline shadow-sm w-max px-4 py-1.5 rounded-full">
-              <span className="flex items-center justify-center w-2 h-2">
-                <span className="absolute inline-flex h-2 w-2 rounded-full bg-nvidia-green animate-ping opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green shadow-[0_0_10px_rgba(118,185,0,1)]"></span>
-              </span>
-              <span className="text-[11px] font-bold text-white uppercase tracking-widest tracking-tight">
-                System Online • {totalPcs} Units Ready
-              </span>
-            </div>
+            {/* ── MEMBER PERSONALIZATION WIDGET (Tactical Cyber Hub State) ── */}
+            {myActiveBooking ? (
+              /* State A: Live Booking / Active Queue Boarding Pass */
+              <div className="mb-6 p-4 rounded-xl bg-black/80 border border-nvidia-green/40 shadow-[0_0_25px_rgba(118,185,0,0.15)] backdrop-blur-md relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-nvidia-green/10 rounded-full blur-xl pointer-events-none" />
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-nvidia-green"></span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-nvidia-green">
+                      Antrean Aktif Lu
+                    </span>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/10 text-white border border-white/20">
+                      {myActiveBooking.id}
+                    </span>
+                  </div>
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                    myActiveBooking.status === "active" 
+                      ? "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/40" 
+                      : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                  }`}>
+                    {myActiveBooking.status === "active" ? "Siap Digunakan" : "Menunggu OP"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-lg font-black text-white uppercase tracking-tight block">
+                      {db?.pcs?.find(p => p.id === myActiveBooking.pc_id)?.name || myActiveBooking.pc_id}
+                    </span>
+                    <span className="text-[11px] text-zinc-400 block">
+                      {db?.pakets?.find(p => p.id === myActiveBooking.paket_id)?.name || "Paket Warnet"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {myActiveBooking.status === "pending" && !myActiveBooking.dana_payment_verified && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (myActiveBooking.dana_qr_content) {
+                            setDanaQrContent(myActiveBooking.dana_qr_content);
+                            setDanaBookingId(myActiveBooking.id);
+                            setDanaPaymentStatus('waiting');
+                            setShowQrModal(true);
+                          } else {
+                            scrollToAntrean(null as any);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-nvidia-green text-black text-[10px] font-black uppercase tracking-wider hover:bg-white transition"
+                      >
+                        Buka QRIS
+                      </button>
+                    )}
+                    <a
+                      href="#antrean"
+                      onClick={scrollToAntrean}
+                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider transition"
+                    >
+                      Status Antrean →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ) : memberSession ? (
+              /* State B: Member Logged In (No Active Booking) */
+              <div className="mb-6 p-3.5 rounded-xl bg-black/60 border border-hairline/80 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-nvidia-green/15 border border-nvidia-green/40 flex items-center justify-center text-nvidia-green font-black text-xs">
+                    {(memberProfile?.username || memberSession.email)?.[0]?.toUpperCase() || "M"}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white tracking-tight">
+                        Halo, @{memberProfile?.username || memberSession.user_metadata?.username || memberSession.email?.split("@")[0]}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-wider text-nvidia-green bg-nvidia-green/10 px-1.5 py-0.5 rounded border border-nvidia-green/20">
+                        Member
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-zinc-400 block">
+                      Saldo Deposit: <strong className="text-white">Rp {(memberProfile?.balance || 0).toLocaleString("id-ID")}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href="#booking"
+                    onClick={scrollToBooking}
+                    className="px-3 py-1.5 rounded-lg bg-nvidia-green text-black text-[10px] font-black uppercase tracking-wider hover:bg-white transition shadow-[0_0_12px_rgba(118,185,0,0.3)]"
+                  >
+                    Pilih PC & Main
+                  </a>
+                  <Link
+                    href="/member"
+                    className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white text-[10px] font-bold uppercase transition"
+                  >
+                    Profil
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              /* State C: Guest / Belum Login */
+              <div className="flex flex-wrap items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 bg-[#16171b] border border-hairline shadow-sm px-4 py-1.5 rounded-full">
+                  <span className="flex items-center justify-center w-2 h-2">
+                    <span className="absolute inline-flex h-2 w-2 rounded-full bg-nvidia-green animate-ping opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green shadow-[0_0_10px_rgba(118,185,0,1)]"></span>
+                  </span>
+                  <span className="text-[11px] font-bold text-white uppercase tracking-widest tracking-tight">
+                    System Online • {totalPcs} Units Ready
+                  </span>
+                </div>
+
+                <Link
+                  href="/member"
+                  className="text-[11px] font-bold text-zinc-400 hover:text-nvidia-green transition uppercase tracking-wider flex items-center gap-1 px-3 py-1 rounded-full bg-white/[0.03] border border-hairline hover:border-nvidia-green/30"
+                >
+                  <User size={12} />
+                  <span>Daftar / Masuk Member</span>
+                </Link>
+              </div>
+            )}
 
             <motion.h1
               className="text-4xl md:text-7xl font-bold tracking-tighter leading-[0.95] text-white mb-6 uppercase tracking-tight drop-shadow-2xl"
@@ -612,13 +1090,13 @@ export default function Home() {
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
                   <Check className="text-nvidia-green" size={12} />
                 </div>
-                <span>Pemain yang datang langsung ke meja kasir tetap prioritas.</span>
+                <span>Pemain yang datang langsung ke meja OP tetap prioritas.</span>
               </div>
               <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-300">
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
                   <Check className="text-nvidia-green" size={12} />
                 </div>
-                <span>Kasir konfirmasi, pantau posisi antrean, giliran main tiba.</span>
+                <span>OP konfirmasi, pantau posisi antrean, giliran main tiba.</span>
               </div>
             </div>
 
@@ -830,25 +1308,38 @@ export default function Home() {
                                 {category.title}
                               </h3>
 
-                              <div className="flex flex-col gap-3">
-                                {category.items.map(p => (
-                                  <div key={p.id} className={`group relative flex justify-between items-center p-3 border border-white/5 bg-black/40 ${theme.hoverBgGlow} ${theme.hoverBorder} transition-all rounded-[2px] overflow-hidden`}>
-                                    <div className="relative z-10 flex items-center gap-2">
-                                      <span className={`${theme.text}/50 group-hover:${theme.text} transition-colors flex items-center`}>
-                                        {category.type === "spesial" ? <Star size={12} className="text-amber-400 fill-amber-400" /> : <ChevronRight size={12} />}
-                                      </span>
-                                      <div className="flex flex-col">
-                                        <span className="tracking-tight text-white font-bold text-sm">
-                                          {category.type === "harga" ? getSlangName(p.price, p.name) : p.name}
+                                <div className="flex flex-col gap-3">
+                                  {category.items.map(p => {
+                                    const vibe = getPaketVibeInfo(p);
+                                    return (
+                                      <div key={p.id} className={`group relative flex justify-between items-center p-3 border border-white/5 bg-black/40 ${theme.hoverBgGlow} ${theme.hoverBorder} transition-all rounded-[2px] overflow-hidden`}>
+                                        <div className="relative z-10 flex items-center gap-2.5 min-w-0 pr-2">
+                                          <span className={`${theme.text}/50 group-hover:${theme.text} transition-colors flex items-center shrink-0`}>
+                                            {category.type === "spesial" ? <Star size={12} className="text-amber-400 fill-amber-400" /> : <ChevronRight size={12} />}
+                                          </span>
+                                          <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                              <span className="tracking-tight text-white font-bold text-sm">
+                                                {vibe.title}
+                                              </span>
+                                              {vibe.badge && (
+                                                <span className={`text-[9px] px-1.5 py-0.2 rounded font-black uppercase ${vibe.badgeColor}`}>
+                                                  {vibe.badge}
+                                                </span>
+                                              )}
+                                            </div>
+                                            <span className="text-zinc-400 text-[10px] truncate mt-0.5 group-hover:text-zinc-300 transition-colors">
+                                              {vibe.description}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <span className={`tracking-tight ${theme.text} font-bold text-sm relative z-10 tabular-nums shrink-0`}>
+                                          Rp {p.price.toLocaleString('id-ID')}
                                         </span>
-                                        {category.type === "harga" && <span className="tracking-tight text-white/40 text-[10px] block leading-none mt-1">{formatDuration(p.duration_minutes || 0)}</span>}
-                                        {category.type === "spesial" && <span className="tracking-tight text-white/50 text-[10px] mt-1 block leading-none">Mulai: {p.fixed_start_time} WIB</span>}
                                       </div>
-                                    </div>
-                                    <span className={`tracking-tight ${theme.text} font-bold text-sm relative z-10`}>Rp {p.price.toLocaleString('id-ID')}</span>
-                                  </div>
-                                ))}
-                              </div>
+                                    );
+                                  })}
+                                </div>
                             </div>
                           </div>
                         </motion.div>
@@ -865,13 +1356,13 @@ export default function Home() {
       {/* ── Live Antrean & Status Section ── */}
       <motion.section
         id="antrean"
-        className="relative z-20 py-10 md:py-20 border-b border-hairline bg-surface-dark/50 scroll-mt-16 md:min-h-[90vh] flex flex-col"
+        className="relative z-20 py-10 md:py-16 border-b border-hairline bg-surface-dark/50 scroll-mt-16"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1800px] w-full mx-auto px-6 flex-1 flex flex-col">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-6 border-b border-hairline">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -903,7 +1394,7 @@ export default function Home() {
               Belum ada data antrean dengan filter ini
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {filteredBookings.map((b) => {
                 const pc = db.pcs?.find((p: PC) => p.id === b.pc_id);
                 const pkg = db.pakets?.find((p: Paket) => p.id === b.paket_id);
@@ -962,7 +1453,7 @@ export default function Home() {
                           Rp {(pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) || 0 : 0)).toLocaleString("id-ID")}
                         </span>
                         <span className={`text-[9px] font-bold uppercase px-1 py-0.5 rounded ${b.ss_bukti ? 'bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'}`}>
-                          {b.ss_bukti ? 'QRIS' : 'KASIR'}
+                          {b.ss_bukti ? 'QRIS' : 'TUNAI OP'}
                         </span>
                       </div>
                     </div>
@@ -972,9 +1463,9 @@ export default function Home() {
                       <div className="flex items-center justify-between text-[11px] text-amber-400 font-medium pt-0.5">
                         <span className="flex items-center gap-1.5">
                           <Clock size={12} className="animate-spin" />
-                          Menunggu Kasir
+                          Menunggu OP
                         </span>
-                        <span className="text-zinc-500 text-[10px] tabular-nums font-mono">
+                        <span suppressHydrationWarning className="text-zinc-500 text-[10px] tabular-nums font-mono">
                           {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
                         </span>
                       </div>
@@ -992,7 +1483,7 @@ export default function Home() {
                           <Clock size={12} className="animate-spin" />
                           {b.player_name} Bersiap
                         </span>
-                        <span className="text-[11px] tabular-nums shrink-0">
+                        <span suppressHydrationWarning className="text-[11px] tabular-nums shrink-0">
                           {pcMins}:{pcSecs.toString().padStart(2, '0')}
                         </span>
                       </div>
@@ -1002,7 +1493,7 @@ export default function Home() {
                           <Hourglass size={12} className="text-nvidia-green" />
                           Mengantre
                         </span>
-                        <span className="text-nvidia-green font-bold tabular-nums shrink-0">
+                        <span suppressHydrationWarning className="text-nvidia-green font-bold tabular-nums shrink-0">
                           ~{pcMins}m Lagi
                         </span>
                       </div>
@@ -1013,7 +1504,7 @@ export default function Home() {
                           {pcLabel} Standby
                         </span>
                         <span className="text-[10px] text-zinc-400">
-                          Konfirmasi kasir
+                          Konfirmasi OP
                         </span>
                       </div>
                     )}
@@ -1028,13 +1519,13 @@ export default function Home() {
       {/* ── Booking Interface ── */}
       <motion.section
         id="booking"
-        className="relative z-20 py-10 md:py-24 scroll-mt-16 md:min-h-[90vh] flex flex-col"
+        className="relative z-20 py-10 md:py-16 scroll-mt-16"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-100px" }}
         variants={containerVariants}
       >
-        <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 flex-1 flex flex-col">
+        <div className="max-w-7xl 2xl:max-w-[1440px] w-full mx-auto px-4 sm:px-6">
           {/* Stepper Header */}
           <div className="flex items-center justify-between max-w-sm mx-auto w-full mb-6 px-2">
             <button
@@ -1075,7 +1566,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="w-full relative overflow-hidden flex-1 flex flex-col">
+          <div className="w-full relative overflow-hidden">
             <AnimatePresence mode="popLayout">
               {bookingStep === 1 && (
                 <motion.div
@@ -1083,245 +1574,375 @@ export default function Home() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="w-full flex-1 p-4 sm:p-6 md:p-8 bg-[#0f1013]/95 border border-hairline rounded-2xl flex flex-col shadow-2xl"
+                  className="w-full p-4 sm:p-5 md:p-6 pb-24 lg:pb-6 bg-[#0f1013]/95 border border-hairline rounded-2xl flex flex-col shadow-2xl"
                 >
                   {/* Step 1 Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 pb-5 border-b border-hairline">
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-5 pb-4 border-b border-hairline">
                     <div>
                       <h2 className="text-xl md:text-2xl font-bold text-white uppercase tracking-tight">Pilih PC Untuk Booking</h2>
                       <p className="text-xs md:text-sm text-zinc-400 mt-1">Cek sisa waktu pemain aktif dan ambil nomor antrean berikutnya</p>
                     </div>
                   </div>
 
-                  {mounted && (
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      whileInView="show"
-                      viewport={{ once: true, margin: "-50px" }}
-                      className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 auto-rows-[1fr] mb-6"
-                    >
-                      {db?.pcs?.map((pc) => {
-                        const isSelected = selectedPc === pc.id;
-                        const pcBookings = db?.bookings?.filter(b => b.pc_id === pc.id) || [];
-                        const firstBooking = pcBookings[0];
-                        const isPending = firstBooking?.status === 'pending';
+                  {/* Master-Detail 2-Column Layout */}
+                  <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+                    {/* Kolom Kiri: Grid Unit PC (8 Kolom di desktop) */}
+                    <div className="lg:col-span-7 xl:col-span-8 flex flex-col">
+                      <div className="flex items-center justify-between mb-3 text-xs">
+                        <span className="text-zinc-400 font-medium">Pilih salah satu unit di bawah:</span>
+                        <span className="text-[11px] font-bold text-nvidia-green uppercase tracking-wider">{db?.pcs?.length || 0} Meja Tersedia</span>
+                      </div>
 
-                        const firstPkg = db?.pakets?.find(p => p.id === firstBooking?.paket_id);
-                        const firstPkgTitle = firstPkg?.name || (firstBooking?.paket_id?.startsWith('custom-') ? 'Kustom' : 'Paket');
+                      {mounted && (
+                        <motion.div
+                          variants={containerVariants}
+                          initial="hidden"
+                          whileInView="show"
+                          viewport={{ once: true, margin: "-50px" }}
+                          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-3 sm:gap-3.5"
+                        >
+                          {db?.pcs?.map((pc) => {
+                            const isSelected = selectedPc === pc.id;
+                            const pcBookings = db?.bookings?.filter(b => b.pc_id === pc.id) || [];
+                            const firstBooking = pcBookings[0];
+                            const isPending = firstBooking?.status === 'pending';
 
-                        const hasTimer = Boolean(pc.expected_empty_time);
-                        const diff = pc.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
-                        const isExpired = hasTimer && diff <= 0;
-                        const isWarning = hasTimer && diff > 0 && diff <= 10 * 60 * 1000;
-                        const isNormalTimer = hasTimer && diff > 10 * 60 * 1000;
+                            const firstPkg = db?.pakets?.find(p => p.id === firstBooking?.paket_id);
+                            const firstPkgTitle = firstPkg?.name || (firstBooking?.paket_id?.startsWith('custom-') ? 'Kustom' : 'Paket');
 
-                        const mins = Math.max(0, Math.floor(diff / 60000));
-                        const secs = Math.max(0, Math.floor((diff % 60000) / 1000));
+                            const hasTimer = Boolean(pc.expected_empty_time);
+                            const diff = pc.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+                            const isExpired = hasTimer && diff <= 0;
+                            const isWarning = hasTimer && diff > 0 && diff <= 10 * 60 * 1000;
+                            const isNormalTimer = hasTimer && diff > 10 * 60 * 1000;
 
-                        return (
-                          <motion.button
-                            variants={itemVariants}
-                            whileHover={{ 
-                              scale: 1.02, 
-                              borderColor: isExpired ? "#ef4444" : isWarning ? "#f59e0b" : "#76b900" 
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                            key={pc.id}
-                            onClick={() => handlePcClick(pc.id)}
-                            className={`
-                              relative flex flex-col items-start justify-between p-4 rounded-xl transition-all border overflow-hidden group h-full text-left
-                              ${isSelected
-                                ? isExpired
-                                  ? "bg-red-500/15 border-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.25)] ring-1 ring-red-500"
-                                  : isWarning
-                                  ? "bg-amber-500/15 border-amber-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.25)] ring-1 ring-amber-500"
-                                  : "bg-nvidia-green/10 border-nvidia-green text-white shadow-[0_0_20px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green"
-                                : isExpired
-                                ? "bg-red-500/5 border-red-500/40 text-white hover:border-red-400"
-                                : isWarning
-                                ? "bg-amber-500/5 border-amber-500/40 text-white hover:border-amber-400"
-                                : "bg-[#121316] border-hairline text-white hover:border-zinc-500"
-                              }
-                            `}
-                          >
-                            {/* Header: PC Name & Status */}
-                            <div className="flex justify-between w-full relative z-10 mb-2.5 items-start gap-2">
-                              <div className="flex flex-col items-start text-left">
-                                <span className={`text-base font-black tracking-tight uppercase leading-tight ${
-                                  isExpired ? "text-red-400" : isWarning ? "text-amber-400" : isSelected ? "text-nvidia-green" : "text-white"
-                                }`}>
-                                  {pc.name}
-                                </span>
-                                {isExpired ? (
-                                  <span className="text-[10px] font-bold text-red-400 uppercase mt-0.5 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping inline-block" /> 
-                                    {firstBooking ? `Giliran ${firstBooking.player_name}` : 'PC Bebas'}
-                                  </span>
-                                ) : isWarning ? (
-                                  <span className="text-[10px] font-bold text-amber-400 uppercase mt-0.5 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block" /> 
-                                    {firstBooking ? `${firstBooking.player_name} Bersiap` : 'Hampir Selesai'}
-                                  </span>
-                                ) : hasTimer ? (
-                                  <span className="text-[10px] font-medium text-zinc-400 uppercase mt-0.5">
-                                    Sedang Dimainkan
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] font-bold text-emerald-400 uppercase mt-0.5">
-                                    PC Bebas
-                                  </span>
-                                )}
-                              </div>
+                            const mins = Math.max(0, Math.floor(diff / 60000));
+                            const secs = Math.max(0, Math.floor((diff % 60000) / 1000));
 
-                              <div className="flex flex-col items-end gap-1 shrink-0">
-                                <Monitor
-                                  size={18}
-                                  className={
-                                    isExpired 
-                                      ? "text-red-400" 
-                                      : isWarning 
-                                      ? "text-amber-400" 
-                                      : isSelected 
-                                      ? "text-nvidia-green" 
-                                      : "text-zinc-500 group-hover:text-zinc-300"
+                            return (
+                              <motion.button
+                                variants={itemVariants}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                key={pc.id}
+                                onClick={() => handlePcClick(pc.id)}
+                                className={`
+                                  relative flex flex-col justify-between p-3.5 sm:p-4 rounded-xl transition-all border overflow-hidden group text-left min-h-[115px] sm:min-h-[120px]
+                                  ${isSelected
+                                    ? isExpired
+                                      ? "bg-red-500/15 border-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.25)] ring-1 ring-red-500"
+                                      : isWarning
+                                      ? "bg-amber-500/15 border-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.25)] ring-1 ring-amber-500"
+                                      : "bg-nvidia-green/10 border-nvidia-green text-white shadow-[0_0_15px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green"
+                                    : isExpired
+                                    ? "bg-red-500/5 border-red-500/40 text-white hover:border-red-400"
+                                    : isWarning
+                                    ? "bg-amber-500/5 border-amber-500/40 text-white hover:border-amber-400"
+                                    : "bg-[#121316] border-hairline text-white hover:border-zinc-500"
                                   }
-                                />
-                                {pcBookings.length > 0 ? (
-                                  <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide text-center ${
-                                    isExpired 
-                                      ? 'bg-red-500 text-white' 
-                                      : isWarning 
-                                      ? 'bg-amber-500 text-black' 
-                                      : isPending 
-                                      ? 'bg-amber-500 text-black' 
-                                      : 'bg-nvidia-green text-black'
-                                  }`}>
-                                    {isExpired ? `Giliran ${firstBooking.player_name.slice(0, 6)}` : isPending ? 'Verifikasi' : `${pcBookings.length} Antrean`}
-                                  </span>
-                                ) : isExpired ? (
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide bg-red-500/20 text-red-400 border border-red-500/40">
-                                    Habis
-                                  </span>
-                                ) : isWarning ? (
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wide bg-amber-500/20 text-amber-400 border border-amber-500/40">
-                                    Kurang 10M
-                                  </span>
-                                ) : (
-                                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-medium uppercase tracking-wide bg-white/5 text-zinc-400 border border-white/10">
-                                    Bebas
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Timer Countdown Bar */}
-                            {isExpired ? (
-                              <div className="w-full bg-red-500/10 border border-red-500/30 p-2 rounded-lg flex items-center justify-between mb-2 z-10 text-red-300">
-                                <span className="text-[10px] font-bold uppercase tracking-wide flex items-center gap-1">
-                                  <AlertTriangle size={12} className="text-red-400" /> Sisa Waktu
-                                </span>
-                                <span className="tabular-nums text-xs font-black text-red-400">
-                                  00:00 Habis
-                                </span>
-                              </div>
-                            ) : isWarning ? (
-                              <div className="w-full bg-amber-500/10 border border-amber-500/30 p-2 rounded-lg flex items-center justify-between mb-2 z-10 text-amber-300">
-                                <span className="text-[10px] font-bold uppercase tracking-wide flex items-center gap-1">
-                                  <Clock size={12} className="text-amber-400" /> Sisa Waktu
-                                </span>
-                                <span className="tabular-nums text-xs font-black text-amber-300">
-                                  {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
-                                </span>
-                              </div>
-                            ) : isNormalTimer ? (
-                              <div className="w-full bg-white/[0.04] border border-hairline p-2 rounded-lg flex items-center justify-between mb-2 z-10 text-zinc-300">
-                                <span className="text-[10px] font-medium uppercase tracking-wide">Sisa Waktu</span>
-                                <span className="tabular-nums text-xs font-bold text-nvidia-green">
-                                  {mins.toString().padStart(2, '0')}:{secs.toString().padStart(2, '0')}
-                                </span>
-                              </div>
-                            ) : null}
-
-                            {/* PC Queue & Action Hint */}
-                            <div className="flex-1 w-full relative z-10 flex flex-col gap-1.5 mt-1 justify-center">
-                              {pcBookings.length > 0 ? (
-                                <div className="flex flex-col w-full h-full justify-center gap-1">
-                                  <div className={`p-2 rounded-lg border text-xs ${
-                                    isExpired 
-                                      ? 'bg-red-500/10 border-red-500/20' 
-                                      : isWarning 
-                                      ? 'bg-amber-500/10 border-amber-500/20' 
-                                      : 'bg-black/40 border-hairline'
-                                  }`}>
-                                    <div className="flex items-center justify-between mb-0.5">
-                                      <span className="text-[10px] font-bold text-nvidia-green">
-                                        {isExpired ? "Giliran Main:" : isWarning ? "Siap Masuk:" : "Antrean 1:"}
-                                      </span>
-                                      <span className="text-[10px] font-medium text-zinc-400">
-                                        {firstPkgTitle}
-                                      </span>
-                                    </div>
-                                    <div className="text-xs font-bold text-white truncate">
-                                      {firstBooking.player_name}
-                                    </div>
+                                `}
+                              >
+                                {/* Bagian Atas: Header PC & Badge Status */}
+                                <div className="flex items-center justify-between w-full gap-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <Monitor
+                                      size={16}
+                                      className={
+                                        isExpired 
+                                          ? "text-red-400 shrink-0" 
+                                          : isWarning 
+                                          ? "text-amber-400 shrink-0" 
+                                          : isSelected 
+                                          ? "text-nvidia-green shrink-0" 
+                                          : "text-zinc-300 shrink-0 group-hover:text-white"
+                                      }
+                                    />
+                                    <span className={`text-xs sm:text-sm font-black tracking-tight uppercase whitespace-nowrap ${
+                                      isExpired ? "text-red-400" : isWarning ? "text-amber-400" : isSelected ? "text-nvidia-green" : "text-white"
+                                    }`}>
+                                      {pc.name}
+                                    </span>
                                   </div>
 
-                                  {pcBookings.length > 1 && (
-                                    <div className="text-[10px] text-zinc-400 font-medium text-center uppercase tracking-wide border-t border-hairline pt-1 shrink-0">
-                                      +{pcBookings.length - 1} Antrean Berikutnya
+                                  <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
+                                    pcBookings.length > 0
+                                      ? "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/30"
+                                      : isExpired
+                                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                      : isWarning
+                                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                      : hasTimer
+                                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                                      : "bg-white/5 text-zinc-400 border border-white/10"
+                                  }`}>
+                                    {pcBookings.length > 0 ? `${pcBookings.length} Antre` : isExpired ? "Habis" : isWarning ? "Bersiap" : hasTimer ? "Dipakai" : "Bebas"}
+                                  </span>
+                                </div>
+
+                                {/* Bagian Tengah: Status Antrean & Sesi */}
+                                <div className="my-1.5 min-w-0">
+                                  {pcBookings.length > 0 ? (
+                                    <div className="flex items-center gap-1.5 text-zinc-200 text-xs font-semibold truncate">
+                                      <Users size={13} className="text-nvidia-green shrink-0" />
+                                      <span className="truncate">
+                                        {isPending
+                                          ? `Menunggu OP: ${firstBooking.player_name}`
+                                          : `Antrean 1: ${firstBooking.player_name}`}
+                                      </span>
+                                    </div>
+                                  ) : isExpired ? (
+                                    <div className="flex items-center gap-1.5 text-red-400 text-xs font-bold truncate">
+                                      <Flame size={13} className="shrink-0" />
+                                      <span className="truncate">Sesi Waktu Habis</span>
+                                    </div>
+                                  ) : isWarning ? (
+                                    <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold truncate">
+                                      <Clock size={13} className="animate-spin shrink-0" />
+                                      <span className="truncate">Sesi Bersiap Selesai</span>
+                                    </div>
+                                  ) : hasTimer ? (
+                                    <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium truncate">
+                                      <Clock size={13} className="text-nvidia-green shrink-0" />
+                                      <span className="truncate">Sedang Dimainkan</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold truncate">
+                                      <CheckCircle2 size={13} className="shrink-0" />
+                                      <span className="truncate">Tersedia Untuk Booking</span>
                                     </div>
                                   )}
                                 </div>
-                              ) : (hasTimer && !isExpired) ? (
-                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full py-1">
-                                  <span className="text-xs font-semibold text-zinc-300">Sedang Dimainkan</span>
-                                  <span className="text-[10px] text-nvidia-green font-bold uppercase tracking-wide bg-nvidia-green/10 border border-nvidia-green/20 px-2 py-0.5 rounded-full">
-                                    Belum Ada Antrean
-                                  </span>
-                                </div>
-                              ) : isExpired ? (
-                                <div className="flex flex-col items-center justify-center text-center gap-1 h-full py-1">
-                                  <span className="text-xs font-bold text-red-400">Waktu Habis • PC Bebas</span>
-                                  <span className="text-[10px] text-zinc-400">Bisa langsung main ke kasir</span>
-                                </div>
-                              ) : (
-                                <div className={`text-xs h-full font-bold flex flex-col items-center justify-center gap-1 transition-colors py-2 ${isSelected ? 'text-nvidia-green' : 'text-zinc-400'}`}>
-                                  {isSelected ? (
-                                    <span className="flex items-center gap-1.5 font-bold"><CheckCircle2 size={16} /> PC Dipilih</span>
+
+                                {/* Bagian Bawah: Posisi Antrean & Indikator Aksi */}
+                                <div className="flex items-center justify-between text-[11px] pt-2 border-t border-hairline/60 w-full">
+                                  {pcBookings.length > 0 ? (
+                                    <span className="text-nvidia-green text-[10px] font-bold tracking-wide truncate">
+                                      Ambil Antrean {pcBookings.length + 1}
+                                    </span>
+                                  ) : isExpired ? (
+                                    <span className="text-red-300 text-[10px] uppercase font-bold tracking-wide">
+                                      Sesi Selesai
+                                    </span>
+                                  ) : isWarning ? (
+                                    <span suppressHydrationWarning className="text-amber-300 tabular-nums font-bold font-mono">
+                                      Sisa {mins}:{secs.toString().padStart(2, '0')}
+                                    </span>
+                                  ) : isNormalTimer ? (
+                                    <span suppressHydrationWarning className="text-zinc-400 tabular-nums">
+                                      Sisa <strong className="text-nvidia-green font-bold">~{mins}m</strong>
+                                    </span>
                                   ) : (
-                                    <>
-                                      <span className="font-semibold text-white">PC Bebas Siap Main</span>
-                                      <span className="text-[10px] text-zinc-400 font-normal">Langsung main ke kasir</span>
-                                    </>
+                                    <span className="text-zinc-400 text-[10px]">
+                                      Antrean 1 Tersedia
+                                    </span>
+                                  )}
+
+                                  {isSelected ? (
+                                    <span className="text-[10px] font-bold text-nvidia-green uppercase tracking-wide flex items-center gap-1 shrink-0">
+                                      <Check size={12} /> Terpilih
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-zinc-500 group-hover:text-zinc-300 transition-colors uppercase shrink-0">
+                                      Pilih Unit
+                                    </span>
                                   )}
                                 </div>
+                              </motion.button>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Kolom Kanan: Command Deck Sticky (4 Kolom di desktop) */}
+                    <div className="lg:col-span-5 xl:col-span-4 mt-6 lg:mt-0 lg:sticky lg:top-24">
+                      {selectedPcObj ? (
+                        <div className="p-5 sm:p-6 rounded-2xl bg-[#121316] border border-hairline/80 shadow-2xl relative overflow-hidden flex flex-col gap-4">
+                          <div className="absolute -top-10 -right-10 w-44 h-44 bg-nvidia-green/10 blur-[60px] pointer-events-none rounded-full" />
+
+                          {/* Header Command Deck */}
+                          <div className="flex items-start justify-between gap-3 pb-3.5 border-b border-hairline/60 relative z-10">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green"></span>
+                                </span>
+                                <span className="text-[10px] font-bold text-nvidia-green uppercase tracking-widest">COMMAND DECK</span>
+                              </div>
+                              <h3 className="text-2xl font-black text-white tracking-tight uppercase">
+                                {selectedPcObj.name}
+                              </h3>
+                            </div>
+
+                            <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-md border shrink-0 ${
+                              selectedPcBookings.length > 0
+                                ? "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/30"
+                                : selectedPcExpired
+                                ? "bg-red-500/20 text-red-400 border-red-500/30"
+                                : selectedPcWarning
+                                ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                                : selectedPcHasTimer
+                                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                                : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                            }`}>
+                              {selectedPcBookings.length > 0
+                                ? `${selectedPcBookings.length} Antrean`
+                                : selectedPcExpired
+                                ? "Sesi Selesai"
+                                : selectedPcWarning
+                                ? "Sesi Bersiap"
+                                : selectedPcHasTimer
+                                ? "Sedang Dimainkan"
+                                : "Tersedia Untuk Booking"}
+                            </span>
+                          </div>
+
+                          {/* Status Realtime Bar */}
+                          <div className="p-3 rounded-xl bg-black/40 border border-hairline/60 flex items-center justify-between text-xs relative z-10">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {selectedPcBookings.length > 0 ? (
+                                <>
+                                  <Users size={14} className="text-nvidia-green shrink-0" />
+                                  <span className="text-zinc-300 font-medium truncate">
+                                    {selectedPcFirstBooking?.status === 'pending'
+                                      ? `Menunggu OP: ${selectedPcFirstBooking.player_name}`
+                                      : `Antrean 1: ${selectedPcFirstBooking?.player_name}`}
+                                  </span>
+                                </>
+                              ) : selectedPcExpired ? (
+                                <>
+                                  <Flame size={14} className="text-red-400 shrink-0" />
+                                  <span className="text-zinc-300 font-medium truncate">Sesi Bermain Selesai</span>
+                                </>
+                              ) : selectedPcHasTimer ? (
+                                <>
+                                  <Clock size={14} className="text-amber-400 animate-spin shrink-0" />
+                                  <span className="text-zinc-300 font-medium truncate">Sedang Dimainkan</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                                  <span className="text-zinc-300 font-medium truncate">Tersedia Untuk Booking Online</span>
+                                </>
                               )}
                             </div>
-                          </motion.button>
-                        );
-                      })}
-                    </motion.div>
-                  )}
+                            <span suppressHydrationWarning className="text-white font-bold tabular-nums shrink-0 ml-2">
+                              {selectedPcBookings.length > 0
+                                ? `${selectedPcBookings.length} Pemain Antre`
+                                : selectedPcExpired
+                                ? "Selesai"
+                                : selectedPcHasTimer
+                                ? `~${selectedPcMins}m Lagi`
+                                : "Belum Ada Antrean"}
+                            </span>
+                          </div>
 
-                  {/* Sticky Bottom Action Bar for Mobile & Desktop */}
-                  <div className="sticky bottom-4 z-30 mt-auto pt-3 pb-3 px-4 rounded-xl bg-[#121316]/95 border border-hairline backdrop-blur-md flex items-center justify-between gap-3 shadow-2xl">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-zinc-400 font-medium">Unit Terpilih:</span>
-                      <span className="text-sm font-bold text-white">
-                        {selectedPc ? (db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc) : "Pilih salah satu PC"}
+                          {/* Showcase Hardware */}
+                          <div className="space-y-2.5 relative z-10">
+                            <div className="text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
+                              <span>Spesifikasi Hardware</span>
+                              <span className="text-[10px] text-nvidia-green font-bold uppercase">Spek Terpasang</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-2.5 text-xs">
+                              <div className="p-3 rounded-xl bg-[#16181d] border border-cyan-500/30 flex items-center gap-3 hover:border-cyan-400/60 transition shadow-sm">
+                                <div className="w-9 h-9 rounded-lg bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center shrink-0">
+                                  <Monitor size={17} className="text-cyan-300" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-[11px] font-extrabold text-cyan-300 uppercase tracking-wider">Monitor Layar</div>
+                                  <div className="text-white font-extrabold text-xs leading-snug break-words mt-0.5">
+                                    {selectedPcObj.specs?.monitor || "GIGABYTE 240Hz Fast IPS Esports"}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="p-3 rounded-xl bg-[#16181d] border border-emerald-500/30 flex items-center gap-3 hover:border-emerald-400/60 transition shadow-sm">
+                                <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-400/40 flex items-center justify-center shrink-0">
+                                  <Gamepad2 size={17} className="text-emerald-300" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-[11px] font-extrabold text-emerald-300 uppercase tracking-wider">Kartu Grafis VGA</div>
+                                  <div className="text-white font-extrabold text-xs leading-snug break-words mt-0.5">
+                                    {selectedPcObj.specs?.gpu || "AMD Radeon Vega Series"}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="p-3 rounded-xl bg-[#16181d] border border-amber-500/30 flex items-center gap-3 hover:border-amber-400/60 transition shadow-sm">
+                                <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-400/40 flex items-center justify-center shrink-0">
+                                  <Cpu size={17} className="text-amber-300" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-[11px] font-extrabold text-amber-300 uppercase tracking-wider">Processor & RAM</div>
+                                  <div className="text-white font-extrabold text-xs leading-snug break-words mt-0.5">
+                                    {selectedPcObj.specs?.cpu || "AMD Ryzen Series"} {selectedPcObj.specs?.ram ? `• ${selectedPcObj.specs.ram}` : ""}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action CTA */}
+                          <div className="pt-2 border-t border-hairline/60 relative z-10">
+                            <button
+                              onClick={handleNextStep}
+                              className="w-full py-3.5 px-4 rounded-xl bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.3)] active:scale-[0.99]"
+                            >
+                              <span>
+                                {selectedPcBookings.length > 0
+                                  ? `Lanjut Booking Antrean ke-${selectedPcBookings.length + 1}`
+                                  : "Lanjut Pilih Paket dan Booking"}
+                              </span>
+                              <ArrowRight size={15} />
+                            </button>
+                            <div className="text-center text-[10px] text-zinc-500 mt-2">
+                              Nomor antrean dan konfirmasi OP diproses otomatis
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-6 rounded-2xl bg-[#121316]/70 border border-hairline/60 shadow-xl flex flex-col items-center justify-center text-center min-h-[320px] relative overflow-hidden">
+                          <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-hairline flex items-center justify-center mb-3 text-zinc-500">
+                            <Monitor size={22} className="text-zinc-400" />
+                          </div>
+                          <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-1">
+                            Pilih Meja PC
+                          </h4>
+                          <p className="text-xs text-zinc-400 max-w-xs leading-relaxed mb-4">
+                            Klik salah satu unit PC di sebelah kiri untuk melihat status antrean, spesifikasi hardware monitor 240Hz, dan mengambil nomor giliran.
+                          </p>
+                          <div className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider px-3 py-1.5 rounded-full bg-white/[0.02] border border-hairline">
+                            Sepuluh Unit PC Siap Dipilih
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Fixed Bottom Action Bar for Step 1 */}
+                  <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f1013]/95 border-t border-hairline px-4 py-3 backdrop-blur-xl flex items-center justify-between gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">Unit Terpilih:</span>
+                      <span className="text-sm font-black text-white truncate">
+                        {selectedPcObj ? selectedPcObj.name : "Pilih salah satu PC"}
                       </span>
                     </div>
                     <button
                       onClick={handleNextStep}
                       disabled={!selectedPc}
-                      className={`px-5 py-2.5 font-bold text-xs uppercase tracking-wider rounded-lg transition-all flex items-center gap-2 ${
+                      className={`px-5 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 shrink-0 ${
                         selectedPc
-                          ? "bg-nvidia-green text-black hover:bg-white active:scale-95 shadow-[0_0_15px_rgba(118,185,0,0.3)]"
+                          ? "bg-nvidia-green text-black hover:bg-white active:scale-95 shadow-[0_0_20px_rgba(118,185,0,0.4)]"
                           : "bg-surface-soft text-zinc-600 cursor-not-allowed border border-hairline"
                       }`}
                     >
-                      <span>Lanjut Pembayaran</span>
+                      <span>
+                        {selectedPcBookings.length > 0
+                          ? `Antrean #${selectedPcBookings.length + 1}`
+                          : "Lanjut Booking"}
+                      </span>
                       <ArrowRight size={14} />
                     </button>
                   </div>
@@ -1334,306 +1955,679 @@ export default function Home() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="w-full max-w-2xl mx-auto flex-1 p-4 sm:p-6 md:p-8 bg-[#0f1013]/95 border border-hairline rounded-2xl flex flex-col shadow-2xl"
+                  className="w-full p-4 sm:p-6 md:p-8 pb-28 lg:pb-8 bg-[#0f1013]/95 border border-hairline rounded-2xl flex flex-col shadow-2xl backdrop-blur-xl"
                 >
-                  <div className="flex items-center gap-3.5 mb-6 border-b border-hairline pb-4">
-                    <button
-                      onClick={() => {
-                        setFormError(null);
-                        setBookingStep(1);
-                      }}
-                      className="w-9 h-9 flex items-center justify-center bg-[#16171b] border border-hairline rounded-lg text-white hover:border-nvidia-green hover:text-nvidia-green transition-colors shrink-0"
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <div>
-                      <h3 className="text-lg md:text-xl font-bold text-white uppercase tracking-tight">Step 2: Identitas dan Pembayaran</h3>
-                      <p className="text-xs text-zinc-400">Unit PC: <strong className="text-nvidia-green">{db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc}</strong></p>
+                  {/* Step 2 Header & Navigation */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-hairline">
+                    <div className="flex items-start sm:items-center gap-3.5">
+                      <button
+                        onClick={() => {
+                          setFormError(null);
+                          setBookingStep(1);
+                          setTimeout(() => {
+                            const elem = document.getElementById("booking");
+                            if (elem) elem.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }, 60);
+                        }}
+                        className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-[#16171b] hover:bg-[#1f2127] border border-hairline rounded-xl text-zinc-300 hover:text-white text-xs font-bold uppercase tracking-wider transition shrink-0 shadow-sm"
+                      >
+                        <ChevronLeft size={16} />
+                        <span>Pilih PC Lain</span>
+                      </button>
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
+                          Konfirmasi Booking & Paket
+                        </h2>
+                        <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
+                          <span className="text-zinc-400">Unit PC:</span>
+                          <span className="px-2.5 py-0.5 rounded-md bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green font-black uppercase">
+                            {selectedPcObj?.name || selectedPc}
+                          </span>
+                          {selectedPcBookings.length > 0 ? (
+                            <span className="px-2.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold">
+                              Antrean ke-{selectedPcBookings.length + 1}
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold">
+                              Siap Pakai
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   {/* Inline Error Message */}
                   {formError && (
-                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium flex items-center gap-2 mb-4">
-                      <AlertTriangle size={15} className="shrink-0" />
+                    <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium flex items-center gap-2.5 mb-6">
+                      <AlertTriangle size={16} className="shrink-0" />
                       <span>{formError}</span>
                     </div>
                   )}
 
-                  <div className="flex-1 flex flex-col justify-between space-y-5">
-                    {/* Identitas */}
-                    <div>
-                      <label className="text-xs font-bold text-zinc-300 mb-1.5 block uppercase tracking-wide">
-                        Nama Panggilan Pemain
-                      </label>
-                      <input
-                        type="text"
-                        value={playerName}
-                        onChange={e => {
-                          setPlayerName(e.target.value);
-                          if (formError) setFormError(null);
-                        }}
-                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('portal-paket')?.focus(); } }}
-                        placeholder="Contoh: Bang Jago"
-                        className="w-full bg-[#16171b] border border-hairline text-white p-3 rounded-lg text-sm focus:border-nvidia-green outline-none"
-                      />
-                    </div>
-
-                    {/* Package Selection */}
-                    <div className="flex flex-col">
-                      <label className="text-xs font-bold text-zinc-300 mb-1.5 block uppercase tracking-wide shrink-0">
-                        Pilih Paket Billing
-                      </label>
-                      <input
-                        id="portal-paket"
-                        type="text"
-                        value={searchPaket}
-                        onChange={e => setSearchPaket(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('portal-paket')?.blur(); } }}
-                        placeholder="Cari nama paket atau ketik nominal..."
-                        className="w-full bg-[#16171b] border border-hairline text-white p-3 rounded-lg text-sm focus:border-nvidia-green outline-none mb-2"
-                      />
-                      <div className="max-h-64 flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar">
-                        {(() => {
-                          const query = debouncedSearch.toLowerCase();
-                          let customPkg = null;
-                          let parsedPrice = 0;
-                          let isTimeInput = false;
-
-                          if (query) {
-                            if (query.includes('jam') || query.includes('menit') || query.includes('m') || query.includes('j')) {
-                              isTimeInput = true;
-                              const timeStr = query.replace(/jam/g, 'j').replace(/menit/g, 'm').replace(/[^0-9jm]/g, '');
-                              let totalMinutes = 0;
-                              if (timeStr.includes('j')) {
-                                const h = parseInt(timeStr.split('j')[0]) || 0;
-                                const m = parseInt(timeStr.split('j')[1]?.split('m')[0]) || 0;
-                                totalMinutes = (h * 60) + m;
-                              } else if (timeStr.includes('m')) {
-                                totalMinutes = parseInt(timeStr.split('m')[0]) || 0;
-                              } else {
-                                totalMinutes = parseInt(timeStr) || 0;
-                              }
-                              if (totalMinutes > 0) {
-                                parsedPrice = Math.ceil(totalMinutes / 60 * 4000);
-                              }
-                            } else {
-                              parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
-                            }
-                          }
-
-                          const filtered = (db?.pakets || []).filter(p =>
-                            !p.is_custom && (p.name.toLowerCase().includes(query) || p.price.toString().includes(query) || (parsedPrice > 0 && p.price === parsedPrice))
-                          );
-
-                          if (query && parsedPrice >= 3000) {
-                            const hasExactMatch = (db?.pakets || []).some(p => !p.is_custom && p.price === parsedPrice);
-                            if (!hasExactMatch) {
-                              const totalMins = Math.floor(parsedPrice / 4000 * 60);
-                              const h = Math.floor(totalMins / 60);
-                              const m = totalMins % 60;
-                              const timeStr = [h > 0 ? `${h}j` : '', m > 0 ? `${m}m` : ''].filter(Boolean).join(' ') || '0m';
-                              customPkg = {
-                                id: `custom-${parsedPrice}`,
-                                name: `Paket Custom (± ${timeStr})`,
-                                price: parsedPrice
-                              };
-                            }
-                          }
-
-                          const displayPkgs = customPkg ? [customPkg, ...filtered] : filtered;
-
-                          if (displayPkgs.length === 0) {
-                            return (
-                              <div className="p-4 text-center text-zinc-400 text-xs border border-dashed border-hairline rounded-xl">
-                                {(parsedPrice > 0 && parsedPrice < 3000)
-                                  ? "Minimal booking Rp 3.000 boss"
-                                  : "Paket tidak ditemukan"}
-                              </div>
-                            );
-                          }
-
-                          return displayPkgs.map((pkg) => {
-                            const isSelected = selectedPaket === pkg.id;
-                            const isCustom = pkg.id.startsWith('custom-');
-                            return (
-                              <button
-                                key={pkg.id}
-                                onClick={() => {
-                                  setSelectedPaket(pkg.id);
-                                  if (formError) setFormError(null);
-                                }}
-                                className={`
-                                  relative group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 w-full overflow-hidden outline-none shrink-0 text-left
-                                  ${isSelected
-                                    ? "bg-nvidia-green/10 border border-nvidia-green/50 shadow-[0_0_15px_rgba(118,185,0,0.15)]"
-                                    : isCustom ? "bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/50" : "bg-[#16171b] border border-hairline hover:border-zinc-500"
-                                  }
-                                `}
-                              >
-                                {isSelected && (
-                                  <motion.div
-                                    layoutId="paket-highlight"
-                                    className="absolute inset-0 bg-nvidia-green/10 pointer-events-none"
-                                    initial={false}
-                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                  />
-                                )}
-                                <div className="flex flex-col items-start relative z-10">
-                                  <span className={`text-xs md:text-sm font-bold uppercase ${isSelected ? "text-nvidia-green" : isCustom ? "text-blue-400" : "text-white"} transition-colors`}>
-                                    {pkg.name}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-3 relative z-10">
-                                  <span className={`text-xs font-bold tabular-nums ${isSelected ? "text-nvidia-green" : "text-zinc-400"}`}>
-                                    Rp {pkg.price.toLocaleString("id-ID")}
-                                  </span>
-                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-nvidia-green bg-nvidia-green/20" : "border-zinc-600"}`}>
-                                    {isSelected && <div className="w-2 h-2 bg-nvidia-green rounded-full shadow-[0_0_8px_rgba(118,185,0,1)]" />}
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-
-                    {/* Metode Pembayaran */}
-                    <div className="bg-[#121316] p-4 border border-hairline rounded-xl space-y-3">
-                      <label className="text-xs font-bold text-zinc-300 block uppercase tracking-wide">
-                        Metode Pembayaran
-                      </label>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPaymentMethod('kasir');
-                            setSsFile(null);
-                            if (formError) setFormError(null);
-                          }}
-                          className={`p-3 text-xs font-bold rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                            paymentMethod === 'kasir'
-                              ? 'bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[0_0_10px_rgba(118,185,0,0.15)]'
-                              : 'bg-[#16171b] border-hairline text-zinc-400 hover:border-zinc-500'
-                          }`}
-                        >
-                          <span>Bayar di Kasir</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPaymentMethod('qris');
-                            if (formError) setFormError(null);
-                          }}
-                          className={`p-3 text-xs font-bold rounded-lg border transition-all flex items-center justify-center gap-2 ${
-                            paymentMethod === 'qris'
-                              ? 'bg-nvidia-green/10 border-nvidia-green text-nvidia-green shadow-[0_0_10px_rgba(118,185,0,0.15)]'
-                              : 'bg-[#16171b] border-hairline text-zinc-400 hover:border-zinc-500'
-                          }`}
-                        >
-                          <span>QRIS DANA</span>
-                        </button>
-                      </div>
-
-                      {paymentMethod === 'kasir' && (
-                        <div className="p-2.5 rounded-lg bg-white/[0.02] border border-hairline">
-                          <p className="text-[11px] text-zinc-400">
-                            Booking langsung tercatat di antrean. Siapkan uang pas di meja kasir sebelum giliran main tiba.
-                          </p>
-                        </div>
-                      )}
-
-                      {paymentMethod === 'qris' && (
-                        <div className="space-y-2.5 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => setShowQrModal(true)}
-                            className="w-full py-2.5 px-3 bg-[#16171b] border border-nvidia-green/30 text-nvidia-green hover:bg-nvidia-green hover:text-black rounded-lg text-xs font-bold uppercase tracking-wide transition flex items-center justify-center gap-2"
-                          >
-                            <QrCode size={16} />
-                            <span>Tampilkan QRIS DANA</span>
-                          </button>
-
-                          <label className="w-full py-2.5 px-3 bg-[#16171b] border border-hairline hover:border-nvidia-green text-white rounded-lg text-xs font-medium cursor-pointer flex items-center justify-center gap-2 transition">
-                            <Upload size={16} className="text-nvidia-green" />
-                            <span className="truncate max-w-[220px]">
-                              {ssFile ? ssFile.name : "Upload Bukti Transfer Gambar"}
+                  {/* Master-Detail 2-Column Grid */}
+                  <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+                    {/* Left Column: Form & Package Selection */}
+                    <div className="lg:col-span-7 xl:col-span-7 space-y-3.5">
+                      
+                      {/* Nickname Pemain (Single Row) */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-[#121316] border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          <div className="w-5 h-5 rounded-full bg-nvidia-green text-black font-black text-[11px] flex items-center justify-center shrink-0">
+                            1
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <label htmlFor="nickname-input" className="text-xs font-bold text-white uppercase tracking-wider block cursor-pointer">
+                                Nickname Pemain
+                              </label>
+                              {memberSession ? (
+                                <span className="text-[9px] font-bold text-nvidia-green bg-nvidia-green/10 border border-nvidia-green/30 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                                  Akun Member
+                                </span>
+                              ) : (
+                                <Link 
+                                  href="/member" 
+                                  className="text-[10px] text-zinc-400 hover:text-nvidia-green hover:underline transition"
+                                >
+                                  (Masuk Akun)
+                                </Link>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-zinc-300 font-medium">
+                              {memberSession ? "Terkunci sesuai akun login lu" : "OP akan memanggil nama ini saat giliran main tiba"}
                             </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                  const file = e.target.files[0];
-                                  if (file.size > 2 * 1024 * 1024) {
-                                    setFormError("Ukuran file terlalu besar, maksimal 2MB");
-                                    e.target.value = "";
-                                    return;
-                                  }
-                                  setSsFile(file);
-                                  if (formError) setFormError(null);
-                                }
-                              }}
-                            />
-                          </label>
+                          </div>
                         </div>
-                      )}
+
+                        <div className="relative flex-1 sm:max-w-xs md:max-w-sm">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={15} />
+                          <input
+                            id="nickname-input"
+                            type="text"
+                            value={playerName}
+                            readOnly={Boolean(memberSession)}
+                            onChange={e => {
+                              if (!memberSession) {
+                                setPlayerName(e.target.value);
+                                if (formError) setFormError(null);
+                              }
+                            }}
+                            placeholder="Ketik nama panggilan Anda..."
+                            className={`w-full border pl-9 pr-8 py-2 rounded-lg text-xs font-semibold outline-none transition placeholder:text-zinc-400 ${
+                              memberSession 
+                                ? "bg-black/80 border-nvidia-green/40 text-nvidia-green cursor-not-allowed" 
+                                : "bg-black/50 border-hairline text-white focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green"
+                            }`}
+                          />
+                          {playerName.trim().length > 0 && (
+                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-nvidia-green">
+                              <Check size={14} />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Pilihan Paket Billing */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-[#121316] border border-hairline space-y-3">
+                        {/* Filter Tabs and Search Bar in Single Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          {/* Segmented Switcher */}
+                          <div className="flex items-center gap-1 p-1 bg-black/50 border border-hairline rounded-lg overflow-x-auto shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setBookingPaketTab('jam')}
+                              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-[11px] font-bold uppercase tracking-wider transition whitespace-nowrap ${
+                                bookingPaketTab === 'jam'
+                                  ? "bg-nvidia-green text-black shadow-[0_0_10px_rgba(118,185,0,0.3)]"
+                                  : "text-zinc-300 hover:text-white"
+                              }`}
+                            >
+                              <Clock size={13} className="shrink-0" />
+                              <span>Paket Jam</span>
+                              {searchPaketQuery && (
+                                <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${bookingPaketTab === 'jam' ? 'bg-black text-nvidia-green' : 'bg-zinc-800 text-zinc-200'}`}>
+                                  {filteredJamPakets.length}
+                                </span>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setBookingPaketTab('spesial')}
+                              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-[11px] font-bold uppercase tracking-wider transition whitespace-nowrap ${
+                                bookingPaketTab === 'spesial'
+                                  ? "bg-nvidia-green text-black shadow-[0_0_10px_rgba(118,185,0,0.3)]"
+                                  : "text-zinc-300 hover:text-white"
+                              }`}
+                            >
+                              <Sparkles size={13} className="shrink-0" />
+                              <span>Malam & Spesial</span>
+                              {searchPaketQuery && (
+                                <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${bookingPaketTab === 'spesial' ? 'bg-black text-nvidia-green' : 'bg-zinc-800 text-zinc-200'}`}>
+                                  {filteredSpesialPakets.length}
+                                </span>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setBookingPaketTab('nominal')}
+                              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-[11px] font-bold uppercase tracking-wider transition whitespace-nowrap ${
+                                bookingPaketTab === 'nominal'
+                                  ? "bg-nvidia-green text-black shadow-[0_0_10px_rgba(118,185,0,0.3)]"
+                                  : "text-zinc-300 hover:text-white"
+                              }`}
+                            >
+                              <Banknote size={13} className="shrink-0" />
+                              <span>Nominal Bebas</span>
+                              {searchPaketQuery && (
+                                <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${bookingPaketTab === 'nominal' ? 'bg-black text-nvidia-green' : 'bg-zinc-800 text-zinc-200'}`}>
+                                  {filteredHargaPakets.length}
+                                </span>
+                              )}
+                            </button>
+                          </div>
+
+                          {/* Quick Search / Type Input */}
+                          <div className="relative flex-1 sm:max-w-[210px] md:max-w-[240px]">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" size={13} />
+                            <input
+                              type="text"
+                              value={searchPaket}
+                              onChange={(e) => setSearchPaket(e.target.value)}
+                              placeholder="Cari atau ketik durasi..."
+                              className="w-full bg-black/50 border border-hairline text-white pl-8 pr-7 py-1.5 rounded-lg text-xs font-semibold focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green outline-none transition placeholder:text-zinc-400"
+                            />
+                            {searchPaket && (
+                              <button
+                                type="button"
+                                onClick={() => setSearchPaket("")}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Tab Content: Paket Jam */}
+                        {bookingPaketTab === 'jam' && (
+                          filteredJamPakets.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-0.5">
+                              {filteredJamPakets.map((pkg) => {
+                                const isSelected = selectedPaket === pkg.id;
+                                const vibe = getPaketVibeInfo(pkg);
+                                return (
+                                  <button
+                                    key={pkg.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedPaket(pkg.id);
+                                      if (formError) setFormError(null);
+                                    }}
+                                    className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
+                                      isSelected
+                                        ? "bg-nvidia-green/15 border-nvidia-green text-white shadow-[0_0_16px_rgba(118,185,0,0.25)] ring-1 ring-nvidia-green"
+                                        : "bg-[#14161b] border-zinc-700/60 text-zinc-200 hover:border-zinc-500 hover:text-white shadow-sm"
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <span className="text-sm font-black text-white tracking-tight">
+                                            {vibe.title}
+                                          </span>
+                                          {vibe.badge && (
+                                            <span className={`px-1.5 py-0.5 text-[9px] font-black uppercase rounded ${vibe.badgeColor}`}>
+                                              {vibe.badge}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-[11px] text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-300 transition-colors">
+                                          {vibe.description}
+                                        </p>
+                                      </div>
+                                      {isSelected && (
+                                        <div className="w-5 h-5 rounded-full bg-nvidia-green flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                          <Check size={12} className="text-black font-bold" />
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className="pt-2 border-t border-hairline/60 flex items-center justify-between gap-2 mt-auto">
+                                      <span className="text-[11px] text-zinc-400 font-semibold flex items-center gap-1">
+                                        <Clock size={11} className="text-nvidia-green" />
+                                        <span>{vibe.detailTime}</span>
+                                      </span>
+                                      <span className="text-sm font-black text-nvidia-green tabular-nums">
+                                        Rp {pkg.price.toLocaleString("id-ID")}
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="p-4 rounded-lg bg-black/40 border border-hairline text-center space-y-2">
+                              <p className="text-xs text-zinc-400">
+                                Tidak ada paket jam yang cocok dengan kata kunci &quot;{searchPaket}&quot;.
+                              </p>
+                              {(filteredSpesialPakets.length > 0 || filteredHargaPakets.length > 0) && (
+                                <div className="flex justify-center gap-2 pt-1">
+                                  {filteredSpesialPakets.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setBookingPaketTab('spesial')}
+                                      className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
+                                    >
+                                      Lihat di Malam & Spesial
+                                    </button>
+                                  )}
+                                  {filteredHargaPakets.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setBookingPaketTab('nominal')}
+                                      className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
+                                    >
+                                      Lihat di Nominal Bebas
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+
+                        {/* Tab Content: Paket Malam & Spesial */}
+                        {bookingPaketTab === 'spesial' && (
+                          filteredSpesialPakets.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+                              {filteredSpesialPakets.map((pkg) => {
+                                const isSelected = selectedPaket === pkg.id;
+                                const vibe = getPaketVibeInfo(pkg);
+                                return (
+                                  <button
+                                    key={pkg.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedPaket(pkg.id);
+                                      if (formError) setFormError(null);
+                                    }}
+                                    className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
+                                      isSelected
+                                        ? "bg-nvidia-green/15 border-nvidia-green text-white shadow-[0_0_16px_rgba(118,185,0,0.25)] ring-1 ring-nvidia-green"
+                                        : "bg-[#14161b] border-zinc-700/60 text-zinc-200 hover:border-zinc-500 hover:text-white shadow-sm"
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <span className="text-sm font-black text-white tracking-tight">
+                                            {vibe.title}
+                                          </span>
+                                          {vibe.badge && (
+                                            <span className={`px-1.5 py-0.5 text-[9px] font-black uppercase rounded ${vibe.badgeColor}`}>
+                                              {vibe.badge}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-[11px] text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-300 transition-colors">
+                                          {vibe.description}
+                                        </p>
+                                      </div>
+                                      {isSelected && (
+                                        <div className="w-5 h-5 rounded-full bg-nvidia-green flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                          <Check size={12} className="text-black font-bold" />
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className="pt-2 border-t border-hairline/60 flex items-center justify-between gap-2 mt-auto">
+                                      <span className="text-[11px] text-zinc-400 font-semibold flex items-center gap-1">
+                                        <Clock size={11} className="text-purple-400" />
+                                        <span>{vibe.detailTime}</span>
+                                      </span>
+                                      <span className="text-sm font-black text-nvidia-green tabular-nums">
+                                        Rp {pkg.price.toLocaleString("id-ID")}
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="p-4 rounded-lg bg-black/40 border border-hairline text-center space-y-2">
+                              <p className="text-xs text-zinc-400">
+                                Tidak ada paket spesial yang cocok dengan kata kunci &quot;{searchPaket}&quot;.
+                              </p>
+                              {(filteredJamPakets.length > 0 || filteredHargaPakets.length > 0) && (
+                                <div className="flex justify-center gap-2 pt-1">
+                                  {filteredJamPakets.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setBookingPaketTab('jam')}
+                                      className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
+                                    >
+                                      Lihat di Paket Jam
+                                    </button>
+                                  )}
+                                  {filteredHargaPakets.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setBookingPaketTab('nominal')}
+                                      className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
+                                    >
+                                      Lihat di Nominal Bebas
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+
+                        {/* Tab Content: Nominal Bebas & Custom */}
+                        {bookingPaketTab === 'nominal' && (
+                          <div className="space-y-2.5 pt-0.5">
+                            {filteredHargaPakets.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                {filteredHargaPakets.map((pkg) => {
+                                  const isSelected = selectedPaket === pkg.id;
+                                  const vibe = getPaketVibeInfo(pkg);
+                                  return (
+                                    <button
+                                      key={pkg.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedPaket(pkg.id);
+                                        setCustomNominalInput("");
+                                        if (formError) setFormError(null);
+                                      }}
+                                      className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
+                                        isSelected
+                                          ? "bg-nvidia-green/15 border-nvidia-green text-white shadow-[0_0_16px_rgba(118,185,0,0.25)] ring-1 ring-nvidia-green"
+                                          : "bg-[#14161b] border-zinc-700/60 text-zinc-200 hover:border-zinc-500 hover:text-white shadow-sm"
+                                      }`}
+                                    >
+                                      <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="text-sm font-black text-white tracking-tight">
+                                              {vibe.title}
+                                            </span>
+                                            {vibe.badge && (
+                                              <span className={`px-1.5 py-0.5 text-[9px] font-black uppercase rounded ${vibe.badgeColor}`}>
+                                                {vibe.badge}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <p className="text-[11px] text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-300 transition-colors">
+                                            {vibe.description}
+                                          </p>
+                                        </div>
+                                        {isSelected && (
+                                          <div className="w-5 h-5 rounded-full bg-nvidia-green flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                            <Check size={12} className="text-black font-bold" />
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div className="pt-2 border-t border-hairline/60 flex items-center justify-between gap-2 mt-auto">
+                                        <span className="text-[11px] text-zinc-400 font-semibold flex items-center gap-1">
+                                          <Clock size={11} className="text-nvidia-green" />
+                                          <span>{vibe.detailTime}</span>
+                                        </span>
+                                        <span className="text-sm font-black text-nvidia-green tabular-nums">
+                                          Rp {pkg.price.toLocaleString("id-ID")}
+                                        </span>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="p-3 rounded-lg bg-black/40 border border-hairline text-center text-xs text-zinc-400">
+                                Tidak ada nominal pecahan yang cocok dengan kata kunci &quot;{searchPaket}&quot;.
+                              </div>
+                            )}
+
+                            {/* Custom Nominal Box */}
+                            <div className="p-3 rounded-lg bg-black/40 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                              <div>
+                                <span className="text-xs font-bold text-white uppercase tracking-wider block">
+                                  Punya Uang Pas Sendiri?
+                                </span>
+                                <span className="text-[11px] text-zinc-400">
+                                  Ketik nominal rupiah, durasi dihitung otomatis, minimal Rp 3.000.
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-zinc-400">Rp</span>
+                                <input
+                                  type="number"
+                                  placeholder="15000"
+                                  value={customNominalInput}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setCustomNominalInput(val);
+                                    const num = parseInt(val);
+                                    if (num >= 3000) {
+                                      setSelectedPaket(`custom-${num}`);
+                                      if (formError) setFormError(null);
+                                    } else if (!val) {
+                                      if (selectedPaket?.startsWith("custom-")) setSelectedPaket(null);
+                                    }
+                                  }}
+                                  className="w-full sm:w-32 bg-black/60 border border-hairline text-white px-3 py-1.5 rounded-lg text-xs font-bold focus:border-nvidia-green outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Rangkuman Checkout Pembayaran */}
-                    {selectedPaketObj && (
-                      <div className="bg-[#16171b] border border-hairline rounded-xl p-4 space-y-2 text-xs">
-                        <div className="flex justify-between text-zinc-400">
-                          <span>Unit PC:</span>
-                          <strong className="text-white">{db?.pcs?.find(p => p.id === selectedPc)?.name || selectedPc}</strong>
-                        </div>
-                        <div className="flex justify-between text-zinc-400">
-                          <span>Paket Pilihan:</span>
-                          <strong className="text-white">{selectedPaketObj.name}</strong>
-                        </div>
-                        <div className="flex justify-between text-zinc-400">
-                          <span>Metode Pembayaran:</span>
-                          <strong className="text-white uppercase">{paymentMethod === 'kasir' ? 'Bayar di Kasir' : 'QRIS DANA'}</strong>
-                        </div>
-                        <div className="pt-2 border-t border-hairline flex justify-between items-center">
-                          <span className="text-xs font-bold text-white uppercase tracking-wide">Total Tagihan:</span>
-                          <span className="text-base font-black text-nvidia-green tabular-nums">
-                            Rp {selectedPaketObj.price.toLocaleString("id-ID")}
+                    {/* Right Column: Tiket Pemesanan & Pembayaran */}
+                    <div className="lg:col-span-5 xl:col-span-5 mt-3.5 lg:mt-0 lg:sticky lg:top-24">
+                      <div className="p-4 sm:p-5 rounded-2xl bg-[#121316] border border-hairline/80 shadow-2xl relative overflow-hidden flex flex-col gap-3.5">
+                        <div className="absolute -top-10 -right-10 w-44 h-44 bg-nvidia-green/10 blur-[60px] pointer-events-none rounded-full" />
+
+                        {/* Header Summary - Desktop Only */}
+                        <div className="hidden lg:flex items-start justify-between gap-3 pb-3 border-b border-hairline/60 relative z-10">
+                          <div>
+                            <span className="text-[10px] font-black text-nvidia-green uppercase tracking-widest block mb-0.5">
+                              TIKET PEMESANAN
+                            </span>
+                            <h3 className="text-xl font-black text-white tracking-tight uppercase">
+                              {selectedPcObj?.name || selectedPc}
+                            </h3>
+                          </div>
+                          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded border bg-nvidia-green/20 text-nvidia-green border-nvidia-green/30 shrink-0">
+                            Step 2 dari 2
                           </span>
                         </div>
+
+                        {/* Ticket Rows - Desktop Only (On mobile it unnecessarily lengthens the page) */}
+                        <div className="hidden lg:block space-y-1.5 text-xs relative z-10">
+                          <div className="p-2.5 rounded-lg bg-[#14161b] border border-zinc-700/60 flex justify-between items-center">
+                            <span className="text-zinc-300 font-semibold">Pemain:</span>
+                            <strong className="text-white font-bold">
+                              {playerName.trim() || "Belum diisi"}
+                            </strong>
+                          </div>
+                          <div className="p-2.5 rounded-lg bg-[#14161b] border border-zinc-700/60 flex justify-between items-center">
+                            <span className="text-zinc-300 font-semibold">Paket:</span>
+                            <strong className="text-white font-bold truncate max-w-[170px]">
+                              {selectedPaketVibe ? `${selectedPaketVibe.title} (${selectedPaketVibe.badge})` : (selectedPaketObj?.name || "Belum dipilih")}
+                            </strong>
+                          </div>
+                          <div className="p-2.5 rounded-lg bg-[#14161b] border border-zinc-700/60 flex justify-between items-center">
+                            <span className="text-zinc-300 font-semibold">Estimasi Main:</span>
+                            <strong className="text-white font-bold">
+                              {selectedPaketDuration}
+                            </strong>
+                          </div>
+                        </div>
+
+                        {/* Metode Pembayaran Section */}
+                        <div className="space-y-2 relative z-10 pt-0 lg:pt-2 border-t-0 lg:border-t border-hairline/60">
+                          <span className="text-[10px] font-black text-zinc-300 uppercase tracking-wider block">
+                            METODE PEMBAYARAN
+                          </span>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPaymentMethod('kasir');
+                                setSsFile(null);
+                                if (formError) setFormError(null);
+                              }}
+                              className={`p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between ${
+                                paymentMethod === 'kasir'
+                                  ? 'bg-nvidia-green/15 border-nvidia-green text-white shadow-[0_0_12px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green'
+                                  : 'bg-[#14161b] border-zinc-700/60 text-zinc-300 hover:border-zinc-400 hover:text-white shadow-sm'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between w-full mb-1">
+                                <Banknote size={16} className={paymentMethod === 'kasir' ? 'text-nvidia-green' : 'text-zinc-300'} />
+                                {paymentMethod === 'kasir' && (
+                                  <div className="w-3.5 h-3.5 rounded-full bg-nvidia-green flex items-center justify-center">
+                                    <Check size={9} className="text-black font-bold" />
+                                  </div>
+                                )}
+                              </div>
+                              <span className="text-[11px] font-bold text-white uppercase tracking-tight block">
+                                Tunai ke OP
+                              </span>
+                              <span className="text-[11px] text-zinc-300 mt-0.5 leading-tight block">
+                                Bayar di meja OP
+                              </span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPaymentMethod('qris');
+                                if (formError) setFormError(null);
+                              }}
+                              className={`p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between ${
+                                paymentMethod === 'qris'
+                                  ? 'bg-nvidia-green/15 border-nvidia-green text-white shadow-[0_0_12px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green'
+                                  : 'bg-[#14161b] border-zinc-700/60 text-zinc-300 hover:border-zinc-400 hover:text-white shadow-sm'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between w-full mb-1">
+                                <QrCode size={16} className={paymentMethod === 'qris' ? 'text-nvidia-green' : 'text-zinc-300'} />
+                                {paymentMethod === 'qris' && (
+                                  <div className="w-3.5 h-3.5 rounded-full bg-nvidia-green flex items-center justify-center">
+                                    <Check size={9} className="text-black font-bold" />
+                                  </div>
+                                )}
+                              </div>
+                              <span className="text-[11px] font-bold text-white uppercase tracking-tight block">
+                                QRIS DANA
+                              </span>
+                              <span className="text-[11px] text-zinc-300 mt-0.5 leading-tight block">
+                                Scan barcode instan
+                              </span>
+                            </button>
+                          </div>
+
+                          {/* QRIS Info Card */}
+                          {paymentMethod === 'qris' && (
+                            <div className="p-2.5 rounded-lg bg-black/60 border border-hairline space-y-1.5 text-xs">
+                              <div className="flex items-center gap-2">
+                                <QrCode size={14} className="text-nvidia-green shrink-0" />
+                                <span className="text-[11px] font-bold text-zinc-200 uppercase">
+                                  Pembayaran Otomatis
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-zinc-300 leading-relaxed">
+                                Barcode QRIS akan muncul otomatis setelah lu klik Konfirmasi. Scan pakai aplikasi DANA, GoPay, OVO, atau bank mana aja.
+                              </p>
+                              {danaPaymentStatus === 'waiting' && danaBookingId && (
+                                <button
+                                  type="button"
+                                  onClick={() => setShowQrModal(true)}
+                                  className="w-full mt-1 py-1.5 rounded bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-[10px] font-bold uppercase hover:bg-nvidia-green/20 transition"
+                                >
+                                  Buka Barcode QRIS
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Total Price Box - Desktop Only */}
+                        <div className="hidden lg:flex p-3 rounded-lg bg-[#14161b] border border-zinc-700/60 items-center justify-between relative z-10 shadow-sm">
+                          <div>
+                            <div className="text-[11px] uppercase font-bold text-zinc-300 tracking-wider">Total Tagihan</div>
+                            <div className="text-[11px] text-zinc-400 font-medium">Tanpa biaya admin</div>
+                          </div>
+                          <div className="text-lg sm:text-xl font-black text-nvidia-green tabular-nums">
+                            Rp {(selectedPaketObj?.price || 0).toLocaleString("id-ID")}
+                          </div>
+                        </div>
+
+                        {/* Action CTA - Desktop Only */}
+                        <div className="hidden lg:block pt-1.5 border-t border-hairline/60 relative z-10">
+                          <button
+                            disabled={loading || !selectedPaket || !playerName.trim()}
+                            onClick={handlePayment}
+                            className={`w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.3)] active:scale-[0.99] ${
+                              loading || !selectedPaket || !playerName.trim()
+                                ? "bg-surface-soft text-zinc-500 cursor-not-allowed border border-hairline shadow-none"
+                                : "bg-nvidia-green hover:bg-white text-black"
+                            }`}
+                          >
+                            {loading ? (
+                              <span>Memproses Booking...</span>
+                            ) : !playerName.trim() ? (
+                              <span>Isi Nickname Dahulu</span>
+                            ) : !selectedPaket ? (
+                              <span>Pilih Paket Billing Dahulu</span>
+                            ) : (
+                              <>
+                                <span>Konfirmasi & Ambil Antrean</span>
+                                <ArrowRight size={15} />
+                              </>
+                            )}
+                          </button>
+                          <div className="text-center text-[10px] text-zinc-500 mt-2">
+                            Antrean otomatis tercatat dan disinkronkan ke layar OP
+                          </div>
+                        </div>
                       </div>
-                    )}
-
-                    {/* Payment Action */}
-                    <div className="pt-2 flex flex-col gap-2.5">
-                      <button
-                        disabled={loading}
-                        onClick={handlePayment}
-                        className={`w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                          loading 
-                            ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed' 
-                            : 'bg-nvidia-green text-black hover:bg-white active:scale-95 shadow-[0_0_20px_rgba(118,185,0,0.3)]'
-                        }`}
-                      >
-                        {loading ? (
-                          <span>Memproses Booking...</span>
-                        ) : (
-                          <>
-                            <span>Kirim Booking Sekarang</span>
-                            <ArrowRight size={15} />
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => setShowTcModal(true)}
-                        className="text-[11px] text-zinc-400 hover:text-nvidia-green transition-colors text-center underline underline-offset-4"
-                      >
-                        Baca Syarat dan Ketentuan Booking
-                      </button>
                     </div>
+                  </div>
+
+                  {/* Mobile Fixed Bottom Action Bar for Step 2 */}
+                  <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0f1013]/95 border-t border-hairline px-4 py-3 backdrop-blur-xl flex items-center justify-between gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.8)] pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">Total:</span>
+                        <span className="text-xs text-zinc-300 font-bold truncate">
+                          {selectedPaketVibe ? `${selectedPaketVibe.title} (${selectedPaketVibe.badge}) • ${paymentMethod === 'qris' ? 'QRIS' : 'Tunai'}` : 'Pilih paket'}
+                        </span>
+                      </div>
+                      <span className="text-base font-black text-nvidia-green tabular-nums">
+                        Rp {(selectedPaketObj?.price || 0).toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                    <button
+                      disabled={loading || !selectedPaket || !playerName.trim()}
+                      onClick={handlePayment}
+                      className={`px-5 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+                        loading || !selectedPaket || !playerName.trim()
+                          ? "bg-surface-soft text-zinc-600 cursor-not-allowed border border-hairline"
+                          : "bg-nvidia-green text-black hover:bg-white active:scale-95 shadow-[0_0_20px_rgba(118,185,0,0.4)]"
+                      }`}
+                    >
+                      <span>{loading ? "Memproses..." : "Konfirmasi"}</span>
+                      <ArrowRight size={14} />
+                    </button>
                   </div>
                 </motion.div>
               )}
@@ -1657,7 +2651,19 @@ export default function Home() {
             <p className="text-white/60 tracking-tight text-sm mt-2">PC NGEPAS BUAT BUDGET PELAJAR, TAPI PERFORMA BOLEH DIADU. GESER BUAT CEK SPEKNYA.</p>
           </motion.div>
 
-          {mounted && <PCCarousel pcs={db.pcs || []} />}
+          {mounted && (
+            <PCCarousel 
+              pcs={db.pcs || []} 
+              onSelectPc={(pcId) => {
+                handlePcClick(pcId);
+                setBookingStep(1);
+                setTimeout(() => {
+                  const elem = document.getElementById("booking");
+                  if (elem) elem.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 60);
+              }}
+            />
+          )}
 
           {/* Efek Game Premium (Jiwa Gamer) */}
           <motion.div
@@ -1794,8 +2800,13 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => {
+                    ensureSensiblePaketSelection();
                     setShowQueueWarning(false);
                     setBookingStep(2);
+                    setTimeout(() => {
+                      const elem = document.getElementById("booking");
+                      if (elem) elem.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 60);
                   }}
                   className="px-4 py-2 bg-warning text-black text-[10px] font-bold uppercase transition-transform hover:scale-105"
                 >
@@ -1826,8 +2837,14 @@ export default function Home() {
                 <CheckCircle2 size={32} className="text-nvidia-green shrink-0" />
                 <h3 className="text-nvidia-green font-bold uppercase tracking-widest tracking-tight text-sm">BOOKING BERHASIL</h3>
               </div>
+              {latestBookingCode && (
+                <div className="flex items-center justify-between px-3.5 py-2.5 mb-4 rounded-lg bg-black/60 border border-nvidia-green/40 shadow-[0_0_15px_rgba(118,185,0,0.1)]">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider font-mono">KODE TIKET</span>
+                  <span className="text-base font-black text-nvidia-green font-mono tracking-widest">{latestBookingCode}</span>
+                </div>
+              )}
               <p className="text-white/70 tracking-tight text-xs mb-6 leading-relaxed">
-                Data lu udah masuk ke meja admin. Silakan tunggu konfirmasi atau tanya admin yang lagi jaga buat mastiin ya bos. Gas main!
+                Data lu udah masuk ke meja admin. Silakan tunggu konfirmasi atau sebutkan kode tiket di atas ke admin yang lagi jaga buat mastiin ya bos. Gas main!
               </p>
               <div className="flex justify-end">
                 <button

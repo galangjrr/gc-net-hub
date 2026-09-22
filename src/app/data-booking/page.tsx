@@ -337,7 +337,7 @@ export default function DataBookingPage() {
 
     // Optimistic UI for manual booking: show in table instantly
     if (!editBookingId) {
-      const tempId = `bkg-opt-${Date.now()}`;
+      const tempId = `GC-TEMP-${Date.now().toString().slice(-4)}`;
       const newBooking: Booking = {
         id: tempId,
         pc_id: finalPcId,
@@ -674,7 +674,12 @@ export default function DataBookingPage() {
                           <div className="w-6 h-6 xl:w-7 xl:h-7 rounded-lg bg-surface-soft border border-hairline/60 flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {b.player_name.slice(0, 1).toUpperCase()}
                           </div>
-                          <span className="font-bold text-white text-xs xl:text-sm leading-tight">{b.player_name}</span>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-white text-xs xl:text-sm leading-tight">{b.player_name}</span>
+                            <span className="text-[10px] font-mono font-bold text-nvidia-green/80 tracking-wider">
+                              {b.id}
+                            </span>
+                          </div>
                         </div>
                       </td>
 
@@ -871,7 +876,12 @@ export default function DataBookingPage() {
                           {b.player_name.slice(0, 1).toUpperCase()}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
+                            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-nvidia-green border border-nvidia-green/30">
+                              {b.id}
+                            </span>
+                          </div>
                           <span className="text-xs text-nvidia-green font-semibold">{pkgTitle}</span>
                         </div>
                       </div>
