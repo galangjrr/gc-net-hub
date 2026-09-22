@@ -98,7 +98,7 @@ export default function Home() {
         title: durTitle,
         badge: "Uang Pas",
         badgeColor: "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/30",
-        description: "Durasi dihitung otomatis sesuai uang pas yang lu ketik.",
+        description: "Durasi dihitung otomatis berdasarkan nominal uang pas.",
         detailTime: `± ${mins} Menit`,
       };
     }
@@ -109,32 +109,32 @@ export default function Home() {
       const hours = hoursMatch ? parseInt(hoursMatch[1]) : Math.round((pkg.duration_minutes || 60) / 60);
       let badge = "Reguler";
       let badgeColor = "bg-zinc-800 text-zinc-300 border border-zinc-700/60";
-      let description = "Pemanasan santai sambil cek update game atau browsing.";
+      let description = "Durasi fleksibel untuk main santai.";
 
       if (hours === 1) {
         badge = "Pemanasan";
         badgeColor = "bg-zinc-800 text-zinc-300 border border-zinc-700/60";
-        description = "Satu jam pemanasan santai sambil cek update game atau browsing.";
+        description = "Sesi singkat untuk pemanasan atau browsing.";
       } else if (hours === 2) {
         badge = "Favorit";
         badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
-        description = "Waktu paling pas buat dua match ranked tanpa buru-buru.";
+        description = "Waktu pas untuk beberapa match game.";
       } else if (hours === 3) {
         badge = "Favorit";
         badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
-        description = "Pilihan utama anak tongkrongan, mabar squad sampai puas.";
+        description = "Pilihan paling sering dipakai buat main bareng.";
       } else if (hours === 4) {
         badge = "Marathon";
         badgeColor = "bg-blue-500/20 text-blue-300 border border-blue-500/30";
-        description = "Cocok buat grinding battle pass pas lagi libur santai.";
+        description = "Durasi panjang untuk push rank atau grinding.";
       } else if (hours === 5) {
         badge = "Hemat";
         badgeColor = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-        description = "Lima jam marathon tanpa pusing mikirin sisa billing.";
+        description = "Tarif lebih hemat untuk sesi main panjang.";
       } else if (hours >= 6) {
         badge = "Super Hemat";
         badgeColor = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-        description = "Sesi panjang seharian, harga per jam jauh lebih miring.";
+        description = "Pilihan paling hemat untuk main seharian.";
       }
 
       return {
@@ -151,20 +151,20 @@ export default function Home() {
       const nameLower = pkg.name.toLowerCase();
       let badge = "Spesial";
       let badgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
-      let description = "Server sepi ping adem, begadang bareng kawan sampai subuh.";
+      let description = "Paket sesi jadwal khusus dengan tarif hemat.";
 
       if (nameLower.includes("malam") || nameLower.includes("night")) {
         badge = "Begadang";
         badgeColor = "bg-purple-500/20 text-purple-300 border border-purple-500/30";
-        description = "Server sepi ping adem, begadang bareng kawan sampai subuh.";
+        description = "Paket hemat khusus malam hari sampai subuh.";
       } else if (nameLower.includes("pagi") || nameLower.includes("subuh")) {
         badge = "Subuh";
         badgeColor = "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
-        description = "Udara pagi sejuk, warnet tenang buat fokus grinding.";
+        description = "Paket pagi hari dengan suasana lebih tenang.";
       } else if (nameLower.includes("sahur") || nameLower.includes("ngabuburit")) {
         badge = "Ramadan";
         badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
-        description = "Teman nunggu sahur atau ngabuburit paling asik di warnet.";
+        description = "Paket khusus waktu sahur dan menjelang buka.";
       }
 
       return {
@@ -184,22 +184,22 @@ export default function Home() {
 
     let badge = getSlangName(pkg.price, pkg.name);
     let badgeColor = "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/30";
-    let description = "Tarif pecahan fleksibel, pas di kantong anak warnet.";
+    let description = "Pecahan nominal fleksibel sesuai uang pas.";
 
     if (pkg.price === 3000) {
-      description = "Nanggung mau pulang, habisin rokok sebatang atau cetak tugas.";
+      description = "Durasi singkat untuk kebutuhan cepat.";
     } else if (pkg.price === 5000) {
-      description = "Modal goceng dapet sejam lebih, pas buat nunggu maghrib.";
+      description = "Pecahan goceng dengan durasi satu jam lebih.";
     } else if (pkg.price === 6000) {
-      description = "Satu setengah jam pas buat kelarin daily quest bareng kawan.";
+      description = "Satu setengah jam untuk main santai.";
     } else if (pkg.price === 7000) {
-      description = "Main leluasa tanpa takut kepotong di tengah match seru.";
+      description = "Durasi pas tanpa khawatir terpotong game.";
     } else if (pkg.price === 9000) {
-      description = "Dua jam lebih sedikit, cukup buat push rank sampai naik bintang.";
+      description = "Dua jam lebih untuk beberapa sesi game.";
     } else if (pkg.price === 10000) {
-      description = "Uang pas ceban dapet dua setengah jam, auto balik modal.";
+      description = "Pecahan ceban dapat dua setengah jam.";
     } else if (pkg.price === 15000) {
-      description = "Duduk anteng dari sore ke malem, puas no debat.";
+      description = "Durasi empat jam hemat dan praktis.";
     }
 
     return {
@@ -2671,8 +2671,8 @@ export default function Home() {
       >
         <div className="max-w-[1400px] w-full mx-auto relative z-10">
           <motion.div variants={itemVariants} className="text-center mb-16 px-6">
-            <h2 className="text-3xl font-bold text-white uppercase tracking-tight tracking-tight">SPEK PC GC NET</h2>
-            <p className="text-white/60 tracking-tight text-sm mt-2">PC NGEPAS BUAT BUDGET PELAJAR, TAPI PERFORMA BOLEH DIADU. GESER BUAT CEK SPEKNYA.</p>
+            <h2 className="text-3xl font-bold text-white uppercase tracking-tight">SPESIFIKASI PC GC NET</h2>
+            <p className="text-white/60 tracking-tight text-sm mt-2">Performa stabil untuk kebutuhan gaming harian. Geser untuk melihat spesifikasi detail setiap unit PC.</p>
           </motion.div>
 
           {mounted && (
@@ -2746,36 +2746,36 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar tracking-tight text-sm text-white/70 space-y-4">
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} className="text-purple-400 shrink-0" /> Dateng Tepat Waktu</h3>
-                    <p>Kalau lu udah booking PC, usahain datang tepat waktu ya. Kita kasih batas toleransi <strong>5 menit</strong>. Lewat dari itu, argo billing otomatis jalan atau unit PC bakal dioper ke antrean berikutnya yang udah standby di lokasi.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} className="text-purple-400 shrink-0" /> Ketepatan Waktu</h3>
+                    <p>Batas toleransi kedatangan adalah 5 menit. Jika lewat, durasi billing otomatis berjalan atau unit PC dialihkan ke antrean berikutnya.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Crown size={20} className="text-purple-400 shrink-0" /> Prioritas Walk-in & Antrean</h3>
-                    <p>Booking web ini gunanya buat <strong>ngamanin nomor antrean PC</strong>. Pemain yang datang langsung ke meja OP tetap prioritas kalau ada unit kosong. Kalau lu booking buat nyambung setelah pemain lain selesai, pastiin lu udah standby sebelum durasi billing mereka habis biar langsung duduk main.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Crown size={20} className="text-purple-400 shrink-0" /> Prioritas Antrean</h3>
+                    <p>Booking online digunakan untuk mengantre PC. Pelanggan yang datang langsung tetap dilayani jika unit kosong. Pastikan sudah tiba di lokasi sebelum giliran main tiba.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><UtensilsCrossed size={20} className="text-purple-400 shrink-0" /> Makanan & Minuman</h3>
-                    <p>Jangan bawa makanan atau minuman dari luar yang gampang tumpah dan bisa ngerusak gear PC ya. Kalau laper atau haus, pesan aja langsung snack dan minuman dingin di meja OP atau kantin GC Net.</p>
+                    <p>Dilarang membawa makanan atau minuman dari luar yang berisiko mengotori meja dan perangkat PC. Snack dan minuman dingin tersedia di meja kasir.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Ban size={20} className="text-purple-400 shrink-0" /> Area Bebas Asap</h3>
-                    <p>Semua area PC GC Net bebas asap rokok dan vape ya. Buat yang mau sebat atau nge-vape, bisa melipir santai ke area outdoor depan biar ruangan tetap adem dan wangi buat semua yang main.</p>
+                    <p>Seluruh ruangan PC ber-AC bebas asap rokok dan vape. Silakan gunakan area luar yang sudah disediakan.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Banknote size={20} className="text-purple-400 shrink-0" /> Ketentuan Pembayaran</h3>
-                    <p>Paket booking atau durasi billing yang sudah aktif dan jalan <strong>gak bisa di-refund</strong> atau dibatalin. Pastiin pilihan unit PC dan paket billing lu udah pas sebelum bayar ya.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Banknote size={20} className="text-purple-400 shrink-0" /> Kebijakan Refund</h3>
+                    <p>Paket booking atau durasi billing yang sudah berjalan tidak dapat dibatalkan atau di-refund. Pastikan pilihan PC dan paket billing sudah sesuai sebelum bayar.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20} className="text-purple-400 shrink-0" /> Fair Play & No Cheat</h3>
-                    <p>Main bersih itu asik! Kalau ketahuan pakai cheat, program ilegal, atau buka hal-hal aneh, siap-siap langsung diomelin OP GC Net. Main sportif, mabar aman.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20} className="text-purple-400 shrink-0" /> Fair Play & Keamanan</h3>
+                    <p>Dilarang menggunakan cheat, software berbahaya, atau membuka situs terlarang. Pelanggaran akan menyebabkan sesi dihentikan seketika.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Sparkles size={20} className="text-purple-400 shrink-0" /> Jaga Kebersihan Gear</h3>
-                    <p>Biar main makin betah, yuk sama-sama rawat kebersihan meja dan gear PC yang lu pake. Jangan lupa buang sampah pada tempatnya sehabis main.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Sparkles size={20} className="text-purple-400 shrink-0" /> Kebersihan Meja</h3>
+                    <p>Harap menjaga kebersihan area meja dan membuang sampah pada tempatnya setelah selesai bermain.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Monitor size={20} className="text-purple-400 shrink-0" /> Request Game Baru?</h3>
-                    <p>Jangan asal install software aneh yang bisa bikin sistem PC bermasalah. Kalau mau request game atau update tertentu, bilang aja langsung ke OP yang lagi jaga.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Monitor size={20} className="text-purple-400 shrink-0" /> Instalasi Game</h3>
+                    <p>Dilarang menginstal software tanpa izin. Jika membutuhkan update atau request game baru, hubungi operator yang bertugas.</p>
                   </div>
                 </div>
 
@@ -2868,7 +2868,7 @@ export default function Home() {
                 </div>
               )}
               <p className="text-white/70 tracking-tight text-xs mb-6 leading-relaxed">
-                Data booking lu udah masuk ke meja OP. Tinggal tunggu konfirmasi atau sebutin kode tiket di atas ke OP yang lagi jaga. Gas main!
+                Booking berhasil dicatat. Tunjukkan kode tiket di atas ke kasir atau OP saat giliran main tiba.
               </p>
               <div className="flex justify-end">
                 <button
