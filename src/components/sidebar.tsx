@@ -8,16 +8,16 @@ import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
-  { href: "/companion", label: "GC HUB MOBILE", icon: Smartphone, admin: true },
-  { href: "/data-booking", label: "ANTREAN", icon: Database, admin: true },
-  { href: "/kasir", label: "KASIR", icon: ShoppingCart, admin: true },
-  { href: "/data-pc", label: "DATA PC & SPEK", icon: Monitor, admin: true },
-  { href: "/rekap", label: "REKAP & POOLING", icon: TrendingUp, admin: true },
-  { href: "/paket-billing", label: "PAKET BOOKING", icon: Sliders, admin: true },
-  { href: "/stok-kasir", label: "STOK KASIR", icon: Package, admin: true },
-  { href: "/admin/accounts", label: "AKUN STAFF", icon: ShieldCheck, admin: true },
-  { href: "/", label: "PORTAL DEPAN", icon: Monitor, admin: false },
-  { href: "/member", label: "PORTAL MEMBER", icon: User, admin: false },
+  { href: "/companion", label: "GC Hub Mobile", icon: Smartphone, admin: true },
+  { href: "/data-booking", label: "Antrean Booking", icon: Database, admin: true },
+  { href: "/kasir", label: "Kasir POS", icon: ShoppingCart, admin: true },
+  { href: "/data-pc", label: "Bilik Komputer", icon: Monitor, admin: true },
+  { href: "/rekap", label: "Rekap Keuangan", icon: TrendingUp, admin: true },
+  { href: "/paket-billing", label: "Paket Billing", icon: Sliders, admin: true },
+  { href: "/stok-kasir", label: "Stok Etalase", icon: Package, admin: true },
+  { href: "/admin/accounts", label: "Akun Staf", icon: ShieldCheck, admin: true },
+  { href: "/", label: "Portal Depan", icon: Monitor, admin: false },
+  { href: "/member", label: "Area Member", icon: User, admin: false },
 ];
 
 export default function Sidebar() {
@@ -187,10 +187,10 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center justify-between px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                     isActive
-                      ? "bg-nvidia-green text-black shadow-[0_0_15px_rgba(118,185,0,0.2)]"
-                      : "text-white/50 hover:text-white hover:bg-white/[0.04]"
+                      ? "bg-nvidia-green text-black font-bold shadow-[0_0_15px_rgba(118,185,0,0.25)]"
+                      : "text-white/60 hover:text-white hover:bg-white/[0.05]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -249,10 +249,10 @@ export default function Sidebar() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase transition-all ${
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                         isActive
-                          ? "bg-nvidia-green text-black shadow-[0_0_15px_rgba(118,185,0,0.2)]"
-                          : "text-white/50 hover:text-white hover:bg-white/[0.04]"
+                          ? "bg-nvidia-green text-black font-bold shadow-[0_0_15px_rgba(118,185,0,0.25)]"
+                          : "text-white/60 hover:text-white hover:bg-white/[0.05]"
                       }`}
                     >
                       <div className="flex items-center gap-3">

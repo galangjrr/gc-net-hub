@@ -13,12 +13,12 @@ const ALL_DAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 export default function PaketBillingPage() {
   const [db, setDb] = useState<DatabaseSchema | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'jam' | 'spesial' | 'hemat'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'jam' | 'uang_pas' | 'spesial'>('all');
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
 
   // Form State Tambah Paket
-  const [newCategory, setNewCategory] = useState<'jam' | 'spesial' | 'hemat'>('jam');
+  const [newCategory, setNewCategory] = useState<'jam' | 'uang_pas' | 'spesial'>('jam');
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newDuration, setNewDuration] = useState("60");
@@ -28,7 +28,7 @@ export default function PaketBillingPage() {
 
   // Edit State
   const [editingPaket, setEditingPaket] = useState<Paket | null>(null);
-  const [editCategory, setEditCategory] = useState<'jam' | 'spesial' | 'hemat'>('jam');
+  const [editCategory, setEditCategory] = useState<'jam' | 'uang_pas' | 'spesial'>('jam');
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editDuration, setEditDuration] = useState("");
@@ -54,13 +54,13 @@ export default function PaketBillingPage() {
     loadData();
   }, []);
 
-  const getPaketType = (p: Paket): 'jam' | 'spesial' | 'hemat' => {
+  const getPaketType = (p: Paket): 'jam' | 'uang_pas' | 'spesial' => {
     if (p.fixed_start_time) return 'spesial';
     if (p.duration_minutes && p.duration_minutes % 60 === 0 && !p.name.toLowerCase().startsWith("paket ")) {
       return 'jam';
     }
     if (p.name.endsWith(" Jam")) return 'jam';
-    return 'hemat';
+    return 'uang_pas';
   };
 
   const formatDurationText = (mins?: number) => {
@@ -100,44 +100,38 @@ export default function PaketBillingPage() {
   // Counts
   const counts = useMemo(() => {
     const jam = paketsWithMeta.filter(p => p.type === 'jam').length;
+    const uang_pas = paketsWithMeta.filter(p => p.type === 'uang_pas').length;
     const spesial = paketsWithMeta.filter(p => p.type === 'spesial').length;
-    const hemat = paketsWithMeta.filter(p => p.type === 'hemat').length;
-    return { all: paketsWithMeta.length, jam, spesial, hemat };
+    return { all: paketsWithMeta.length, jam, uang_pas, spesial };
   }, [paketsWithMeta]);
 
   const getPaketDesc = (p: Paket) => {
     if (p.fixed_start_time) {
-      if (p.name.toLowerCase().includes("malam")) return "Server sepi ping adem, begadang bareng kawan sampai subuh.";
-      if (p.name.toLowerCase().includes("pagi") || p.name.toLowerCase().includes("subuh")) return "Udara pagi sejuk, warnet tenang buat fokus grinding.";
-      return "Sesi spesial dengan jadwal main tetap.";
+      if (p.name.toLowerCase().includes("malam")) return "Sesi malam dengan koneksi lancar sampai subuh.";
+      if (p.name.toLowerCase().includes("pagi") || p.name.toLowerCase().includes("subuh")) return "Sesi pagi tenang dan fokus main.";
+      return "Sesi waktu tetap sesuai jadwal.";
     }
     if (p.name.endsWith(" Jam")) {
       const h = Math.round((p.duration_minutes || 60) / 60);
-      if (h === 1) return "Pemanasan santai sambil cek update game atau browsing.";
-      if (h === 2) return "Waktu paling pas buat dua match ranked tanpa buru-buru.";
-      if (h === 3) return "Pilihan utama anak tongkrongan, mabar squad sampai puas.";
-      if (h === 4) return "Cocok buat grinding battle pass pas lagi libur santai.";
-      if (h === 5) return "Lima jam marathon tanpa pusing mikirin sisa billing.";
-      if (h >= 6) return "Sesi panjang seharian, harga per jam jauh lebih miring.";
-      return "Paket jam reguler standar warnet.";
+      return `Sesi ${h} jam reguler standar warnet.`;
     }
-    if (p.price === 3000) return "Nanggung mau pulang, habisin rokok sebatang atau cetak tugas.";
-    if (p.price === 5000) return "Modal goceng dapet sejam lebih, pas buat nunggu maghrib.";
-    if (p.price === 6000) return "Satu setengah jam pas buat kelarin daily quest bareng kawan.";
-    if (p.price === 7000) return "Main leluasa tanpa takut kepotong di tengah match seru.";
-    if (p.price === 9000) return "Dua jam lebih sedikit, cukup buat push rank sampai naik bintang.";
-    if (p.price === 10000) return "Uang pas ceban dapet dua setengah jam, auto balik modal.";
-    if (p.price === 15000) return "Duduk anteng dari sore ke malem, puas no debat.";
-    return "Paket pecahan fleksibel, pas di kantong anak warnet.";
+    if (p.price === 3000) return "Durasi kilat pas buat urusan singkat.";
+    if (p.price === 5000) return "Modal goceng dapat durasi pas di kantong.";
+    if (p.price === 6000) return "Durasi santai buat selesaikan misi.";
+    if (p.price === 7000) return "Waktu main leluasa.";
+    if (p.price === 9000) return "Cukup buat push rank beberapa match.";
+    if (p.price === 10000) return "Uang pas ceban dapat dua setengah jam.";
+    if (p.price === 15000) return "Sesi panjang puas tanpa ribet.";
+    return "Pecahan nominal uang pas ramah kantong.";
   };
 
   const groupedPakets = useMemo(() => {
     const jam = filteredPakets.filter(p => p.type === 'jam');
+    const uangPas = filteredPakets.filter(p => p.type === 'uang_pas');
     const spesial = filteredPakets.filter(p => p.type === 'spesial');
-    const hemat = filteredPakets.filter(p => p.type === 'hemat');
 
     const groups: {
-      id: 'jam' | 'spesial' | 'hemat';
+      id: 'jam' | 'uang_pas' | 'spesial';
       title: string;
       description: string;
       badge: string;
@@ -146,44 +140,47 @@ export default function PaketBillingPage() {
       items: typeof filteredPakets;
     }[] = [];
 
+    // 1. Jam Reguler
     if (activeTab === 'all' || activeTab === 'jam') {
       if (jam.length > 0 || activeTab === 'jam') {
         groups.push({
           id: 'jam',
           title: 'Paket Jam Reguler',
-          description: 'Paket billing berbasis durasi per jam (1 Jam, 2 Jam, 3 Jam, dst)',
+          description: 'Durasi per jam standar warnet (1 Jam, 2 Jam, 3 Jam, dst)',
           badge: `${jam.length} Paket`,
-          badgeColor: 'bg-nvidia-green/10 text-nvidia-green border-nvidia-green/30',
+          badgeColor: 'bg-blue-500/10 text-blue-300 border-blue-500/30',
           icon: Clock,
-          items: jam,
+          items: jam.sort((a, b) => (a.duration_minutes || 0) - (b.duration_minutes || 0)),
         });
       }
     }
 
+    // 2. Uang Pas
+    if (activeTab === 'all' || activeTab === 'uang_pas') {
+      if (uangPas.length > 0 || activeTab === 'uang_pas') {
+        groups.push({
+          id: 'uang_pas',
+          title: 'Paket Uang Pas',
+          description: 'Pecahan nominal tunai dengan durasi proporsional (Kilat, Goceng, Ceban, dst)',
+          badge: `${uangPas.length} Paket`,
+          badgeColor: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+          icon: Zap,
+          items: uangPas.sort((a, b) => a.price - b.price),
+        });
+      }
+    }
+
+    // 3. Spesial & Malam
     if (activeTab === 'all' || activeTab === 'spesial') {
       if (spesial.length > 0 || activeTab === 'spesial') {
         groups.push({
           id: 'spesial',
           title: 'Paket Spesial & Malam',
-          description: 'Paket sesi tertentu dengan jadwal main tetap (Paket Malam, Subuh, Ramadan)',
+          description: 'Sesi waktu tetap (Paket Malam, Subuh, Ramadan)',
           badge: `${spesial.length} Paket`,
           badgeColor: 'bg-purple-500/10 text-purple-300 border-purple-500/30',
           icon: Sparkles,
-          items: spesial,
-        });
-      }
-    }
-
-    if (activeTab === 'all' || activeTab === 'hemat') {
-      if (hemat.length > 0 || activeTab === 'hemat') {
-        groups.push({
-          id: 'hemat',
-          title: 'Paket Hemat Fleksibel (Nominal Tongkrongan)',
-          description: 'Pecahan rupiah dengan durasi proporsional (Paket Goceng, Ceban, Kilat, dst)',
-          badge: `${hemat.length} Paket`,
-          badgeColor: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30',
-          icon: Zap,
-          items: hemat,
+          items: spesial.sort((a, b) => a.price - b.price),
         });
       }
     }
@@ -375,13 +372,23 @@ export default function PaketBillingPage() {
             </div>
           </div>
           <div className="p-3.5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
-            <div className="flex items-center gap-1.5 text-nvidia-green">
+            <div className="flex items-center gap-1.5 text-blue-400">
               <Clock size={13} />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-nvidia-green">Jam Reguler</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400">Jam Reguler</span>
             </div>
             <div className="flex items-baseline justify-between mt-1">
               <span className="text-xl font-black text-white tabular-nums">{counts.jam}</span>
-              <span className="text-[10px] font-mono font-bold text-nvidia-green/70">1-10 JAM</span>
+              <span className="text-[10px] font-mono font-bold text-blue-400/70">1-10 JAM</span>
+            </div>
+          </div>
+          <div className="p-3.5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
+            <div className="flex items-center gap-1.5 text-amber-400">
+              <Zap size={13} />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">Uang Pas</span>
+            </div>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-xl font-black text-white tabular-nums">{counts.uang_pas}</span>
+              <span className="text-[10px] font-mono font-bold text-amber-400/70">NOMINAL</span>
             </div>
           </div>
           <div className="p-3.5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
@@ -392,16 +399,6 @@ export default function PaketBillingPage() {
             <div className="flex items-baseline justify-between mt-1">
               <span className="text-xl font-black text-white tabular-nums">{counts.spesial}</span>
               <span className="text-[10px] font-mono font-bold text-purple-400/70">JADWAL FIX</span>
-            </div>
-          </div>
-          <div className="p-3.5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
-            <div className="flex items-center gap-1.5 text-cyan-400">
-              <Zap size={13} />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">Hemat Fleksibel</span>
-            </div>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-xl font-black text-white tabular-nums">{counts.hemat}</span>
-              <span className="text-[10px] font-mono font-bold text-cyan-400/70">PECAHAN</span>
             </div>
           </div>
         </div>
@@ -437,11 +434,25 @@ export default function PaketBillingPage() {
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold uppercase flex items-center justify-center gap-2 transition ${
                       newCategory === 'jam'
-                        ? 'bg-nvidia-green text-black border-nvidia-green shadow-[0_0_12px_rgba(118,185,0,0.3)]'
+                        ? 'bg-blue-500 text-white border-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.3)]'
                         : 'bg-surface-dark border-hairline text-zinc-400 hover:text-white'
                     }`}
                   >
                     <Clock size={14} /> Jam Reguler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewCategory('uang_pas');
+                      setNewDuration("45");
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold uppercase flex items-center justify-center gap-2 transition ${
+                      newCategory === 'uang_pas'
+                        ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                        : 'bg-surface-dark border-hairline text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    <Zap size={14} /> Uang Pas
                   </button>
                   <button
                     type="button"
@@ -453,20 +464,6 @@ export default function PaketBillingPage() {
                     }`}
                   >
                     <Sparkles size={14} /> Spesial & Malam
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewCategory('hemat');
-                      setNewDuration("45");
-                    }}
-                    className={`p-2.5 rounded-xl border text-xs font-bold uppercase flex items-center justify-center gap-2 transition ${
-                      newCategory === 'hemat'
-                        ? 'bg-cyan-500 text-black border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                        : 'bg-surface-dark border-hairline text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    <Zap size={14} /> Hemat Fleksibel
                   </button>
                 </div>
               </div>
@@ -639,12 +636,23 @@ export default function PaketBillingPage() {
               onClick={() => setActiveTab('jam')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shrink-0 flex items-center gap-1.5 ${
                 activeTab === 'jam'
-                  ? 'bg-nvidia-green text-black shadow-sm font-black'
+                  ? 'bg-blue-500 text-white shadow-sm font-black'
                   : 'bg-surface-dark text-zinc-400 hover:text-white border border-hairline'
               }`}
             >
               <Clock size={13} />
               <span>Jam Reguler ({counts.jam})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('uang_pas')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shrink-0 flex items-center gap-1.5 ${
+                activeTab === 'uang_pas'
+                  ? 'bg-amber-500 text-black shadow-sm font-black'
+                  : 'bg-surface-dark text-zinc-400 hover:text-white border border-hairline'
+              }`}
+            >
+              <Zap size={13} />
+              <span>Uang Pas ({counts.uang_pas})</span>
             </button>
             <button
               onClick={() => setActiveTab('spesial')}
@@ -656,17 +664,6 @@ export default function PaketBillingPage() {
             >
               <Sparkles size={13} />
               <span>Spesial & Malam ({counts.spesial})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('hemat')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shrink-0 flex items-center gap-1.5 ${
-                activeTab === 'hemat'
-                  ? 'bg-cyan-500 text-black shadow-sm font-black'
-                  : 'bg-surface-dark text-zinc-400 hover:text-white border border-hairline'
-              }`}
-            >
-              <Zap size={13} />
-              <span>Hemat Fleksibel ({counts.hemat})</span>
             </button>
           </div>
 
@@ -740,7 +737,7 @@ export default function PaketBillingPage() {
                                         <span className="font-bold text-white text-sm leading-tight truncate">
                                           {p.name}
                                         </span>
-                                        {p.duration_minutes && p.type === 'hemat' && (
+                                        {p.duration_minutes && p.type === 'uang_pas' && (
                                           <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/5 border border-hairline text-zinc-300 font-bold shrink-0">
                                             {formatDurationText(p.duration_minutes)}
                                           </span>
@@ -939,11 +936,22 @@ export default function PaketBillingPage() {
                     onClick={() => setEditCategory('jam')}
                     className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase flex items-center justify-center gap-1.5 transition ${
                       editCategory === 'jam'
-                        ? 'bg-nvidia-green text-black border-nvidia-green font-black'
+                        ? 'bg-blue-500 text-white border-blue-400 font-black'
                         : 'bg-surface-dark border-hairline text-zinc-400'
                     }`}
                   >
                     <Clock size={13} /> Reguler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditCategory('uang_pas')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase flex items-center justify-center gap-1.5 transition ${
+                      editCategory === 'uang_pas'
+                        ? 'bg-amber-500 text-black border-amber-400 font-black'
+                        : 'bg-surface-dark border-hairline text-zinc-400'
+                    }`}
+                  >
+                    <Zap size={13} /> Uang Pas
                   </button>
                   <button
                     type="button"
@@ -955,17 +963,6 @@ export default function PaketBillingPage() {
                     }`}
                   >
                     <Sparkles size={13} /> Spesial
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditCategory('hemat')}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase flex items-center justify-center gap-1.5 transition ${
-                      editCategory === 'hemat'
-                        ? 'bg-cyan-500 text-black border-cyan-400 font-black'
-                        : 'bg-surface-dark border-hairline text-zinc-400'
-                    }`}
-                  >
-                    <Zap size={13} /> Hemat
                   </button>
                 </div>
               </div>

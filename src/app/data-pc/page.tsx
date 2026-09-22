@@ -239,10 +239,10 @@ export default function DataPC() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white flex items-center gap-3">
-                Master Data PC dan Spek
+                Bilik Komputer dan Spesifikasi
               </h1>
               <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
-                Kelola inventaris PC dan rincian spesifikasi hardware
+                Daftar unit bilik komputer warnet dan rincian spesifikasi hardware
               </p>
             </div>
           </div>

@@ -510,7 +510,7 @@ export default function DataBookingPage() {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white">
-                    Data Booking PC
+                    Antrean Booking PC
                   </h1>
                   <span className="relative flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
@@ -518,7 +518,7 @@ export default function DataBookingPage() {
                   </span>
                 </div>
                 <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
-                  Verifikasi pembayaran QRIS, catat booking PC, dan pantau giliran main
+                  Pantau antrean bilik komputer, konfirmasi pembayaran, dan panggil pemain saat giliran tiba
                 </p>
               </div>
             </div>
@@ -602,7 +602,7 @@ export default function DataBookingPage() {
                   }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  <span>Terkonfirmasi</span>
+                  <span>Antrean Aktif</span>
                   <span className={`px-1.5 xl:px-2 py-0.2 rounded-md tabular-nums font-bold text-[10px] xl:text-xs ${
                     filterTab === 'active' ? "bg-emerald-400/20 text-emerald-300" : "bg-white/5 text-white/40"
                   }`}>
