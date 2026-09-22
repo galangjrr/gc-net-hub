@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Database, CheckCircle2, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X, Volume2, VolumeX, Banknote, Lock } from "lucide-react";
+import { Database, CheckCircle2, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X, Volume2, VolumeX, Banknote, Lock, Moon, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import useSound from "use-sound";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
@@ -43,6 +43,91 @@ export default function DataBookingPage() {
   const [searchPaket, setSearchPaket] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPaket, setSelectedPaket] = useState<string | null>(null);
+  const [modalPaketTab, setModalPaketTab] = useState<'all' | 'jam' | 'spesial' | 'hemat'>('all');
+
+  const getPaketMeta = (pkg: {
+    id: string;
+    name: string;
+    price: number;
+    duration_minutes?: number | null;
+    fixed_start_time?: string | null;
+    fixed_end_time?: string | null;
+    is_custom?: boolean;
+  }) => {
+    if (pkg.id.startsWith("custom-")) {
+      const mins = pkg.duration_minutes || Math.floor((pkg.price / 4000) * 60);
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const dur = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
+      return {
+        category: 'hemat' as const,
+        duration: dur,
+        detail: `± ${mins} Menit`,
+        badge: 'Uang Pas',
+        badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+        desc: 'Durasi dihitung fleksibel sesuai uang pas kasir.'
+      };
+    }
+
+    if (pkg.fixed_start_time && pkg.fixed_end_time) {
+      const isSubuh = pkg.name.toLowerCase().includes('subuh');
+      return {
+        category: 'spesial' as const,
+        duration: `${pkg.fixed_start_time} - ${pkg.fixed_end_time}`,
+        detail: 'Sesi Jam Tetap',
+        badge: isSubuh ? 'Paket Subuh' : 'Paket Malam',
+        badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+        desc: `Sesi malam fixed time ${pkg.fixed_start_time} s/d ${pkg.fixed_end_time}.`
+      };
+    }
+
+    if (pkg.name.endsWith(' Jam') && !pkg.is_custom) {
+      const hMatch = pkg.name.match(/(\d+)\s*Jam/i);
+      const h = hMatch ? parseInt(hMatch[1]) : Math.round((pkg.duration_minutes || 60) / 60);
+      let badge = 'Reguler';
+      let badgeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      if (h === 1) {
+        badge = 'Pemanasan';
+        badgeColor = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+      } else if (h === 2) {
+        badge = 'Favorit';
+        badgeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      } else if (h >= 5) {
+        badge = 'Marathon';
+        badgeColor = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+      }
+      return {
+        category: 'jam' as const,
+        duration: `${h} Jam`,
+        detail: `${h * 60} Menit`,
+        badge,
+        badgeColor,
+        desc: `Durasi murni ${h} jam tanpa batasan jam server.`
+      };
+    }
+
+    const mins = pkg.duration_minutes || Math.round((pkg.price / 4000) * 60);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const dur = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
+    let badge = 'Hemat';
+    let badgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+    if (pkg.price === 5000) badge = 'Paket Goceng';
+    else if (pkg.price === 10000) badge = 'Paket Ceban';
+    else if (pkg.price === 3000) badge = 'Paket Kilat';
+    else if (pkg.price === 6000) badge = 'Paket Santai';
+    else if (pkg.price === 7000) badge = 'Paket Puas';
+    else if (pkg.price === 9000) badge = 'Paket Seru';
+
+    return {
+      category: 'hemat' as const,
+      duration: dur,
+      detail: `${mins} Menit`,
+      badge,
+      badgeColor,
+      desc: `Paket hemat tongkrongan durasi ${dur}.`
+    };
+  };
 
   const playerInputRef = useRef<HTMLInputElement | null>(null);
   const pcInputRef = useRef<HTMLInputElement | null>(null);
@@ -107,6 +192,7 @@ export default function DataBookingPage() {
         setManualData({ playerName: "", pcId: "", searchPc: "" });
         setSearchPaket("");
         setSelectedPaket(null);
+        setModalPaketTab("all");
         setShowManual(true);
       }
       if (e.key === 'Escape') {
@@ -265,6 +351,7 @@ export default function DataBookingPage() {
     const pcName = db?.pcs?.find(p => p.id === b.pc_id)?.name || "";
     setManualData({ playerName: b.player_name, pcId: b.pc_id, searchPc: pcName });
     setSelectedPaket(b.paket_id);
+    setModalPaketTab("all");
     setShowManual(true);
   };
 
@@ -488,6 +575,7 @@ export default function DataBookingPage() {
                   setManualData({ playerName: "", pcId: "", searchPc: "" });
                   setSearchPaket("");
                   setSelectedPaket(null);
+                  setModalPaketTab("all");
                   setShowManual(true);
                 }}
                 className="flex items-center gap-2 px-4 xl:px-5 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs xl:text-sm uppercase tracking-wider rounded-xl transition shadow-[0_0_20px_rgba(118,185,0,0.25)] shrink-0 active:scale-95"
@@ -1017,169 +1105,267 @@ export default function DataBookingPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+              className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
             >
               <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.95 }}
-                className="bg-surface border border-hairline p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl space-y-4"
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-[#0f1013] border border-white/10 w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden"
               >
-                <h2 className="text-lg font-bold uppercase tracking-tight text-white flex items-center gap-2">
-                  <Plus size={20} className="text-nvidia-green" />
-                  {editBookingId ? "Ubah Data Booking" : "Booking Kasir Langsung"}
-                </h2>
-
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] font-bold text-white/50 uppercase">Nama Pemain</label>
-                      <span className="text-[11px] text-white/50">Enter untuk auto-isi nama bawaan</span>
+                {/* Modal Header */}
+                <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/[0.08] bg-white/[0.02]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0 shadow-[0_0_15px_rgba(118,185,0,0.2)]">
+                      {editBookingId ? <Pencil size={18} /> : <Plus size={18} />}
                     </div>
-                    <input
-                      ref={playerInputRef}
-                      type="text"
-                      value={manualData.playerName}
-                      onChange={e => setManualData({...manualData, playerName: e.target.value})}
-                      onKeyDown={e => {
-                        if (e.key === "Enter" || e.key === "Tab") {
-                          e.preventDefault();
-                          if (!manualData.playerName.trim()) {
-                            const nextNum = (db?.settings?.user_counter || 80) + 1;
-                            setManualData(prev => ({ ...prev, playerName: `User ${nextNum}` }));
-                          }
-                          setTimeout(() => {
-                            pcInputRef.current?.focus();
-                          }, 10);
-                        }
+                    <div>
+                      <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white flex items-center gap-2">
+                        {editBookingId ? "Ubah Data Booking" : "Booking Kasir Langsung"}
+                      </h2>
+                      <p className="text-[11px] text-white/50">
+                        {editBookingId ? "Perbarui informasi PC dan durasi paket billing" : "Pilih PC dan paket billing untuk langsung memulai sesi"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="hidden sm:inline-block text-[10px] font-mono text-white/40 bg-white/[0.06] border border-white/10 px-2 py-1 rounded-md">
+                      ESC Tutup
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowManual(false);
+                        setEditBookingId(null);
                       }}
-                      placeholder={`Contoh User ${(db?.settings?.user_counter || 80) + 1} atau lewati langsung`}
-                      className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
-                    />
+                      className="text-white/40 hover:text-white p-1.5 rounded-lg hover:bg-white/[0.06] transition"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-4 sm:p-6 overflow-y-auto space-y-4 custom-scrollbar">
+                  {/* Baris 1: Nama Pemain & Unit PC */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* Nama Pemain */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                          <User size={13} className="text-nvidia-green" />
+                          Nama Pemain
+                        </label>
+                        <span className="text-[10px] text-white/40 font-mono">Enter auto-ID</span>
+                      </div>
+                      <div className="relative">
+                        <input
+                          ref={playerInputRef}
+                          type="text"
+                          value={manualData.playerName}
+                          onChange={e => setManualData({ ...manualData, playerName: e.target.value })}
+                          onKeyDown={e => {
+                            if (e.key === "Enter" || e.key === "Tab") {
+                              e.preventDefault();
+                              if (!manualData.playerName.trim()) {
+                                const nextNum = (db?.settings?.user_counter || 80) + 1;
+                                setManualData(prev => ({ ...prev, playerName: `User ${nextNum}` }));
+                              }
+                              setTimeout(() => {
+                                pcInputRef.current?.focus();
+                              }, 10);
+                            }
+                          }}
+                          placeholder={`Contoh User ${(db?.settings?.user_counter || 80) + 1} atau lewati`}
+                          className="w-full bg-[#141518] border border-white/10 px-3.5 py-2.5 rounded-xl text-xs text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Unit PC */}
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                          <Monitor size={13} className="text-nvidia-green" />
+                          Pilih Unit PC
+                        </label>
+                        {manualData.pcId && (
+                          <span className="text-[10px] text-nvidia-green font-semibold">
+                            ✓ PC Terpilih
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        ref={pcInputRef}
+                        type="text"
+                        value={manualData.searchPc}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const cleanVal = val.toLowerCase().trim();
+                          const matched = db?.pcs?.find(p => p.name.toLowerCase() === cleanVal || p.id.toLowerCase() === cleanVal);
+                          if (matched) {
+                            setManualData({ ...manualData, searchPc: matched.name, pcId: matched.id });
+                          } else {
+                            const partials = (db?.pcs || []).filter(p => p.name.toLowerCase().includes(cleanVal) || p.id.toLowerCase().includes(cleanVal));
+                            setManualData({ ...manualData, searchPc: val, pcId: partials.length === 1 ? partials[0].id : "" });
+                          }
+                          setShowPcList(true);
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === "Enter" || e.key === "Tab") {
+                            e.preventDefault();
+                            const cleanVal = manualData.searchPc.toLowerCase().trim();
+                            const matches = (db?.pcs || []).filter(p => p.name.toLowerCase().includes(cleanVal) || p.id.toLowerCase().includes(cleanVal));
+                            if (matches.length > 0) {
+                              setManualData({ ...manualData, searchPc: matches[0].name, pcId: matches[0].id });
+                            }
+                            setShowPcList(false);
+                            setTimeout(() => {
+                              paketInputRef.current?.focus();
+                            }, 10);
+                          }
+                        }}
+                        onFocus={() => setShowPcList(true)}
+                        placeholder="Ketik nama PC contoh MOYA atau TOM"
+                        className="w-full bg-[#141518] border border-white/10 px-3.5 py-2.5 rounded-xl text-xs text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
+                      />
+                      {showPcList && (
+                        <div className="absolute z-[150] left-0 right-0 top-full mt-1.5 bg-[#18191d] border border-white/15 max-h-48 overflow-y-auto rounded-xl shadow-2xl divide-y divide-white/[0.06] custom-scrollbar">
+                          {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase()) || p.id.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => {
+                            const isOccupied = pc.status === "occupied" || (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > Date.now());
+                            const isSelected = manualData.pcId === pc.id || manualData.searchPc.toLowerCase() === pc.name.toLowerCase();
+                            return (
+                              <button
+                                key={pc.id}
+                                type="button"
+                                onClick={() => {
+                                  setManualData({ ...manualData, pcId: pc.id, searchPc: pc.name });
+                                  setShowPcList(false);
+                                  paketInputRef.current?.focus();
+                                }}
+                                className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
+                                  isSelected ? "bg-nvidia-green/20 text-nvidia-green font-bold" : "text-white"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <span className="font-semibold">{pc.name}</span>
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+                                    isOccupied ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                  }`}>
+                                    {isOccupied ? "Sedang Main" : "Kosong"}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-white/40 uppercase font-mono">Enter ↵</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="relative">
-                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilih PC</label>
-                    <input
-                      ref={pcInputRef}
-                      type="text"
-                      value={manualData.searchPc}
-                      onChange={e => {
-                        const val = e.target.value;
-                        const cleanVal = val.toLowerCase().trim();
-                        // Auto-match exact or single candidate
-                        const matched = db?.pcs?.find(p => p.name.toLowerCase() === cleanVal || p.id.toLowerCase() === cleanVal);
-                        if (matched) {
-                          setManualData({ ...manualData, searchPc: matched.name, pcId: matched.id });
-                        } else {
-                          const partials = (db?.pcs || []).filter(p => p.name.toLowerCase().includes(cleanVal) || p.id.toLowerCase().includes(cleanVal));
-                          setManualData({ ...manualData, searchPc: val, pcId: partials.length === 1 ? partials[0].id : "" });
-                        }
-                        setShowPcList(true);
-                      }}
-                      onKeyDown={e => {
-                        if (e.key === "Enter" || e.key === "Tab") {
-                          e.preventDefault();
-                          const cleanVal = manualData.searchPc.toLowerCase().trim();
-                          const matches = (db?.pcs || []).filter(p => p.name.toLowerCase().includes(cleanVal) || p.id.toLowerCase().includes(cleanVal));
-                          if (matches.length > 0) {
-                            setManualData({ ...manualData, searchPc: matches[0].name, pcId: matches[0].id });
-                          }
-                          setShowPcList(false);
-                          // Auto move focus to Paket input
-                          setTimeout(() => {
-                            paketInputRef.current?.focus();
-                          }, 10);
-                        }
-                      }}
-                      onFocus={() => setShowPcList(true)}
-                      placeholder="Ketik nama PC contoh MOYA atau TOM"
-                      className="w-full bg-surface-dark border border-hairline p-2.5 rounded text-sm text-white focus:border-nvidia-green outline-none"
-                    />
-                    {showPcList && (
-                      <div className="absolute z-[150] left-0 right-0 top-full mt-1 bg-[#141416] border border-white/15 max-h-48 overflow-y-auto rounded-xl shadow-2xl divide-y divide-white/[0.08]">
-                        {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase()) || p.id.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => {
-                          const isOccupied = pc.status === "occupied" || (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > Date.now());
-                          const isSelected = manualData.pcId === pc.id || manualData.searchPc.toLowerCase() === pc.name.toLowerCase();
-                          return (
+                  {/* Baris 2: Pilihan Paket Billing */}
+                  {(() => {
+                    const query = searchPaket.toLowerCase().trim();
+                    let customPkg: any = null;
+                    const parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
+
+                    let basePakets = (db?.pakets || []).filter(p => !p.is_custom);
+
+                    // Filter by tab
+                    if (modalPaketTab === 'jam') {
+                      basePakets = basePakets.filter(p => p.name.endsWith(' Jam') && !p.fixed_start_time);
+                    } else if (modalPaketTab === 'spesial') {
+                      basePakets = basePakets.filter(p => Boolean(p.fixed_start_time && p.fixed_end_time));
+                    } else if (modalPaketTab === 'hemat') {
+                      basePakets = basePakets.filter(p => !p.name.endsWith(' Jam') && !p.fixed_start_time);
+                    }
+
+                    // Filter by search query
+                    const filtered = basePakets.filter(p =>
+                      p.name.toLowerCase().includes(query) ||
+                      p.price.toString().includes(query) ||
+                      (p.duration_minutes && p.duration_minutes.toString().includes(query)) ||
+                      (p.fixed_start_time && p.fixed_start_time.includes(query))
+                    );
+
+                    // Instant custom package preview if typed price is >= 3000
+                    if (query && parsedPrice >= 3000 && !filtered.some(p => p.price === parsedPrice)) {
+                      const calcMins = Math.floor((parsedPrice / 4000) * 60);
+                      customPkg = {
+                        id: `custom-${parsedPrice}`,
+                        name: `Paket Kustom Rp ${parsedPrice.toLocaleString('id-ID')}`,
+                        price: parsedPrice,
+                        duration_minutes: calcMins,
+                        is_custom: true
+                      };
+                    }
+
+                    const currentList = customPkg ? [customPkg, ...filtered] : filtered;
+
+                    return (
+                      <div className="space-y-3 pt-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="text-[11px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                            <Clock size={13} className="text-nvidia-green" />
+                            Pilihan Paket Billing
+                          </label>
+
+                          {/* Kategori Tabs */}
+                          <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] self-start sm:self-auto">
                             <button
-                              key={pc.id}
                               type="button"
-                              onClick={() => {
-                                setManualData({ ...manualData, pcId: pc.id, searchPc: pc.name });
-                                setShowPcList(false);
-                                paketInputRef.current?.focus();
-                              }}
-                              className={`w-full text-left px-3 py-2.5 text-xs flex items-center justify-between transition hover:bg-white/[0.1] ${
-                                isSelected ? "bg-nvidia-green/20 text-nvidia-green font-bold" : "text-white"
+                              onClick={() => setModalPaketTab('all')}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
+                                modalPaketTab === 'all'
+                                  ? 'bg-white/15 text-white shadow-sm'
+                                  : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              <div className="flex items-center gap-2">
-                                <span>{pc.name}</span>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
-                                  isOccupied ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                                }`}>
-                                  {isOccupied ? "Main" : "Kosong"}
-                                </span>
-                              </div>
-                              <span className="text-[10px] text-white/50 uppercase font-semibold">Enter ↵</span>
+                              Semua
                             </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-bold text-white/50 uppercase block mb-1">Pilihan Paket Main</label>
-                    {(() => {
-                      const query = searchPaket.toLowerCase().trim();
-                      let customPkg = null;
-                      let parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
-
-                      const filtered = (db?.pakets || []).filter(p =>
-                        !p.is_custom && (p.name.toLowerCase().includes(query) || p.price.toString().includes(query))
-                      );
-
-                      if (query && parsedPrice >= 3000 && !filtered.some(p => p.price === parsedPrice)) {
-                        customPkg = {
-                          id: `custom-${parsedPrice}`,
-                          name: `Paket Kustom Rp ${parsedPrice.toLocaleString('id-ID')}`,
-                          price: parsedPrice
-                        };
-                      }
-
-                      const currentList = customPkg ? [customPkg, ...filtered] : filtered;
-
-                      return (
-                        <>
-                          {/* Quick Chips Paket Populer */}
-                          <div className="flex flex-wrap gap-2 mb-2.5">
-                            {(db?.pakets || [])
-                              .filter(p => ['paket-1', 'paket-2', 'paket-3', 'paket-7'].includes(p.id) || (!p.is_custom && ['1 Jam', '2 Jam', '3 Jam'].includes(p.name)))
-                              .slice(0, 4)
-                              .map(pkg => {
-                                const isSelected = selectedPaket === pkg.id;
-                                return (
-                                  <button
-                                    key={`quick-${pkg.id}`}
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedPaket(pkg.id);
-                                      submitBtnRef.current?.focus();
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition shrink-0 ${
-                                      isSelected
-                                        ? "bg-nvidia-green text-black border-nvidia-green font-bold shadow-[0_0_12px_rgba(118,185,0,0.35)]"
-                                        : "bg-surface-dark border-hairline text-white/70 hover:text-white hover:border-white/20"
-                                    }`}
-                                  >
-                                    {pkg.name}
-                                  </button>
-                                );
-                              })}
+                            <button
+                              type="button"
+                              onClick={() => setModalPaketTab('jam')}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1 ${
+                                modalPaketTab === 'jam'
+                                  ? 'bg-blue-500/25 text-blue-300 border border-blue-500/40 shadow-sm'
+                                  : 'text-white/50 hover:text-white'
+                              }`}
+                            >
+                              <Clock size={11} />
+                              Jam
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setModalPaketTab('spesial')}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1 ${
+                                modalPaketTab === 'spesial'
+                                  ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm'
+                                  : 'text-white/50 hover:text-white'
+                              }`}
+                            >
+                              <Moon size={11} />
+                              Malam
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setModalPaketTab('hemat')}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1 ${
+                                modalPaketTab === 'hemat'
+                                  ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm'
+                                  : 'text-white/50 hover:text-white'
+                              }`}
+                            >
+                              <Zap size={11} />
+                              Hemat
+                            </button>
                           </div>
+                        </div>
 
+                        {/* Search Bar Input */}
+                        <div className="relative">
+                          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
                           <input
                             ref={paketInputRef}
                             type="text"
@@ -1190,9 +1376,9 @@ export default function DataBookingPage() {
                               const q = val.toLowerCase().trim();
                               const parsed = parseInt(q.replace(/\D/g, '')) || 0;
                               const matches = (db?.pakets || []).filter(p => !p.is_custom && (p.name.toLowerCase().includes(q) || p.price.toString().includes(q)));
-                              
+
                               if (matches.length > 0) {
-                                setSelectedPaket(matches[0].id); // Auto highlight paket teratas
+                                setSelectedPaket(matches[0].id);
                               } else if (parsed >= 3000) {
                                 setSelectedPaket(`custom-${parsed}`);
                               }
@@ -1212,7 +1398,6 @@ export default function DataBookingPage() {
                                 }
                               } else if (e.key === "Enter" || e.key === "Tab") {
                                 e.preventDefault();
-                                // Select current highlighted or first item in list
                                 if (!selectedPaket && currentList.length > 0) {
                                   setSelectedPaket(currentList[0].id);
                                 }
@@ -1221,12 +1406,32 @@ export default function DataBookingPage() {
                                 }, 10);
                               }
                             }}
-                            placeholder="Cari paket atau ketik nominal contoh 5000 atau Malam"
-                            className="w-full bg-surface-dark border border-hairline p-2.5 rounded-lg text-sm text-white focus:border-nvidia-green outline-none mb-2"
+                            placeholder="Cari paket atau ketik nominal uang contoh: 5000, 2 jam, malam..."
+                            className="w-full bg-[#141518] border border-white/10 pl-9 pr-8 py-2.5 rounded-xl text-xs text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
                           />
-                          <div className="max-h-56 overflow-y-auto space-y-2 p-1 custom-scrollbar">
-                            {currentList.map(pkg => {
+                          {searchPaket && (
+                            <button
+                              type="button"
+                              onClick={() => setSearchPaket("")}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
+                            >
+                              <X size={13} />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Grid Kartu Paket */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-64 overflow-y-auto pr-1.5 custom-scrollbar">
+                          {currentList.length === 0 ? (
+                            <div className="col-span-1 sm:col-span-2 py-8 text-center bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                              <p className="text-xs text-white/40">Tidak ada paket yang sesuai dengan pencarian.</p>
+                              <p className="text-[11px] text-white/30 mt-1">Coba ketik nominal uang langsung seperti 5000 atau 10000.</p>
+                            </div>
+                          ) : (
+                            currentList.map(pkg => {
                               const isSelected = selectedPaket === pkg.id;
+                              const meta = getPaketMeta(pkg);
+
                               return (
                                 <button
                                   key={pkg.id}
@@ -1235,53 +1440,134 @@ export default function DataBookingPage() {
                                     setSelectedPaket(pkg.id);
                                     submitBtnRef.current?.focus();
                                   }}
-                                  className={`w-full px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-between border transition ${
+                                  className={`p-3 rounded-xl text-left border transition relative flex flex-col justify-between gap-2.5 ${
                                     isSelected
-                                      ? "bg-nvidia-green/20 border-nvidia-green text-nvidia-green font-bold shadow-[0_0_12px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green/40"
-                                      : "bg-surface-dark border-hairline text-white/70 hover:text-white hover:border-white/20"
+                                      ? "bg-gradient-to-br from-nvidia-green/15 to-transparent border-nvidia-green shadow-[0_0_15px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green/50"
+                                      : "bg-[#141518] border-white/[0.08] hover:border-white/20 hover:bg-white/[0.03]"
                                   }`}
                                 >
-                                  <div className="flex items-center gap-2.5">
+                                  {/* Baris Atas: Badge Vibe & Indikator Pilihan */}
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${meta.badgeColor}`}>
+                                      {meta.badge}
+                                    </span>
                                     {isSelected ? (
-                                      <span className="w-2 h-2 rounded-full bg-nvidia-green shrink-0 shadow-[0_0_8px_rgba(118,185,0,0.8)]" />
+                                      <CheckCircle2 size={16} className="text-nvidia-green shrink-0 drop-shadow-[0_0_6px_rgba(118,185,0,0.8)]" />
                                     ) : (
-                                      <span className="w-2 h-2 rounded-full bg-white/20 shrink-0" />
+                                      <span className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0" />
                                     )}
-                                    <span className="font-semibold">{pkg.name}</span>
                                   </div>
-                                  <span className="font-bold text-nvidia-green tabular-nums">Rp {pkg.price.toLocaleString("id-ID")}</span>
+
+                                  {/* Baris Tengah: Nama & Durasi Gamblang */}
+                                  <div>
+                                    <h4 className="text-xs font-bold text-white flex items-center justify-between gap-1">
+                                      <span className="truncate">{pkg.name}</span>
+                                    </h4>
+                                    <p className="text-[11px] text-white/60 font-medium flex items-center gap-1 mt-0.5">
+                                      <Clock size={11} className="text-white/40 shrink-0" />
+                                      <span>{meta.duration}</span>
+                                    </p>
+                                  </div>
+
+                                  {/* Baris Bawah: Deskripsi & Harga */}
+                                  <div className="pt-1.5 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                                    <span className="text-[10px] text-white/40 truncate">
+                                      {meta.desc}
+                                    </span>
+                                    <span className="text-xs font-extrabold text-nvidia-green tabular-nums shrink-0">
+                                      Rp {pkg.price.toLocaleString("id-ID")}
+                                    </span>
+                                  </div>
                                 </button>
                               );
-                            })}
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
+                            })
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
-                <div className="flex gap-2 pt-3">
-                  <button
-                    onClick={() => {
-                      setShowManual(false);
-                      setEditBookingId(null);
-                    }}
-                    className="flex-1 py-2.5 bg-surface-dark hover:bg-white/10 rounded text-xs font-bold uppercase text-white/60"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    ref={submitBtnRef}
-                    onClick={handleManualSubmit}
-                    disabled={loadingId === 'manual-loading'}
-                    className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded text-xs uppercase hover:bg-[#88d600] focus:ring-2 focus:ring-nvidia-green/50 focus:outline-none"
-                  >
-                    {loadingId === 'manual-loading' ? 'Menyimpan...' : (editBookingId ? 'Simpan' : 'Simpan & Main')}
-                  </button>
-                </div>
+                {/* Modal Footer / Sticky Summary Bar */}
+                {(() => {
+                  const selectedPaketObj = (db?.pakets || []).find(p => p.id === selectedPaket) || (
+                    selectedPaket?.startsWith("custom-") ? {
+                      id: selectedPaket,
+                      name: `Paket Kustom Rp ${parseInt(selectedPaket.replace("custom-", "")).toLocaleString("id-ID")}`,
+                      price: parseInt(selectedPaket.replace("custom-", "")),
+                      is_custom: true
+                    } : null
+                  );
+                  const selectedPaketMeta = selectedPaketObj ? getPaketMeta(selectedPaketObj) : null;
+
+                  return (
+                    <div className="px-5 sm:px-6 py-4 border-t border-white/[0.08] bg-[#0c0d0f] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      {/* Ringkasan Pilihan */}
+                      <div className="min-w-0">
+                        {selectedPaketObj ? (
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0">
+                              <CheckCircle2 size={16} />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-white truncate flex items-center gap-2">
+                                <span>{selectedPaketObj.name}</span>
+                                <span className="text-nvidia-green font-extrabold tabular-nums">
+                                  Rp {selectedPaketObj.price.toLocaleString("id-ID")}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-white/50 truncate">
+                                {selectedPaketMeta?.duration} • PC: {manualData.searchPc || "Belum dipilih"}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-white/40 text-xs">
+                            <Clock size={15} />
+                            <span>Pilih paket billing di atas untuk melanjutkan</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tombol Aksi */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowManual(false);
+                            setEditBookingId(null);
+                          }}
+                          className="px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold uppercase tracking-wider text-white/70 transition"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          ref={submitBtnRef}
+                          type="button"
+                          onClick={handleManualSubmit}
+                          disabled={loadingId === 'manual-loading' || (!selectedPaket && !manualData.searchPc)}
+                          className="px-5 py-2.5 rounded-xl bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 disabled:hover:bg-nvidia-green text-black font-extrabold text-xs uppercase tracking-wider transition shadow-[0_0_20px_rgba(118,185,0,0.3)] active:scale-95 flex items-center gap-2"
+                        >
+                          {loadingId === 'manual-loading' ? (
+                            <>
+                              <RotateCw size={14} className="animate-spin" />
+                              <span>Menyimpan...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>{editBookingId ? 'Simpan' : 'Simpan & Main'}</span>
+                              <span className="text-[10px] font-mono opacity-60">↵</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </motion.div>
             </motion.div>
           )}
+
         </AnimatePresence>
 
         {/* Custom Confirm Modal Mengikuti Design System */}
