@@ -1111,52 +1111,60 @@ export default function DataBookingPage() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-[#0f1013] border border-white/10 w-full max-w-2xl max-h-[92vh] flex flex-col rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] overflow-hidden"
+                className="bg-[#0f1013] border border-white/10 w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.95)] overflow-hidden"
               >
                 {/* Modal Header */}
-                <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/[0.08] bg-white/[0.02]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0 shadow-[0_0_15px_rgba(118,185,0,0.2)]">
-                      {editBookingId ? <Pencil size={18} /> : <Plus size={18} />}
+                <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-white/[0.08] bg-white/[0.02]">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0 shadow-[0_0_15px_rgba(118,185,0,0.2)]">
+                      {editBookingId ? <Pencil size={20} /> : <Plus size={20} />}
                     </div>
                     <div>
-                      <h2 className="text-sm sm:text-base font-bold uppercase tracking-tight text-white flex items-center gap-2">
+                      <h2 className="text-base sm:text-lg font-bold uppercase tracking-tight text-white flex items-center gap-2">
                         {editBookingId ? "Ubah Data Booking" : "Booking Kasir Langsung"}
                       </h2>
-                      <p className="text-[11px] text-white/50">
-                        {editBookingId ? "Perbarui informasi PC dan durasi paket billing" : "Pilih PC dan paket billing untuk langsung memulai sesi"}
+                      <p className="text-xs text-white/50 mt-0.5">
+                        {editBookingId ? "Perbarui informasi PC dan durasi paket billing" : "Pilih unit PC dan durasi paket billing untuk langsung memulai sesi bermain"}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="hidden sm:inline-block text-[10px] font-mono text-white/40 bg-white/[0.06] border border-white/10 px-2 py-1 rounded-md">
-                      ESC Tutup
-                    </span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="hidden sm:flex items-center gap-1.5">
+                      <span className="text-[11px] font-mono text-white/40 bg-white/[0.06] border border-white/10 px-2 py-1 rounded-lg">
+                        F2 Buka
+                      </span>
+                      <span className="text-[11px] font-mono text-white/40 bg-white/[0.06] border border-white/10 px-2 py-1 rounded-lg">
+                        Enter Lanjut
+                      </span>
+                      <span className="text-[11px] font-mono text-white/40 bg-white/[0.06] border border-white/10 px-2 py-1 rounded-lg">
+                        ESC Tutup
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
                         setShowManual(false);
                         setEditBookingId(null);
                       }}
-                      className="text-white/40 hover:text-white p-1.5 rounded-lg hover:bg-white/[0.06] transition"
+                      className="text-white/40 hover:text-white p-2 rounded-xl hover:bg-white/[0.08] transition"
                     >
-                      <X size={18} />
+                      <X size={20} />
                     </button>
                   </div>
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-4 sm:p-6 overflow-y-auto space-y-4 custom-scrollbar">
-                  {/* Baris 1: Nama Pemain & Unit PC */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="p-6 sm:p-8 overflow-y-auto space-y-6 custom-scrollbar">
+                  {/* Baris 1: Nama Pemain & Unit PC (2 Kolom Lebar) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     {/* Nama Pemain */}
                     <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
-                          <User size={13} className="text-nvidia-green" />
-                          Nama Pemain
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                          <User size={14} className="text-nvidia-green" />
+                          1. Nama Pemain
                         </label>
-                        <span className="text-[10px] text-white/40 font-mono">Enter auto-ID</span>
+                        <span className="text-[11px] text-white/40 font-mono">Enter auto-ID</span>
                       </div>
                       <div className="relative">
                         <input
@@ -1176,23 +1184,26 @@ export default function DataBookingPage() {
                               }, 10);
                             }
                           }}
-                          placeholder={`Contoh User ${(db?.settings?.user_counter || 80) + 1} atau lewati`}
-                          className="w-full bg-[#141518] border border-white/10 px-3.5 py-2.5 rounded-xl text-xs text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
+                          placeholder={`Contoh User ${(db?.settings?.user_counter || 80) + 1} atau lewati langsung`}
+                          className="w-full h-12 bg-[#15161a] border border-white/10 px-4 rounded-xl text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-2 focus:ring-nvidia-green/30 outline-none transition"
                         />
                       </div>
                     </div>
 
                     {/* Unit PC */}
                     <div className="relative">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
-                          <Monitor size={13} className="text-nvidia-green" />
-                          Pilih Unit PC
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                          <Monitor size={14} className="text-nvidia-green" />
+                          2. Pilih Unit PC
                         </label>
-                        {manualData.pcId && (
-                          <span className="text-[10px] text-nvidia-green font-semibold">
-                            ✓ PC Terpilih
+                        {manualData.pcId ? (
+                          <span className="text-[11px] text-nvidia-green font-semibold flex items-center gap-1">
+                            <CheckCircle2 size={13} />
+                            PC Terpilih: {manualData.searchPc}
                           </span>
+                        ) : (
+                          <span className="text-[11px] text-white/40 font-mono">Ketik nama unit</span>
                         )}
                       </div>
                       <input
@@ -1226,11 +1237,11 @@ export default function DataBookingPage() {
                           }
                         }}
                         onFocus={() => setShowPcList(true)}
-                        placeholder="Ketik nama PC contoh MOYA atau TOM"
-                        className="w-full bg-[#141518] border border-white/10 px-3.5 py-2.5 rounded-xl text-xs text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
+                        placeholder="Ketik nama PC contoh MOYA atau TOM..."
+                        className="w-full h-12 bg-[#15161a] border border-white/10 px-4 rounded-xl text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-2 focus:ring-nvidia-green/30 outline-none transition"
                       />
                       {showPcList && (
-                        <div className="absolute z-[150] left-0 right-0 top-full mt-1.5 bg-[#18191d] border border-white/15 max-h-48 overflow-y-auto rounded-xl shadow-2xl divide-y divide-white/[0.06] custom-scrollbar">
+                        <div className="absolute z-[150] left-0 right-0 top-full mt-2 bg-[#191a20] border border-white/15 max-h-56 overflow-y-auto rounded-2xl shadow-2xl divide-y divide-white/[0.06] custom-scrollbar">
                           {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase()) || p.id.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => {
                             const isOccupied = pc.status === "occupied" || (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > Date.now());
                             const isSelected = manualData.pcId === pc.id || manualData.searchPc.toLowerCase() === pc.name.toLowerCase();
@@ -1243,19 +1254,19 @@ export default function DataBookingPage() {
                                   setShowPcList(false);
                                   paketInputRef.current?.focus();
                                 }}
-                                className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
+                                className={`w-full text-left px-4 py-3 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
                                   isSelected ? "bg-nvidia-green/20 text-nvidia-green font-bold" : "text-white"
                                 }`}
                               >
-                                <div className="flex items-center gap-2.5">
-                                  <span className="font-semibold">{pc.name}</span>
-                                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+                                <div className="flex items-center gap-3">
+                                  <span className="font-bold text-sm">{pc.name}</span>
+                                  <span className={`text-[11px] px-2.5 py-0.5 rounded-md font-semibold ${
                                     isOccupied ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                                   }`}>
                                     {isOccupied ? "Sedang Main" : "Kosong"}
                                   </span>
                                 </div>
-                                <span className="text-[10px] text-white/40 uppercase font-mono">Enter ↵</span>
+                                <span className="text-[11px] text-white/40 uppercase font-mono">Pilih (Enter ↵)</span>
                               </button>
                             );
                           })}
@@ -1264,7 +1275,7 @@ export default function DataBookingPage() {
                     </div>
                   </div>
 
-                  {/* Baris 2: Pilihan Paket Billing */}
+                  {/* Baris 2: Pilihan Paket Billing (3 Kolom Grid Luas) */}
                   {(() => {
                     const query = searchPaket.toLowerCase().trim();
                     let customPkg: any = null;
@@ -1304,68 +1315,68 @@ export default function DataBookingPage() {
                     const currentList = customPkg ? [customPkg, ...filtered] : filtered;
 
                     return (
-                      <div className="space-y-3 pt-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <label className="text-[11px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
-                            <Clock size={13} className="text-nvidia-green" />
-                            Pilihan Paket Billing
+                      <div className="space-y-4 pt-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                            <Clock size={14} className="text-nvidia-green" />
+                            3. Pilihan Paket Billing
                           </label>
 
-                          {/* Kategori Tabs */}
-                          <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] self-start sm:self-auto">
+                          {/* Kategori Tabs Luas */}
+                          <div className="flex items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.08] self-start sm:self-auto">
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('all')}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
                                 modalPaketTab === 'all'
-                                  ? 'bg-white/15 text-white shadow-sm'
+                                  ? 'bg-white/15 text-white shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              Semua
+                              Semua Paket
                             </button>
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('jam')}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1 ${
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
                                 modalPaketTab === 'jam'
-                                  ? 'bg-blue-500/25 text-blue-300 border border-blue-500/40 shadow-sm'
+                                  ? 'bg-blue-500/25 text-blue-300 border border-blue-500/40 shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              <Clock size={11} />
-                              Jam
+                              <Clock size={13} />
+                              Jam Reguler
                             </button>
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('spesial')}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1 ${
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
                                 modalPaketTab === 'spesial'
-                                  ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm'
+                                  ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              <Moon size={11} />
-                              Malam
+                              <Moon size={13} />
+                              Spesial Malam
                             </button>
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('hemat')}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1 ${
+                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
                                 modalPaketTab === 'hemat'
-                                  ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm'
+                                  ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              <Zap size={11} />
-                              Hemat
+                              <Zap size={13} />
+                              Hemat Tongkrongan
                             </button>
                           </div>
                         </div>
 
                         {/* Search Bar Input */}
                         <div className="relative">
-                          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+                          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
                           <input
                             ref={paketInputRef}
                             type="text"
@@ -1406,26 +1417,26 @@ export default function DataBookingPage() {
                                 }, 10);
                               }
                             }}
-                            placeholder="Cari paket atau ketik nominal uang contoh: 5000, 2 jam, malam..."
-                            className="w-full bg-[#141518] border border-white/10 pl-9 pr-8 py-2.5 rounded-xl text-xs text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
+                            placeholder="Cari paket atau ketik nominal uang (contoh: 5000, 2 jam, malam, 10000)..."
+                            className="w-full h-12 bg-[#15161a] border border-white/10 pl-11 pr-10 rounded-xl text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-2 focus:ring-nvidia-green/30 outline-none transition"
                           />
                           {searchPaket && (
                             <button
                               type="button"
                               onClick={() => setSearchPaket("")}
-                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
+                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
                             >
-                              <X size={13} />
+                              <X size={15} />
                             </button>
                           )}
                         </div>
 
-                        {/* Grid Kartu Paket */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-64 overflow-y-auto pr-1.5 custom-scrollbar">
+                        {/* Grid Kartu Paket (3 Kolom di Layar Lebar) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
                           {currentList.length === 0 ? (
-                            <div className="col-span-1 sm:col-span-2 py-8 text-center bg-white/[0.02] border border-white/[0.06] rounded-xl">
-                              <p className="text-xs text-white/40">Tidak ada paket yang sesuai dengan pencarian.</p>
-                              <p className="text-[11px] text-white/30 mt-1">Coba ketik nominal uang langsung seperti 5000 atau 10000.</p>
+                            <div className="col-span-1 md:col-span-2 lg:col-span-3 py-12 text-center bg-white/[0.02] border border-white/[0.06] rounded-2xl">
+                              <p className="text-sm text-white/50 font-semibold">Tidak ada paket yang sesuai dengan pencarian.</p>
+                              <p className="text-xs text-white/30 mt-1">Ketik nominal uang langsung seperti 5000 atau 10000 untuk paket pas.</p>
                             </div>
                           ) : (
                             currentList.map(pkg => {
@@ -1440,41 +1451,41 @@ export default function DataBookingPage() {
                                     setSelectedPaket(pkg.id);
                                     submitBtnRef.current?.focus();
                                   }}
-                                  className={`p-3 rounded-xl text-left border transition relative flex flex-col justify-between gap-2.5 ${
+                                  className={`p-4 rounded-2xl text-left border transition-all relative flex flex-col justify-between gap-3 ${
                                     isSelected
-                                      ? "bg-gradient-to-br from-nvidia-green/15 to-transparent border-nvidia-green shadow-[0_0_15px_rgba(118,185,0,0.2)] ring-1 ring-nvidia-green/50"
-                                      : "bg-[#141518] border-white/[0.08] hover:border-white/20 hover:bg-white/[0.03]"
+                                      ? "bg-nvidia-green/[0.08] border-2 border-nvidia-green shadow-[0_0_20px_rgba(118,185,0,0.18)]"
+                                      : "bg-[#15161a] border-white/[0.08] hover:border-white/20 hover:bg-white/[0.03]"
                                   }`}
                                 >
-                                  {/* Baris Atas: Badge Vibe & Indikator Pilihan */}
+                                  {/* Baris Atas: Badge Kategori & Checkmark */}
                                   <div className="flex items-center justify-between gap-2">
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${meta.badgeColor}`}>
+                                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border ${meta.badgeColor}`}>
                                       {meta.badge}
                                     </span>
                                     {isSelected ? (
-                                      <CheckCircle2 size={16} className="text-nvidia-green shrink-0 drop-shadow-[0_0_6px_rgba(118,185,0,0.8)]" />
+                                      <CheckCircle2 size={18} className="text-nvidia-green shrink-0 drop-shadow-[0_0_8px_rgba(118,185,0,0.8)]" />
                                     ) : (
-                                      <span className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0" />
+                                      <span className="w-4 h-4 rounded-full border border-white/20 shrink-0" />
                                     )}
                                   </div>
 
                                   {/* Baris Tengah: Nama & Durasi Gamblang */}
-                                  <div>
-                                    <h4 className="text-xs font-bold text-white flex items-center justify-between gap-1">
-                                      <span className="truncate">{pkg.name}</span>
+                                  <div className="space-y-1">
+                                    <h4 className="text-sm font-bold text-white tracking-tight">
+                                      {pkg.name}
                                     </h4>
-                                    <p className="text-[11px] text-white/60 font-medium flex items-center gap-1 mt-0.5">
-                                      <Clock size={11} className="text-white/40 shrink-0" />
+                                    <p className="text-xs text-white/80 font-semibold flex items-center gap-1.5">
+                                      <Clock size={12} className="text-white/40 shrink-0" />
                                       <span>{meta.duration}</span>
                                     </p>
                                   </div>
 
                                   {/* Baris Bawah: Deskripsi & Harga */}
-                                  <div className="pt-1.5 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                                    <span className="text-[10px] text-white/40 truncate">
+                                  <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                                    <span className="text-[11px] text-white/40 truncate">
                                       {meta.desc}
                                     </span>
-                                    <span className="text-xs font-extrabold text-nvidia-green tabular-nums shrink-0">
+                                    <span className="text-base font-black text-nvidia-green tabular-nums shrink-0">
                                       Rp {pkg.price.toLocaleString("id-ID")}
                                     </span>
                                   </div>
@@ -1501,62 +1512,68 @@ export default function DataBookingPage() {
                   const selectedPaketMeta = selectedPaketObj ? getPaketMeta(selectedPaketObj) : null;
 
                   return (
-                    <div className="px-5 sm:px-6 py-4 border-t border-white/[0.08] bg-[#0c0d0f] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="px-6 sm:px-8 py-5 border-t border-white/[0.08] bg-[#0c0d0f] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       {/* Ringkasan Pilihan */}
                       <div className="min-w-0">
                         {selectedPaketObj ? (
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0">
-                              <CheckCircle2 size={16} />
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0">
+                              <CheckCircle2 size={18} />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-bold text-white truncate flex items-center gap-2">
+                              <div className="text-sm font-bold text-white truncate flex items-center gap-2">
                                 <span>{selectedPaketObj.name}</span>
-                                <span className="text-nvidia-green font-extrabold tabular-nums">
+                                <span className="text-nvidia-green font-black tabular-nums">
                                   Rp {selectedPaketObj.price.toLocaleString("id-ID")}
                                 </span>
                               </div>
-                              <p className="text-[11px] text-white/50 truncate">
-                                {selectedPaketMeta?.duration} • PC: {manualData.searchPc || "Belum dipilih"}
+                              <p className="text-xs text-white/60 truncate mt-0.5">
+                                {selectedPaketMeta?.duration} • PC: <span className="text-white font-semibold">{manualData.searchPc || "Belum dipilih"}</span>
                               </p>
                             </div>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-white/40 text-xs">
-                            <Clock size={15} />
-                            <span>Pilih paket billing di atas untuk melanjutkan</span>
+                            <Clock size={16} />
+                            <span>Pilih paket billing di atas atau ketik nominal untuk lanjut</span>
                           </div>
                         )}
                       </div>
 
                       {/* Tombol Aksi */}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-3 shrink-0">
                         <button
                           type="button"
                           onClick={() => {
                             setShowManual(false);
                             setEditBookingId(null);
                           }}
-                          className="px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold uppercase tracking-wider text-white/70 transition"
+                          className="px-5 py-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold uppercase tracking-wider text-white/70 transition"
                         >
-                          Batal
+                          Batal (ESC)
                         </button>
                         <button
                           ref={submitBtnRef}
                           type="button"
                           onClick={handleManualSubmit}
+                          onKeyDown={e => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleManualSubmit();
+                            }
+                          }}
                           disabled={loadingId === 'manual-loading' || (!selectedPaket && !manualData.searchPc)}
-                          className="px-5 py-2.5 rounded-xl bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 disabled:hover:bg-nvidia-green text-black font-extrabold text-xs uppercase tracking-wider transition shadow-[0_0_20px_rgba(118,185,0,0.3)] active:scale-95 flex items-center gap-2"
+                          className="px-7 py-3 rounded-xl bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 disabled:hover:bg-nvidia-green text-black font-black text-xs uppercase tracking-wider transition shadow-[0_0_25px_rgba(118,185,0,0.35)] active:scale-95 flex items-center gap-2.5"
                         >
                           {loadingId === 'manual-loading' ? (
                             <>
-                              <RotateCw size={14} className="animate-spin" />
+                              <RotateCw size={15} className="animate-spin" />
                               <span>Menyimpan...</span>
                             </>
                           ) : (
                             <>
-                              <span>{editBookingId ? 'Simpan' : 'Simpan & Main'}</span>
-                              <span className="text-[10px] font-mono opacity-60">↵</span>
+                              <span>{editBookingId ? 'Simpan Perubahan' : 'Simpan & Main'}</span>
+                              <span className="text-[11px] font-mono opacity-70">↵</span>
                             </>
                           )}
                         </button>
