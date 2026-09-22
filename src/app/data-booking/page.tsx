@@ -43,7 +43,6 @@ export default function DataBookingPage() {
   const [searchPaket, setSearchPaket] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPaket, setSelectedPaket] = useState<string | null>(null);
-  const [modalPaketTab, setModalPaketTab] = useState<'all' | 'jam' | 'spesial' | 'hemat'>('all');
 
   const getPaketMeta = (pkg: {
     id: string;
@@ -58,11 +57,11 @@ export default function DataBookingPage() {
       const mins = pkg.duration_minutes || Math.floor((pkg.price / 4000) * 60);
       const h = Math.floor(mins / 60);
       const m = mins % 60;
-      const dur = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
+      const dur = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${mins} Menit`;
       return {
         displayName: `Paket Pas Rp ${pkg.price.toLocaleString('id-ID')}`,
-        category: 'hemat' as const,
-        duration: `${dur} (${mins} Mnt)`,
+        category: 'uang_pas' as const,
+        duration: dur,
         order: 999
       };
     }
@@ -82,7 +81,7 @@ export default function DataBookingPage() {
       return {
         displayName: pkg.name,
         category: 'jam' as const,
-        duration: `${h * 60} Menit (${h} Jam)`,
+        duration: `${h} Jam`,
         order: h
       };
     }
@@ -99,12 +98,12 @@ export default function DataBookingPage() {
     const mins = pkg.duration_minutes || Math.round((pkg.price / 4000) * 60);
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    const dur = h > 0 && m > 0 ? `${h}j ${m}m` : h > 0 ? `${h} Jam` : `${m} Menit`;
+    const dur = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${mins} Menit`;
 
     return {
       displayName: slangName,
-      category: 'hemat' as const,
-      duration: `${dur} (${mins} Mnt)`,
+      category: 'uang_pas' as const,
+      duration: dur,
       order: pkg.price
     };
   };
@@ -172,7 +171,6 @@ export default function DataBookingPage() {
         setManualData({ playerName: "", pcId: "", searchPc: "" });
         setSearchPaket("");
         setSelectedPaket(null);
-        setModalPaketTab("all");
         setShowManual(true);
       }
       if (e.key === 'Escape') {
@@ -331,7 +329,6 @@ export default function DataBookingPage() {
     const pcName = db?.pcs?.find(p => p.id === b.pc_id)?.name || "";
     setManualData({ playerName: b.player_name, pcId: b.pc_id, searchPc: pcName });
     setSelectedPaket(b.paket_id);
-    setModalPaketTab("all");
     setShowManual(true);
   };
 
@@ -555,7 +552,6 @@ export default function DataBookingPage() {
                   setManualData({ playerName: "", pcId: "", searchPc: "" });
                   setSearchPaket("");
                   setSelectedPaket(null);
-                  setModalPaketTab("all");
                   setShowManual(true);
                 }}
                 className="flex items-center gap-2 px-4 xl:px-5 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs xl:text-sm uppercase tracking-wider rounded-xl transition shadow-[0_0_20px_rgba(118,185,0,0.25)] shrink-0 active:scale-95"
@@ -1272,7 +1268,7 @@ export default function DataBookingPage() {
                       const calcMins = Math.floor((parsedPrice / 4000) * 60);
                       const h = Math.floor(calcMins / 60);
                       const m = calcMins % 60;
-                      const durStr = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
+                      const durStr = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${calcMins} Menit`;
                       customItem = {
                         id: `custom-${parsedPrice}`,
                         name: `Paket Pas Rp ${parsedPrice.toLocaleString('id-ID')}`,
@@ -1281,27 +1277,27 @@ export default function DataBookingPage() {
                         is_custom: true,
                         meta: {
                           displayName: `Paket Pas Rp ${parsedPrice.toLocaleString('id-ID')}`,
-                          category: 'hemat' as const,
-                          duration: `${durStr} (${calcMins} Mnt)`,
+                          category: 'uang_pas' as const,
+                          duration: durStr,
                           order: 999
                         }
                       };
                     }
 
-                    // 3. Group logically:
-                    // Group 1: Jam Reguler (sorted 1 Jam -> 2 Jam -> 3 Jam -> 4 Jam -> 5 Jam)
+                    // 3. Strict Hierarchy:
+                    // 1. Jam Reguler (sorted 1 Jam -> 2 Jam -> 3 Jam -> 4 Jam -> 5 Jam)
                     const jamGroup = rawList
                       .filter(p => p.meta.category === 'jam')
                       .sort((a, b) => a.meta.order - b.meta.order);
 
-                    // Group 2: Spesial & Malam (sorted by price)
-                    const spesialGroup = rawList
-                      .filter(p => p.meta.category === 'spesial')
+                    // 2. Uang Pas (sorted by price 3k, 5k, 6k, 7k, 9k, 10k, 15k)
+                    const uangPasGroup = rawList
+                      .filter(p => p.meta.category === 'uang_pas')
                       .sort((a, b) => a.price - b.price);
 
-                    // Group 3: Hemat / Uang Pas (sorted by price 3k, 5k, 6k, 7k, 9k, 10k, 15k)
-                    const hematGroup = rawList
-                      .filter(p => p.meta.category === 'hemat')
+                    // 3. Spesial & Malam (sorted by price)
+                    const spesialGroup = rawList
+                      .filter(p => p.meta.category === 'spesial')
                       .sort((a, b) => a.price - b.price);
 
                     // Filter function for search input
@@ -1317,15 +1313,15 @@ export default function DataBookingPage() {
                     };
 
                     const filteredJam = jamGroup.filter(matchesQuery);
+                    const filteredUangPas = uangPasGroup.filter(matchesQuery);
                     const filteredSpesial = spesialGroup.filter(matchesQuery);
-                    const filteredHemat = hematGroup.filter(matchesQuery);
 
-                    // Master ordered list for keyboard navigation
+                    // Master ordered list for keyboard navigation (matches visual hierarchy)
                     const keyboardList: any[] = [];
                     if (customItem) keyboardList.push(customItem);
-                    if (modalPaketTab === 'all' || modalPaketTab === 'jam') keyboardList.push(...filteredJam);
-                    if (modalPaketTab === 'all' || modalPaketTab === 'spesial') keyboardList.push(...filteredSpesial);
-                    if (modalPaketTab === 'all' || modalPaketTab === 'hemat') keyboardList.push(...filteredHemat);
+                    keyboardList.push(...filteredJam);
+                    keyboardList.push(...filteredUangPas);
+                    keyboardList.push(...filteredSpesial);
 
                     // Compact Tile Renderer (Zero fluff, zero marketing text, zero redundant capsule)
                     const renderTile = (pkg: any) => {
@@ -1369,62 +1365,14 @@ export default function DataBookingPage() {
 
                     return (
                       <div className="space-y-3 pt-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                        <div className="flex items-center justify-between gap-2.5">
                           <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
                             <Clock size={14} className="text-nvidia-green" />
                             3. Pilihan Paket Billing
                           </label>
-
-                          {/* Kategori Tabs */}
-                          <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] self-start sm:self-auto">
-                            <button
-                              type="button"
-                              onClick={() => setModalPaketTab('all')}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                                modalPaketTab === 'all'
-                                  ? 'bg-white/15 text-white shadow-sm font-bold'
-                                  : 'text-white/50 hover:text-white'
-                              }`}
-                            >
-                              Semua
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setModalPaketTab('jam')}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
-                                modalPaketTab === 'jam'
-                                  ? 'bg-blue-500/25 text-blue-300 border border-blue-500/40 shadow-sm font-bold'
-                                  : 'text-white/50 hover:text-white'
-                              }`}
-                            >
-                              <Clock size={12} />
-                              Jam Reguler
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setModalPaketTab('spesial')}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
-                                modalPaketTab === 'spesial'
-                                  ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm font-bold'
-                                  : 'text-white/50 hover:text-white'
-                              }`}
-                            >
-                              <Moon size={12} />
-                              Spesial & Malam
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setModalPaketTab('hemat')}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
-                                modalPaketTab === 'hemat'
-                                  ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm font-bold'
-                                  : 'text-white/50 hover:text-white'
-                              }`}
-                            >
-                              <Zap size={12} />
-                              Uang Pas / Hemat
-                            </button>
-                          </div>
+                          <span className="text-[11px] text-white/40 font-mono hidden sm:inline-block">
+                            Pilih via klik atau panah ↑ ↓ Enter
+                          </span>
                         </div>
 
                         {/* Search Bar Input */}
@@ -1484,7 +1432,7 @@ export default function DataBookingPage() {
                           )}
                         </div>
 
-                        {/* List Paket Terkelompok Kompak */}
+                        {/* List Paket Terkelompok: 1. Jam Reguler -> 2. Uang Pas -> 3. Spesial & Malam */}
                         <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1.5 custom-scrollbar">
                           {keyboardList.length === 0 ? (
                             <div className="py-8 text-center bg-white/[0.02] border border-white/[0.06] rounded-xl">
@@ -1496,7 +1444,8 @@ export default function DataBookingPage() {
                               {customItem && (
                                 <div>
                                   <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                                    ✨ Paket Uang Pas Kustom
+                                    <Sparkles size={12} className="shrink-0" />
+                                    <span>Paket Uang Pas Kustom</span>
                                   </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                     {renderTile(customItem)}
@@ -1504,41 +1453,41 @@ export default function DataBookingPage() {
                                 </div>
                               )}
 
-                              {(modalPaketTab === 'all' || modalPaketTab === 'jam') && filteredJam.length > 0 && (
+                              {filteredJam.length > 0 && (
                                 <div>
-                                  {modalPaketTab === 'all' && (
-                                    <div className="text-[11px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                                      <Clock size={12} /> Jam Reguler ({filteredJam.length})
-                                    </div>
-                                  )}
+                                  <div className="text-[11px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                    <Clock size={12} className="shrink-0" />
+                                    <span>Jam Reguler</span>
+                                    <span className="text-white/40 font-normal">({filteredJam.length})</span>
+                                  </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                     {filteredJam.map(renderTile)}
                                   </div>
                                 </div>
                               )}
 
-                              {(modalPaketTab === 'all' || modalPaketTab === 'spesial') && filteredSpesial.length > 0 && (
+                              {filteredUangPas.length > 0 && (
                                 <div>
-                                  {modalPaketTab === 'all' && (
-                                    <div className="text-[11px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                                      <Moon size={12} /> Spesial & Malam ({filteredSpesial.length})
-                                    </div>
-                                  )}
+                                  <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                    <Zap size={12} className="shrink-0" />
+                                    <span>Uang Pas</span>
+                                    <span className="text-white/40 font-normal">({filteredUangPas.length})</span>
+                                  </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                    {filteredSpesial.map(renderTile)}
+                                    {filteredUangPas.map(renderTile)}
                                   </div>
                                 </div>
                               )}
 
-                              {(modalPaketTab === 'all' || modalPaketTab === 'hemat') && filteredHemat.length > 0 && (
+                              {filteredSpesial.length > 0 && (
                                 <div>
-                                  {modalPaketTab === 'all' && (
-                                    <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                                      <Zap size={12} /> Uang Pas / Hemat ({filteredHemat.length})
-                                    </div>
-                                  )}
+                                  <div className="text-[11px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                    <Moon size={12} className="shrink-0" />
+                                    <span>Spesial & Malam</span>
+                                    <span className="text-white/40 font-normal">({filteredSpesial.length})</span>
+                                  </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                                    {filteredHemat.map(renderTile)}
+                                    {filteredSpesial.map(renderTile)}
                                   </div>
                                 </div>
                               )}
