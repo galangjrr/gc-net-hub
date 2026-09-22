@@ -693,28 +693,10 @@ export default function DataBookingPage() {
                               {(pc?.name || b.pc_id).toUpperCase()}
                             </span>
                           </div>
-                          {isLayered ? (
+                          {isLayered && (
                             <span className="text-xs font-semibold text-cyan-400/90 inline-flex items-center gap-1.5">
                               <Clock size={12} className="shrink-0 text-cyan-400" />
                               Antre setelah {prevPlayerName}
-                            </span>
-                          ) : pc?.expected_empty_time ? (
-                            <span className={`text-xs inline-flex items-center gap-1.5 tabular-nums ${
-                              isExpired 
-                                ? "text-red-400 font-semibold" 
-                                : isWarning 
-                                ? "text-amber-400 font-semibold" 
-                                : "text-zinc-400"
-                            }`}>
-                              <Hourglass size={12} className={isExpired ? "animate-spin text-red-400" : isWarning ? "text-amber-400" : "text-zinc-400"} />
-                              {isExpired 
-                                ? "Sesi Pemain Habis" 
-                                : `Sedang Dimainkan (Sisa ${mins}m)`}
-                            </span>
-                          ) : (
-                            <span className="text-xs font-semibold text-emerald-400/90 inline-flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                              PC Kosong
                             </span>
                           )}
                         </div>
@@ -738,9 +720,16 @@ export default function DataBookingPage() {
                           <div className="w-6 h-6 xl:w-7 xl:h-7 rounded-lg bg-surface-soft border border-hairline/60 flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {b.player_name.slice(0, 1).toUpperCase()}
                           </div>
-                          <span className="font-bold text-white text-xs xl:text-sm leading-tight truncate">
-                            {b.player_name}
-                          </span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-white text-xs xl:text-sm leading-tight truncate">
+                              {b.player_name}
+                            </span>
+                            {b.member_id && (
+                              <span className="text-[10px] text-nvidia-green font-semibold uppercase tracking-wider">
+                                Member
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
 
@@ -750,10 +739,6 @@ export default function DataBookingPage() {
                           {isPending ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold tracking-wide">
                               <Clock size={12} className="animate-spin" /> Menunggu Konfirmasi
-                            </span>
-                          ) : isExpired || !pc?.expected_empty_time ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold tracking-wide animate-pulse">
-                              <CheckCircle2 size={12} /> Giliran Main
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-bold tracking-wide">
@@ -835,13 +820,9 @@ export default function DataBookingPage() {
                                 <button
                                   disabled={loadingId === b.id}
                                   onClick={() => handleAction(b.id, 'complete', b.player_name, pc?.name)}
-                                  className={`px-4 xl:px-5 py-2 xl:py-2.5 font-bold text-xs xl:text-sm rounded-lg transition flex items-center gap-1.5 shrink-0 ${
-                                    isExpired
-                                      ? "bg-nvidia-green hover:bg-[#88d600] text-black shadow-[0_0_15px_rgba(118,185,0,0.5)] animate-pulse"
-                                      : "bg-nvidia-green hover:bg-[#88d600] text-black shadow-sm"
-                                  }`}
+                                  className="px-4 xl:px-5 py-2 xl:py-2.5 font-bold text-xs xl:text-sm rounded-lg transition flex items-center gap-1.5 shrink-0 bg-nvidia-green hover:bg-[#88d600] text-black shadow-sm"
                                 >
-                                  <Play size={13} className="fill-black" /> Mulai Main
+                                  <Play size={13} className="fill-black" /> Tandai Masuk
                                 </button>
                               )}
                             </>
@@ -916,10 +897,6 @@ export default function DataBookingPage() {
                         <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                           <Clock size={11} className="animate-spin" /> Verifikasi
                         </span>
-                      ) : isExpired || !pc?.expected_empty_time ? (
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider flex items-center gap-1 animate-pulse">
-                          <CheckCircle2 size={11} /> Giliran Main
-                        </span>
                       ) : (
                         <span className="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
                           <Hourglass size={11} /> Menunggu Giliran
@@ -938,6 +915,9 @@ export default function DataBookingPage() {
                         </div>
                         <div className="flex flex-col min-w-0">
                           <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
+                          {b.member_id && (
+                            <span className="text-[10px] text-nvidia-green font-semibold uppercase tracking-wider">Member</span>
+                          )}
                           <span className="text-xs text-nvidia-green font-semibold">{pkgTitle}</span>
                         </div>
                       </div>
@@ -954,27 +934,10 @@ export default function DataBookingPage() {
                       <span className="font-bold text-base text-nvidia-green tabular-nums">
                         Rp {resolvedPrice.toLocaleString("id-ID")}
                       </span>
-                      {isLayered ? (
+                      {isLayered && (
                         <span className="text-xs text-cyan-400 font-semibold flex items-center justify-end gap-1 mt-1">
                           <Clock size={10} className="shrink-0" />
                           Antre setelah {prevPlayerName}
-                        </span>
-                      ) : pc?.expected_empty_time ? (
-                        <span className={`text-xs flex items-center justify-end gap-1 mt-1 tabular-nums ${
-                          isExpired 
-                            ? "text-red-400 font-bold animate-pulse" 
-                            : isWarning 
-                            ? "text-amber-400 animate-pulse" 
-                            : "text-amber-400"
-                        }`}>
-                          <Hourglass size={10} className={isExpired ? "animate-spin" : ""} />
-                          {isExpired 
-                            ? `Sesi habis, panggil ${b.player_name}` 
-                            : `Sedang main (sisa ${mins}m)`}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-emerald-400 font-semibold block mt-1">
-                          PC Kosong
                         </span>
                       )}
                     </div>
@@ -1040,13 +1003,9 @@ export default function DataBookingPage() {
                         <button
                           disabled={loadingId === b.id}
                           onClick={() => handleAction(b.id, 'complete', b.player_name, pc?.name)}
-                          className={`w-full px-4 py-2.5 font-bold rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 ${
-                            isExpired
-                              ? "bg-nvidia-green hover:bg-[#88d600] text-black shadow-[0_0_15px_rgba(118,185,0,0.6)] animate-pulse"
-                              : "bg-nvidia-green hover:bg-[#88d600] text-black shadow-sm"
-                          }`}
+                          className="w-full px-4 py-2.5 font-bold rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 bg-nvidia-green hover:bg-[#88d600] text-black shadow-sm"
                         >
-                          <Play size={13} className="fill-black" /> Mulai Main
+                          <Play size={13} className="fill-black" /> Tandai Masuk
                         </button>
                       )}
                     </div>

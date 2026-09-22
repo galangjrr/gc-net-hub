@@ -284,7 +284,7 @@ export default function CompanionPage() {
                       </div>
                     ) : (
                       <div className="text-[11px] text-zinc-500 font-medium flex items-center gap-1">
-                        <Unlock size={12} /> PC Kosong
+                        <Unlock size={12} /> Tersedia
                       </div>
                     )}
                   </div>
