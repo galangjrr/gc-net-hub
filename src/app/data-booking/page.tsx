@@ -60,72 +60,52 @@ export default function DataBookingPage() {
       const m = mins % 60;
       const dur = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
       return {
+        displayName: `Paket Pas Rp ${pkg.price.toLocaleString('id-ID')}`,
         category: 'hemat' as const,
-        duration: dur,
-        detail: `± ${mins} Menit`,
-        badge: 'Uang Pas',
-        badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-        desc: 'Durasi dihitung fleksibel sesuai uang pas kasir.'
+        duration: `${dur} (${mins} Mnt)`,
+        order: 999
       };
     }
 
     if (pkg.fixed_start_time && pkg.fixed_end_time) {
-      const isSubuh = pkg.name.toLowerCase().includes('subuh');
       return {
+        displayName: pkg.name,
         category: 'spesial' as const,
         duration: `${pkg.fixed_start_time} - ${pkg.fixed_end_time}`,
-        detail: 'Sesi Jam Tetap',
-        badge: isSubuh ? 'Paket Subuh' : 'Paket Malam',
-        badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-        desc: `Sesi malam fixed time ${pkg.fixed_start_time} s/d ${pkg.fixed_end_time}.`
+        order: pkg.price
       };
     }
 
     if (pkg.name.endsWith(' Jam') && !pkg.is_custom) {
       const hMatch = pkg.name.match(/(\d+)\s*Jam/i);
       const h = hMatch ? parseInt(hMatch[1]) : Math.round((pkg.duration_minutes || 60) / 60);
-      let badge = 'Reguler';
-      let badgeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      if (h === 1) {
-        badge = 'Pemanasan';
-        badgeColor = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
-      } else if (h === 2) {
-        badge = 'Favorit';
-        badgeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
-      } else if (h >= 5) {
-        badge = 'Marathon';
-        badgeColor = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
-      }
       return {
+        displayName: pkg.name,
         category: 'jam' as const,
-        duration: `${h} Jam`,
-        detail: `${h * 60} Menit`,
-        badge,
-        badgeColor,
-        desc: `Durasi murni ${h} jam tanpa batasan jam server.`
+        duration: `${h * 60} Menit (${h} Jam)`,
+        order: h
       };
     }
+
+    let slangName = pkg.name;
+    if (pkg.price === 3000) slangName = 'Paket Kilat';
+    else if (pkg.price === 5000) slangName = 'Paket Goceng';
+    else if (pkg.price === 6000) slangName = 'Paket Santai';
+    else if (pkg.price === 7000) slangName = 'Paket Puas';
+    else if (pkg.price === 9000) slangName = 'Paket Seru';
+    else if (pkg.price === 10000) slangName = 'Paket Ceban';
+    else if (pkg.price === 15000) slangName = 'Paket Marathon';
 
     const mins = pkg.duration_minutes || Math.round((pkg.price / 4000) * 60);
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    const dur = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
-    let badge = 'Hemat';
-    let badgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-    if (pkg.price === 5000) badge = 'Paket Goceng';
-    else if (pkg.price === 10000) badge = 'Paket Ceban';
-    else if (pkg.price === 3000) badge = 'Paket Kilat';
-    else if (pkg.price === 6000) badge = 'Paket Santai';
-    else if (pkg.price === 7000) badge = 'Paket Puas';
-    else if (pkg.price === 9000) badge = 'Paket Seru';
+    const dur = h > 0 && m > 0 ? `${h}j ${m}m` : h > 0 ? `${h} Jam` : `${m} Menit`;
 
     return {
+      displayName: slangName,
       category: 'hemat' as const,
-      duration: dur,
-      detail: `${mins} Menit`,
-      badge,
-      badgeColor,
-      desc: `Paket hemat tongkrongan durasi ${dur}.`
+      duration: `${dur} (${mins} Mnt)`,
+      order: pkg.price
     };
   };
 
@@ -1275,108 +1255,181 @@ export default function DataBookingPage() {
                     </div>
                   </div>
 
-                  {/* Baris 2: Pilihan Paket Billing (3 Kolom Grid Luas) */}
+                  {/* Baris 2: Pilihan Paket Billing (Logis, Kompak, Tanpa Redundansi) */}
                   {(() => {
                     const query = searchPaket.toLowerCase().trim();
-                    let customPkg: any = null;
                     const parsedPrice = parseInt(query.replace(/\D/g, '')) || 0;
 
-                    let basePakets = (db?.pakets || []).filter(p => !p.is_custom);
+                    // 1. Process all packages with operational metadata
+                    const rawList = (db?.pakets || []).filter(p => !p.is_custom).map(pkg => ({
+                      ...pkg,
+                      meta: getPaketMeta(pkg)
+                    }));
 
-                    // Filter by tab
-                    if (modalPaketTab === 'jam') {
-                      basePakets = basePakets.filter(p => p.name.endsWith(' Jam') && !p.fixed_start_time);
-                    } else if (modalPaketTab === 'spesial') {
-                      basePakets = basePakets.filter(p => Boolean(p.fixed_start_time && p.fixed_end_time));
-                    } else if (modalPaketTab === 'hemat') {
-                      basePakets = basePakets.filter(p => !p.name.endsWith(' Jam') && !p.fixed_start_time);
-                    }
-
-                    // Filter by search query
-                    const filtered = basePakets.filter(p =>
-                      p.name.toLowerCase().includes(query) ||
-                      p.price.toString().includes(query) ||
-                      (p.duration_minutes && p.duration_minutes.toString().includes(query)) ||
-                      (p.fixed_start_time && p.fixed_start_time.includes(query))
-                    );
-
-                    // Instant custom package preview if typed price is >= 3000
-                    if (query && parsedPrice >= 3000 && !filtered.some(p => p.price === parsedPrice)) {
+                    // 2. Instant custom price item if typed number >= 3000
+                    let customItem: any = null;
+                    if (query && parsedPrice >= 3000 && !rawList.some(p => p.price === parsedPrice)) {
                       const calcMins = Math.floor((parsedPrice / 4000) * 60);
-                      customPkg = {
+                      const h = Math.floor(calcMins / 60);
+                      const m = calcMins % 60;
+                      const durStr = h > 0 && m > 0 ? `${h} Jam ${m} Menit` : h > 0 ? `${h} Jam` : `${m} Menit`;
+                      customItem = {
                         id: `custom-${parsedPrice}`,
-                        name: `Paket Kustom Rp ${parsedPrice.toLocaleString('id-ID')}`,
+                        name: `Paket Pas Rp ${parsedPrice.toLocaleString('id-ID')}`,
                         price: parsedPrice,
                         duration_minutes: calcMins,
-                        is_custom: true
+                        is_custom: true,
+                        meta: {
+                          displayName: `Paket Pas Rp ${parsedPrice.toLocaleString('id-ID')}`,
+                          category: 'hemat' as const,
+                          duration: `${durStr} (${calcMins} Mnt)`,
+                          order: 999
+                        }
                       };
                     }
 
-                    const currentList = customPkg ? [customPkg, ...filtered] : filtered;
+                    // 3. Group logically:
+                    // Group 1: Jam Reguler (sorted 1 Jam -> 2 Jam -> 3 Jam -> 4 Jam -> 5 Jam)
+                    const jamGroup = rawList
+                      .filter(p => p.meta.category === 'jam')
+                      .sort((a, b) => a.meta.order - b.meta.order);
+
+                    // Group 2: Spesial & Malam (sorted by price)
+                    const spesialGroup = rawList
+                      .filter(p => p.meta.category === 'spesial')
+                      .sort((a, b) => a.price - b.price);
+
+                    // Group 3: Hemat / Uang Pas (sorted by price 3k, 5k, 6k, 7k, 9k, 10k, 15k)
+                    const hematGroup = rawList
+                      .filter(p => p.meta.category === 'hemat')
+                      .sort((a, b) => a.price - b.price);
+
+                    // Filter function for search input
+                    const matchesQuery = (item: any) => {
+                      if (!query) return true;
+                      return (
+                        item.name.toLowerCase().includes(query) ||
+                        item.meta.displayName.toLowerCase().includes(query) ||
+                        item.price.toString().includes(query) ||
+                        (item.duration_minutes && item.duration_minutes.toString().includes(query)) ||
+                        (item.fixed_start_time && item.fixed_start_time.includes(query))
+                      );
+                    };
+
+                    const filteredJam = jamGroup.filter(matchesQuery);
+                    const filteredSpesial = spesialGroup.filter(matchesQuery);
+                    const filteredHemat = hematGroup.filter(matchesQuery);
+
+                    // Master ordered list for keyboard navigation
+                    const keyboardList: any[] = [];
+                    if (customItem) keyboardList.push(customItem);
+                    if (modalPaketTab === 'all' || modalPaketTab === 'jam') keyboardList.push(...filteredJam);
+                    if (modalPaketTab === 'all' || modalPaketTab === 'spesial') keyboardList.push(...filteredSpesial);
+                    if (modalPaketTab === 'all' || modalPaketTab === 'hemat') keyboardList.push(...filteredHemat);
+
+                    // Compact Tile Renderer (Zero fluff, zero marketing text, zero redundant capsule)
+                    const renderTile = (pkg: any) => {
+                      const isSelected = selectedPaket === pkg.id;
+                      return (
+                        <button
+                          key={pkg.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPaket(pkg.id);
+                            submitBtnRef.current?.focus();
+                          }}
+                          className={`px-3.5 py-2.5 rounded-xl border text-left transition flex items-center justify-between gap-3 ${
+                            isSelected
+                              ? "bg-nvidia-green/15 border-nvidia-green ring-1 ring-nvidia-green/50 shadow-[0_0_12px_rgba(118,185,0,0.15)]"
+                              : "bg-[#15161a] border-white/[0.08] hover:border-white/20 hover:bg-white/[0.03]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {isSelected ? (
+                              <CheckCircle2 size={16} className="text-nvidia-green shrink-0 drop-shadow-[0_0_6px_rgba(118,185,0,0.8)]" />
+                            ) : (
+                              <span className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0" />
+                            )}
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold text-white truncate">
+                                {pkg.meta.displayName}
+                              </div>
+                              <div className="text-[11px] text-white/50 font-medium flex items-center gap-1">
+                                <Clock size={11} className="text-white/40 shrink-0" />
+                                <span>{pkg.meta.duration}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-xs sm:text-sm font-black text-nvidia-green tabular-nums shrink-0">
+                            Rp {pkg.price.toLocaleString("id-ID")}
+                          </div>
+                        </button>
+                      );
+                    };
 
                     return (
-                      <div className="space-y-4 pt-2">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-3 pt-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                           <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
                             <Clock size={14} className="text-nvidia-green" />
                             3. Pilihan Paket Billing
                           </label>
 
-                          {/* Kategori Tabs Luas */}
-                          <div className="flex items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.08] self-start sm:self-auto">
+                          {/* Kategori Tabs */}
+                          <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] self-start sm:self-auto">
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('all')}
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                                 modalPaketTab === 'all'
                                   ? 'bg-white/15 text-white shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              Semua Paket
+                              Semua
                             </button>
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('jam')}
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
                                 modalPaketTab === 'jam'
                                   ? 'bg-blue-500/25 text-blue-300 border border-blue-500/40 shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              <Clock size={13} />
+                              <Clock size={12} />
                               Jam Reguler
                             </button>
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('spesial')}
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
                                 modalPaketTab === 'spesial'
                                   ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              <Moon size={13} />
-                              Spesial Malam
+                              <Moon size={12} />
+                              Spesial & Malam
                             </button>
                             <button
                               type="button"
                               onClick={() => setModalPaketTab('hemat')}
-                              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
                                 modalPaketTab === 'hemat'
                                   ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-sm font-bold'
                                   : 'text-white/50 hover:text-white'
                               }`}
                             >
-                              <Zap size={13} />
-                              Hemat Tongkrongan
+                              <Zap size={12} />
+                              Uang Pas / Hemat
                             </button>
                           </div>
                         </div>
 
                         {/* Search Bar Input */}
                         <div className="relative">
-                          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+                          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
                           <input
                             ref={paketInputRef}
                             type="text"
@@ -1386,7 +1439,7 @@ export default function DataBookingPage() {
                               setSearchPaket(val);
                               const q = val.toLowerCase().trim();
                               const parsed = parseInt(q.replace(/\D/g, '')) || 0;
-                              const matches = (db?.pakets || []).filter(p => !p.is_custom && (p.name.toLowerCase().includes(q) || p.price.toString().includes(q)));
+                              const matches = keyboardList.filter(p => !p.is_custom && (p.name.toLowerCase().includes(q) || p.price.toString().includes(q)));
 
                               if (matches.length > 0) {
                                 setSelectedPaket(matches[0].id);
@@ -1397,101 +1450,99 @@ export default function DataBookingPage() {
                             onKeyDown={e => {
                               if (e.key === "ArrowDown") {
                                 e.preventDefault();
-                                const idx = currentList.findIndex(p => p.id === selectedPaket);
-                                if (idx < currentList.length - 1) {
-                                  setSelectedPaket(currentList[idx + 1].id);
+                                const idx = keyboardList.findIndex(p => p.id === selectedPaket);
+                                if (idx < keyboardList.length - 1) {
+                                  setSelectedPaket(keyboardList[idx + 1].id);
                                 }
                               } else if (e.key === "ArrowUp") {
                                 e.preventDefault();
-                                const idx = currentList.findIndex(p => p.id === selectedPaket);
+                                const idx = keyboardList.findIndex(p => p.id === selectedPaket);
                                 if (idx > 0) {
-                                  setSelectedPaket(currentList[idx - 1].id);
+                                  setSelectedPaket(keyboardList[idx - 1].id);
                                 }
                               } else if (e.key === "Enter" || e.key === "Tab") {
                                 e.preventDefault();
-                                if (!selectedPaket && currentList.length > 0) {
-                                  setSelectedPaket(currentList[0].id);
+                                if (!selectedPaket && keyboardList.length > 0) {
+                                  setSelectedPaket(keyboardList[0].id);
                                 }
                                 setTimeout(() => {
                                   submitBtnRef.current?.focus();
                                 }, 10);
                               }
                             }}
-                            placeholder="Cari paket atau ketik nominal uang (contoh: 5000, 2 jam, malam, 10000)..."
-                            className="w-full h-12 bg-[#15161a] border border-white/10 pl-11 pr-10 rounded-xl text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-2 focus:ring-nvidia-green/30 outline-none transition"
+                            placeholder="Cari paket atau ketik nominal (contoh: 5000, 2 jam, malam, 10000)..."
+                            className="w-full h-11 bg-[#15161a] border border-white/10 pl-10 pr-9 rounded-xl text-xs sm:text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
                           />
                           {searchPaket && (
                             <button
                               type="button"
                               onClick={() => setSearchPaket("")}
-                              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
                             >
-                              <X size={15} />
+                              <X size={14} />
                             </button>
                           )}
                         </div>
 
-                        {/* Grid Kartu Paket (3 Kolom di Layar Lebar) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
-                          {currentList.length === 0 ? (
-                            <div className="col-span-1 md:col-span-2 lg:col-span-3 py-12 text-center bg-white/[0.02] border border-white/[0.06] rounded-2xl">
-                              <p className="text-sm text-white/50 font-semibold">Tidak ada paket yang sesuai dengan pencarian.</p>
-                              <p className="text-xs text-white/30 mt-1">Ketik nominal uang langsung seperti 5000 atau 10000 untuk paket pas.</p>
+                        {/* List Paket Terkelompok Kompak */}
+                        <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1.5 custom-scrollbar">
+                          {keyboardList.length === 0 ? (
+                            <div className="py-8 text-center bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                              <p className="text-xs text-white/50 font-semibold">Tidak ada paket yang cocok.</p>
+                              <p className="text-[11px] text-white/30 mt-0.5">Ketik nominal uang langsung seperti 5000 atau 10000 untuk paket pas.</p>
                             </div>
                           ) : (
-                            currentList.map(pkg => {
-                              const isSelected = selectedPaket === pkg.id;
-                              const meta = getPaketMeta(pkg);
-
-                              return (
-                                <button
-                                  key={pkg.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedPaket(pkg.id);
-                                    submitBtnRef.current?.focus();
-                                  }}
-                                  className={`p-4 rounded-2xl text-left border transition-all relative flex flex-col justify-between gap-3 ${
-                                    isSelected
-                                      ? "bg-nvidia-green/[0.08] border-2 border-nvidia-green shadow-[0_0_20px_rgba(118,185,0,0.18)]"
-                                      : "bg-[#15161a] border-white/[0.08] hover:border-white/20 hover:bg-white/[0.03]"
-                                  }`}
-                                >
-                                  {/* Baris Atas: Badge Kategori & Checkmark */}
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border ${meta.badgeColor}`}>
-                                      {meta.badge}
-                                    </span>
-                                    {isSelected ? (
-                                      <CheckCircle2 size={18} className="text-nvidia-green shrink-0 drop-shadow-[0_0_8px_rgba(118,185,0,0.8)]" />
-                                    ) : (
-                                      <span className="w-4 h-4 rounded-full border border-white/20 shrink-0" />
-                                    )}
+                            <>
+                              {customItem && (
+                                <div>
+                                  <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                    ✨ Paket Uang Pas Kustom
                                   </div>
-
-                                  {/* Baris Tengah: Nama & Durasi Gamblang */}
-                                  <div className="space-y-1">
-                                    <h4 className="text-sm font-bold text-white tracking-tight">
-                                      {pkg.name}
-                                    </h4>
-                                    <p className="text-xs text-white/80 font-semibold flex items-center gap-1.5">
-                                      <Clock size={12} className="text-white/40 shrink-0" />
-                                      <span>{meta.duration}</span>
-                                    </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {renderTile(customItem)}
                                   </div>
+                                </div>
+                              )}
 
-                                  {/* Baris Bawah: Deskripsi & Harga */}
-                                  <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                                    <span className="text-[11px] text-white/40 truncate">
-                                      {meta.desc}
-                                    </span>
-                                    <span className="text-base font-black text-nvidia-green tabular-nums shrink-0">
-                                      Rp {pkg.price.toLocaleString("id-ID")}
-                                    </span>
+                              {(modalPaketTab === 'all' || modalPaketTab === 'jam') && filteredJam.length > 0 && (
+                                <div>
+                                  {modalPaketTab === 'all' && (
+                                    <div className="text-[11px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                      <Clock size={12} /> Jam Reguler ({filteredJam.length})
+                                    </div>
+                                  )}
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {filteredJam.map(renderTile)}
                                   </div>
-                                </button>
-                              );
-                            })
+                                </div>
+                              )}
+
+                              {(modalPaketTab === 'all' || modalPaketTab === 'spesial') && filteredSpesial.length > 0 && (
+                                <div>
+                                  {modalPaketTab === 'all' && (
+                                    <div className="text-[11px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                      <Moon size={12} /> Spesial & Malam ({filteredSpesial.length})
+                                    </div>
+                                  )}
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {filteredSpesial.map(renderTile)}
+                                  </div>
+                                </div>
+                              )}
+
+                              {(modalPaketTab === 'all' || modalPaketTab === 'hemat') && filteredHemat.length > 0 && (
+                                <div>
+                                  {modalPaketTab === 'all' && (
+                                    <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                      <Zap size={12} /> Uang Pas / Hemat ({filteredHemat.length})
+                                    </div>
+                                  )}
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {filteredHemat.map(renderTile)}
+                                  </div>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -1522,7 +1573,7 @@ export default function DataBookingPage() {
                             </div>
                             <div className="min-w-0">
                               <div className="text-sm font-bold text-white truncate flex items-center gap-2">
-                                <span>{selectedPaketObj.name}</span>
+                                <span>{selectedPaketMeta?.displayName || selectedPaketObj.name}</span>
                                 <span className="text-nvidia-green font-black tabular-nums">
                                   Rp {selectedPaketObj.price.toLocaleString("id-ID")}
                                 </span>
