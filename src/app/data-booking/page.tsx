@@ -629,10 +629,10 @@ export default function DataBookingPage() {
             <table className="w-full min-w-[980px] text-left text-xs whitespace-nowrap border-separate border-spacing-y-3">
               <thead>
                 <tr className="text-white/40 text-[11px] xl:text-xs uppercase tracking-wider font-bold">
-                  <th className="pb-1 pl-6 pr-4 font-bold text-white/60 w-[24%]">Target PC & Status</th>
+                  <th className="pb-1 pl-6 pr-4 font-bold text-white/60 w-[24%]">Target PC</th>
                   <th className="pb-1 px-4 font-bold text-white/60 w-[18%]">Paket / Tarif</th>
                   <th className="pb-1 px-4 font-bold text-white/60 w-[18%]">Pemain</th>
-                  <th className="pb-1 px-4 font-bold text-white/60 w-[15%]">Status</th>
+                  <th className="pb-1 px-4 font-bold text-white/60 w-[15%]">Status Booking</th>
                   <th className="pb-1 px-4 font-bold text-white/60 w-[11%]">Waktu Booking</th>
                   <th className="pb-1 pr-6 pl-4 text-right font-bold text-white/60 w-[14%]">Aksi</th>
                 </tr>
@@ -684,7 +684,7 @@ export default function DataBookingPage() {
                           : "bg-[#111215] hover:bg-[#16171d]"
                       }`}
                     >
-                      {/* 1. TARGET PC & STATUS */}
+                      {/* 1. TARGET PC */}
                       <td className={`py-4 xl:py-5 pl-6 pr-4 rounded-l-2xl border-y border-l transition ${cardBorderClass}`}>
                         <div className="flex flex-col items-start gap-1">
                           <div className="flex items-center gap-2">
@@ -696,7 +696,7 @@ export default function DataBookingPage() {
                           {isLayered ? (
                             <span className="text-xs font-semibold text-cyan-400/90 inline-flex items-center gap-1.5">
                               <Clock size={12} className="shrink-0 text-cyan-400" />
-                              Nunggu {prevPlayerName}
+                              Antre setelah {prevPlayerName}
                             </span>
                           ) : pc?.expected_empty_time ? (
                             <span className={`text-xs inline-flex items-center gap-1.5 tabular-nums ${
@@ -714,7 +714,7 @@ export default function DataBookingPage() {
                           ) : (
                             <span className="text-xs font-semibold text-emerald-400/90 inline-flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                              Booked
+                              PC Siap Main
                             </span>
                           )}
                         </div>
@@ -738,12 +738,9 @@ export default function DataBookingPage() {
                           <div className="w-6 h-6 xl:w-7 xl:h-7 rounded-lg bg-surface-soft border border-hairline/60 flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {b.player_name.slice(0, 1).toUpperCase()}
                           </div>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-white text-xs xl:text-sm leading-tight">{b.player_name}</span>
-                            <span className="text-[10px] font-mono font-bold text-nvidia-green/80 tracking-wider">
-                              {b.id}
-                            </span>
-                          </div>
+                          <span className="font-bold text-white text-xs xl:text-sm leading-tight truncate">
+                            {b.player_name}
+                          </span>
                         </div>
                       </td>
 
@@ -756,11 +753,11 @@ export default function DataBookingPage() {
                             </span>
                           ) : isExpired ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold tracking-wide animate-pulse">
-                              <Hourglass size={12} /> Habis
+                              <Hourglass size={12} /> Waktu Habis
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold tracking-wide">
-                              <CheckCircle2 size={12} /> Terkonfirmasi
+                              <CheckCircle2 size={12} /> Aktif
                             </span>
                           )}
                           <span className="text-xs text-zinc-400 pl-0.5 font-medium">
@@ -925,7 +922,7 @@ export default function DataBookingPage() {
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400/90 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 size={11} /> Terkonfirmasi
+                          <CheckCircle2 size={11} /> Aktif
                         </span>
                       )}
                     </div>
@@ -940,12 +937,7 @@ export default function DataBookingPage() {
                           {b.player_name.slice(0, 1).toUpperCase()}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
-                            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-nvidia-green border border-nvidia-green/30">
-                              {b.id}
-                            </span>
-                          </div>
+                          <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
                           <span className="text-xs text-nvidia-green font-semibold">{pkgTitle}</span>
                         </div>
                       </div>
@@ -965,7 +957,7 @@ export default function DataBookingPage() {
                       {isLayered ? (
                         <span className="text-xs text-cyan-400 font-semibold flex items-center justify-end gap-1 mt-1">
                           <Clock size={10} className="shrink-0" />
-                          Nunggu {prevPlayerName}
+                          Antre setelah {prevPlayerName}
                         </span>
                       ) : pc?.expected_empty_time ? (
                         <span className={`text-xs flex items-center justify-end gap-1 mt-1 tabular-nums ${
@@ -984,7 +976,7 @@ export default function DataBookingPage() {
                         </span>
                       ) : (
                         <span className="text-xs text-emerald-400 font-semibold block mt-1">
-                          Booked
+                          PC Siap Main
                         </span>
                       )}
                     </div>
