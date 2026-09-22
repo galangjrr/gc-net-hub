@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   try {
     // 0. HARDENING: Verify Admin / Operator Cookie with HMAC token
     if (!isAdminRequest(req)) {
-      return NextResponse.json({ error: 'Akses ditolak. Silakan login kasir terlebih dahulu.' }, { status: 401 });
+      return NextResponse.json({ error: 'Akses ditolak. Login akun kasir dulu ya.' }, { status: 401 });
     }
 
     const body = await req.json();

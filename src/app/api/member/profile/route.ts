@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       console.error("[Member Profile] Upsert error:", error);
       if (error.code === "23505" || error.message?.toLowerCase().includes("unique")) {
         return NextResponse.json({ 
-          error: "Username ini sudah digunakan pemain lain. Silakan pilih nickname lain." 
+          error: "Username ini sudah dipakai pemain lain. Coba pakai nickname lain ya." 
         }, { status: 400 });
       }
       return NextResponse.json({ error: error.message || "Gagal menyimpan data member" }, { status: 500 });

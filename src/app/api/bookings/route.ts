@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     // 1. Rate Limiting Check (Hanya untuk request publik/pemain)
     if (!isAdmin && !checkBookingRateLimit(ip)) {
       return NextResponse.json(
-        { error: 'Terlalu banyak pemesanan dalam waktu singkat. Silakan tunggu 3 menit demi keamanan sistem.' },
+        { error: 'Terlalu banyak booking dalam waktu singkat. Tunggu 3 menit dulu ya.' },
         { status: 429 }
       );
     }

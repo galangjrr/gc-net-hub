@@ -98,7 +98,7 @@ export default function Home() {
         title: durTitle,
         badge: "Uang Pas",
         badgeColor: "bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/30",
-        description: "Durasi dihitung otomatis sesuai uang pas yang kamu ketik.",
+        description: "Durasi dihitung otomatis sesuai uang pas yang lu ketik.",
         detailTime: `± ${mins} Menit`,
       };
     }
@@ -605,7 +605,7 @@ export default function Home() {
       });
       const bookingData = await bookingRes.json();
       if (!bookingRes.ok) {
-        setFormError(bookingData?.error || "Gagal membuat booking. Silakan coba lagi.");
+        setFormError(bookingData?.error || "Gagal bikin booking. Coba lagi bentar ya.");
         setLoading(false);
         return;
       }
@@ -621,7 +621,7 @@ export default function Home() {
           });
           const qrisData = await qrisRes.json();
           if (!qrisRes.ok) {
-            setFormError(qrisData?.error || "Gagal membuat kode QRIS. Booking tetap tercatat, bayar via OP.");
+            setFormError(qrisData?.error || "Gagal bikin kode QRIS. Booking tetap masuk, bisa bayar tunai ke OP.");
             setDanaPaymentStatus('error');
             setLoading(false);
             loadData();
@@ -636,7 +636,7 @@ export default function Home() {
           startDanaPolling(bookingData.id);
           loadData();
         } catch (err: any) {
-          setFormError("Gagal menghubungi server DANA. Booking tetap tercatat, bayar via OP.");
+          setFormError("Gagal tersambung ke server QRIS. Booking tetap masuk, bisa bayar tunai ke OP.");
           setDanaPaymentStatus('error');
           setLoading(false);
           loadData();
@@ -652,7 +652,7 @@ export default function Home() {
         loadData();
       }
     } catch (err: any) {
-      setFormError("Terjadi kesalahan jaringan saat mengirim booking");
+      setFormError("Jaringan lagi bermasalah pas kirim booking. Coba lagi ya.");
       setLoading(false);
     }
   };
@@ -821,12 +821,12 @@ export default function Home() {
                     <CheckCircle2 size={32} className="text-nvidia-green" />
                   </div>
                   <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase tracking-widest text-center">Pembayaran Berhasil</h2>
-                  <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Booking lu sudah tercatat dan menunggu aktivasi oleh OP</p>
+                  <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Booking lu udah masuk dan nunggu diverifikasi OP</p>
                 </>
               ) : (
                 <>
                   <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase tracking-widest text-center">Scan QRIS</h2>
-                  <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Pembayaran menggunakan DANA / QRIS</p>
+                  <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Pembayaran via DANA atau QRIS</p>
 
                   {selectedPaket && (
                     <div className="w-full bg-black/40 border border-nvidia-green/30 rounded p-3 mb-6 flex flex-col items-center">
@@ -2609,9 +2609,9 @@ export default function Home() {
                             {loading ? (
                               <span>Memproses Booking...</span>
                             ) : !playerName.trim() ? (
-                              <span>Isi Nickname Dahulu</span>
+                              <span>Isi Nickname Dulu</span>
                             ) : !selectedPaket ? (
-                              <span>Pilih Paket Billing Dahulu</span>
+                              <span>Pilih Paket Billing Dulu</span>
                             ) : (
                               <>
                                 <span>Konfirmasi & Ambil Antrean</span>
@@ -2620,7 +2620,7 @@ export default function Home() {
                             )}
                           </button>
                           <div className="text-center text-[10px] text-zinc-500 mt-2">
-                            Antrean otomatis tercatat dan disinkronkan ke layar OP
+                            Antrean otomatis masuk dan langsung muncul di layar OP
                           </div>
                         </div>
                       </div>
@@ -2759,7 +2759,7 @@ export default function Home() {
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Ban size={20} className="text-purple-400 shrink-0" /> Area Bebas Asap</h3>
-                    <p>Semua area PC GC Net bebas asap rokok dan vape ya. Buat yang mau sebat atau nge-vape, silakan melipir santai ke area outdoor depan biar ruangan tetap adem dan wangi buat semua yang main.</p>
+                    <p>Semua area PC GC Net bebas asap rokok dan vape ya. Buat yang mau sebat atau nge-vape, bisa melipir santai ke area outdoor depan biar ruangan tetap adem dan wangi buat semua yang main.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Banknote size={20} className="text-purple-400 shrink-0" /> Ketentuan Pembayaran</h3>
@@ -2868,7 +2868,7 @@ export default function Home() {
                 </div>
               )}
               <p className="text-white/70 tracking-tight text-xs mb-6 leading-relaxed">
-                Data lu udah masuk ke meja admin. Silakan tunggu konfirmasi atau sebutkan kode tiket di atas ke admin yang lagi jaga buat mastiin ya bos. Gas main!
+                Data booking lu udah masuk ke meja OP. Tinggal tunggu konfirmasi atau sebutin kode tiket di atas ke OP yang lagi jaga. Gas main!
               </p>
               <div className="flex justify-end">
                 <button
@@ -2902,7 +2902,7 @@ export default function Home() {
             >
               <div className="nvidia-corner bg-nvidia-green"></div>
               <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase tracking-widest text-center">MEMPROSES BOOKING</h2>
-              <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Mohon tunggu sebentar...</p>
+              <p className="text-[10px] tracking-tight text-white/50 mb-4 uppercase tracking-wider text-center">Tunggu sebentar ya...</p>
               <div className="w-12 h-12 border-4 border-nvidia-green/20 border-t-nvidia-green rounded-full animate-spin"></div>
             </motion.div>
           </motion.div>

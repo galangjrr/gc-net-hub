@@ -289,7 +289,7 @@ export default function MemberPage() {
       });
 
       if (error) {
-        setErrorMessage(error.message || "Pendaftaran gagal. Silakan coba lagi.");
+        setErrorMessage(error.message || "Pendaftaran gagal. Coba lagi bentar ya.");
         setActionLoading(false);
         return;
       }
@@ -611,7 +611,7 @@ export default function MemberPage() {
                     <input
                       type="email"
                       required
-                      placeholder="email@kamu.com"
+                      placeholder="nama@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
