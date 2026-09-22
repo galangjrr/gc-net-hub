@@ -39,7 +39,7 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState("home");
   // pingPong removed — replaced by CSS .animate-game-ping class
   const [isMobile, setIsMobile] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(1);
+  const [activeCategory, setActiveCategory] = useState(0);
   const [showTcModal, setShowTcModal] = useState(false);
   const [showQueueWarning, setShowQueueWarning] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -710,16 +710,16 @@ export default function Home() {
 
   const CAROUSEL_THEMES = useMemo(() => [
     {
-      glow: "bg-cyan-500/10", border: "border-cyan-500", border30: "border-cyan-500/30",
-      text: "text-cyan-500", bg: "bg-cyan-500",
-      shadow: "shadow-[0_0_15px_rgba(6,182,212,0.2)]", shadowHover: "group-hover:shadow-[0_0_60px_rgba(6,182,212,0.3)]",
-      hoverBorder: "hover:border-cyan-500/50", hoverBgGlow: "hover:bg-cyan-500/5",
-    },
-    {
       glow: "bg-[#76b900]/10", border: "border-[#76b900]", border30: "border-[#76b900]/30",
       text: "text-[#76b900]", bg: "bg-[#76b900]",
       shadow: "shadow-[0_0_15px_rgba(118,185,0,0.2)]", shadowHover: "group-hover:shadow-[0_0_60px_rgba(118,185,0,0.3)]",
       hoverBorder: "hover:border-[#76b900]/50", hoverBgGlow: "hover:bg-[#76b900]/5",
+    },
+    {
+      glow: "bg-cyan-500/10", border: "border-cyan-500", border30: "border-cyan-500/30",
+      text: "text-cyan-500", bg: "bg-cyan-500",
+      shadow: "shadow-[0_0_15px_rgba(6,182,212,0.2)]", shadowHover: "group-hover:shadow-[0_0_60px_rgba(6,182,212,0.3)]",
+      hoverBorder: "hover:border-cyan-500/50", hoverBgGlow: "hover:bg-cyan-500/5",
     },
     {
       glow: "bg-purple-500/10", border: "border-purple-500", border30: "border-purple-500/30",
@@ -730,10 +730,10 @@ export default function Home() {
   ], []);
 
   const CAROUSEL_DATA = useMemo(() => [
-    { id: "nominal", title: "Paket Nominal", items: hargaPakets, type: "harga" },
-    { id: "reguler", title: "Paket Reguler", items: generatedJamPakets, type: "jam" },
-    { id: "spesial", title: "Paket Spesial", items: spesialPakets, type: "spesial" }
-  ], [hargaPakets, generatedJamPakets, spesialPakets]);
+    { id: "reguler", title: "Jam Reguler", items: generatedJamPakets, type: "jam" },
+    { id: "nominal", title: "Uang Pas", items: hargaPakets, type: "harga" },
+    { id: "spesial", title: "Spesial & Malam", items: spesialPakets, type: "spesial" }
+  ], [generatedJamPakets, hargaPakets, spesialPakets]);
 
   if (!db) return <div suppressHydrationWarning className="min-h-screen bg-surface-dark p-8 tracking-tight text-white/50">INITIALIZING SYSTEM...</div>;
 
@@ -1195,8 +1195,8 @@ export default function Home() {
       >
         <div className="max-w-[1400px] w-full mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tighter uppercase tracking-tight mb-4">DAFTAR HARGA</h2>
-            <p className="text-white/50 tracking-tight max-w-xl mx-auto">Pilih paket booking sesuai dengan kebutuhanmu. Tersedia paket regular dan paket spesial.</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tighter uppercase tracking-tight mb-4">DAFTAR HARGA PAKET BILLING</h2>
+            <p className="text-white/50 tracking-tight max-w-xl mx-auto">Pilih paket billing sesuai durasi main yang kamu butuhkan. Tersedia jam reguler, uang pas, dan paket spesial.</p>
           </div>
 
           <div className="flex flex-col gap-12">
@@ -1372,8 +1372,8 @@ export default function Home() {
                 </span>
                 <span className="text-xs font-bold text-nvidia-green uppercase tracking-widest">LIVE MONITORING</span>
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight uppercase">STATUS BOOKING</h2>
-              <p className="text-white/50 tracking-tight text-sm mt-2 max-w-xl">Pantau antrean secara real-time.</p>
+              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight uppercase">STATUS ANTREAN BOOKING</h2>
+              <p className="text-white/50 tracking-tight text-sm mt-2 max-w-xl">Pantau posisi antrean pemain dan ketersediaan PC secara langsung.</p>
             </div>
 
             {/* Search Bar */}
@@ -1976,7 +1976,7 @@ export default function Home() {
                       </button>
                       <div>
                         <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
-                          Konfirmasi Booking & Paket
+                          Konfirmasi Booking & Paket Billing
                         </h2>
                         <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
                           <span className="text-zinc-400">Unit PC:</span>
@@ -2084,28 +2084,10 @@ export default function Home() {
                               }`}
                             >
                               <Clock size={13} className="shrink-0" />
-                              <span>Paket Jam</span>
+                              <span>Jam Reguler</span>
                               {searchPaketQuery && (
                                 <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${bookingPaketTab === 'jam' ? 'bg-black text-nvidia-green' : 'bg-zinc-800 text-zinc-200'}`}>
                                   {filteredJamPakets.length}
-                                </span>
-                              )}
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setBookingPaketTab('spesial')}
-                              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-[11px] font-bold uppercase tracking-wider transition whitespace-nowrap ${
-                                bookingPaketTab === 'spesial'
-                                  ? "bg-nvidia-green text-black shadow-[0_0_10px_rgba(118,185,0,0.3)]"
-                                  : "text-zinc-300 hover:text-white"
-                              }`}
-                            >
-                              <Sparkles size={13} className="shrink-0" />
-                              <span>Malam & Spesial</span>
-                              {searchPaketQuery && (
-                                <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${bookingPaketTab === 'spesial' ? 'bg-black text-nvidia-green' : 'bg-zinc-800 text-zinc-200'}`}>
-                                  {filteredSpesialPakets.length}
                                 </span>
                               )}
                             </button>
@@ -2120,10 +2102,28 @@ export default function Home() {
                               }`}
                             >
                               <Banknote size={13} className="shrink-0" />
-                              <span>Nominal Bebas</span>
+                              <span>Uang Pas</span>
                               {searchPaketQuery && (
                                 <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${bookingPaketTab === 'nominal' ? 'bg-black text-nvidia-green' : 'bg-zinc-800 text-zinc-200'}`}>
                                   {filteredHargaPakets.length}
+                                </span>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setBookingPaketTab('spesial')}
+                              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-[11px] font-bold uppercase tracking-wider transition whitespace-nowrap ${
+                                bookingPaketTab === 'spesial'
+                                  ? "bg-nvidia-green text-black shadow-[0_0_10px_rgba(118,185,0,0.3)]"
+                                  : "text-zinc-300 hover:text-white"
+                              }`}
+                            >
+                              <Sparkles size={13} className="shrink-0" />
+                              <span>Spesial & Malam</span>
+                              {searchPaketQuery && (
+                                <span className={`text-[9px] px-1 py-0.2 rounded-full font-bold ${bookingPaketTab === 'spesial' ? 'bg-black text-nvidia-green' : 'bg-zinc-800 text-zinc-200'}`}>
+                                  {filteredSpesialPakets.length}
                                 </span>
                               )}
                             </button>
@@ -2213,24 +2213,24 @@ export default function Home() {
                               <p className="text-xs text-zinc-400">
                                 Tidak ada paket jam yang cocok dengan kata kunci &quot;{searchPaket}&quot;.
                               </p>
-                              {(filteredSpesialPakets.length > 0 || filteredHargaPakets.length > 0) && (
+                              {(filteredHargaPakets.length > 0 || filteredSpesialPakets.length > 0) && (
                                 <div className="flex justify-center gap-2 pt-1">
-                                  {filteredSpesialPakets.length > 0 && (
-                                    <button
-                                      type="button"
-                                      onClick={() => setBookingPaketTab('spesial')}
-                                      className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
-                                    >
-                                      Lihat di Malam & Spesial
-                                    </button>
-                                  )}
                                   {filteredHargaPakets.length > 0 && (
                                     <button
                                       type="button"
                                       onClick={() => setBookingPaketTab('nominal')}
                                       className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
                                     >
-                                      Lihat di Nominal Bebas
+                                      Lihat di Uang Pas
+                                    </button>
+                                  )}
+                                  {filteredSpesialPakets.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setBookingPaketTab('spesial')}
+                                      className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
+                                    >
+                                      Lihat di Spesial & Malam
                                     </button>
                                   )}
                                 </div>
@@ -2239,7 +2239,130 @@ export default function Home() {
                           )
                         )}
 
-                        {/* Tab Content: Paket Malam & Spesial */}
+                        {/* Tab Content: Uang Pas & Custom */}
+                        {bookingPaketTab === 'nominal' && (
+                          <div className="space-y-2.5 pt-0.5">
+                            {filteredHargaPakets.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                {filteredHargaPakets.map((pkg) => {
+                                  const isSelected = selectedPaket === pkg.id;
+                                  const vibe = getPaketVibeInfo(pkg);
+                                  return (
+                                    <button
+                                      key={pkg.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedPaket(pkg.id);
+                                        setCustomNominalInput("");
+                                        if (formError) setFormError(null);
+                                      }}
+                                      className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
+                                        isSelected
+                                          ? "bg-nvidia-green/15 border-nvidia-green text-white shadow-[0_0_16px_rgba(118,185,0,0.25)] ring-1 ring-nvidia-green"
+                                          : "bg-[#14161b] border-zinc-700/60 text-zinc-200 hover:border-zinc-500 hover:text-white shadow-sm"
+                                      }`}
+                                    >
+                                      <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="text-sm font-black text-white tracking-tight">
+                                              {vibe.title}
+                                            </span>
+                                            {vibe.badge && (
+                                              <span className={`px-1.5 py-0.5 text-[9px] font-black uppercase rounded ${vibe.badgeColor}`}>
+                                                {vibe.badge}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <p className="text-[11px] text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-300 transition-colors">
+                                            {vibe.description}
+                                          </p>
+                                        </div>
+                                        {isSelected && (
+                                          <div className="w-5 h-5 rounded-full bg-nvidia-green flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                                            <Check size={12} className="text-black font-bold" />
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div className="pt-2 border-t border-hairline/60 flex items-center justify-between gap-2 mt-auto">
+                                        <span className="text-[11px] text-zinc-400 font-semibold flex items-center gap-1">
+                                          <Clock size={11} className="text-nvidia-green" />
+                                          <span>{vibe.detailTime}</span>
+                                        </span>
+                                        <span className="text-sm font-black text-nvidia-green tabular-nums">
+                                          Rp {pkg.price.toLocaleString("id-ID")}
+                                        </span>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="p-4 rounded-lg bg-black/40 border border-hairline text-center space-y-2">
+                                <p className="text-xs text-zinc-400">
+                                  Tidak ada paket uang pas yang cocok dengan kata kunci &quot;{searchPaket}&quot;.
+                                </p>
+                                {(filteredJamPakets.length > 0 || filteredSpesialPakets.length > 0) && (
+                                  <div className="flex justify-center gap-2 pt-1">
+                                    {filteredJamPakets.length > 0 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setBookingPaketTab('jam')}
+                                        className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
+                                      >
+                                        Lihat di Jam Reguler
+                                      </button>
+                                    )}
+                                    {filteredSpesialPakets.length > 0 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setBookingPaketTab('spesial')}
+                                        className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
+                                      >
+                                        Lihat di Spesial & Malam
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Custom Nominal Box */}
+                            <div className="p-3 rounded-lg bg-black/40 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                              <div>
+                                <span className="text-xs font-bold text-white uppercase tracking-wider block">
+                                  Punya Uang Pas Sendiri?
+                                </span>
+                                <span className="text-[11px] text-zinc-400">
+                                  Ketik nominal rupiah, durasi dihitung otomatis, minimal Rp 3.000.
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-zinc-400">Rp</span>
+                                <input
+                                  type="number"
+                                  placeholder="15000"
+                                  value={customNominalInput}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setCustomNominalInput(val);
+                                    const num = parseInt(val);
+                                    if (num >= 3000) {
+                                      setSelectedPaket(`custom-${num}`);
+                                      if (formError) setFormError(null);
+                                    } else if (!val) {
+                                      if (selectedPaket?.startsWith("custom-")) setSelectedPaket(null);
+                                    }
+                                  }}
+                                  className="w-full sm:w-32 bg-black/60 border border-hairline text-white px-3 py-1.5 rounded-lg text-xs font-bold focus:border-nvidia-green outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Tab Content: Paket Spesial & Malam */}
                         {bookingPaketTab === 'spesial' && (
                           filteredSpesialPakets.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
@@ -2309,7 +2432,7 @@ export default function Home() {
                                       onClick={() => setBookingPaketTab('jam')}
                                       className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
                                     >
-                                      Lihat di Paket Jam
+                                      Lihat di Jam Reguler
                                     </button>
                                   )}
                                   {filteredHargaPakets.length > 0 && (
@@ -2318,112 +2441,13 @@ export default function Home() {
                                       onClick={() => setBookingPaketTab('nominal')}
                                       className="px-2.5 py-1 bg-[#16171b] hover:bg-[#202228] border border-hairline text-xs font-bold text-white rounded-md transition"
                                     >
-                                      Lihat di Nominal Bebas
+                                      Lihat di Uang Pas
                                     </button>
                                   )}
                                 </div>
                               )}
                             </div>
                           )
-                        )}
-
-                        {/* Tab Content: Nominal Bebas & Custom */}
-                        {bookingPaketTab === 'nominal' && (
-                          <div className="space-y-2.5 pt-0.5">
-                            {filteredHargaPakets.length > 0 ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                                {filteredHargaPakets.map((pkg) => {
-                                  const isSelected = selectedPaket === pkg.id;
-                                  const vibe = getPaketVibeInfo(pkg);
-                                  return (
-                                    <button
-                                      key={pkg.id}
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedPaket(pkg.id);
-                                        setCustomNominalInput("");
-                                        if (formError) setFormError(null);
-                                      }}
-                                      className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group ${
-                                        isSelected
-                                          ? "bg-nvidia-green/15 border-nvidia-green text-white shadow-[0_0_16px_rgba(118,185,0,0.25)] ring-1 ring-nvidia-green"
-                                          : "bg-[#14161b] border-zinc-700/60 text-zinc-200 hover:border-zinc-500 hover:text-white shadow-sm"
-                                      }`}
-                                    >
-                                      <div className="flex items-start justify-between gap-1.5 mb-1.5">
-                                        <div className="min-w-0">
-                                          <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="text-sm font-black text-white tracking-tight">
-                                              {vibe.title}
-                                            </span>
-                                            {vibe.badge && (
-                                              <span className={`px-1.5 py-0.5 text-[9px] font-black uppercase rounded ${vibe.badgeColor}`}>
-                                                {vibe.badge}
-                                              </span>
-                                            )}
-                                          </div>
-                                          <p className="text-[11px] text-zinc-400 mt-1 line-clamp-1 group-hover:text-zinc-300 transition-colors">
-                                            {vibe.description}
-                                          </p>
-                                        </div>
-                                        {isSelected && (
-                                          <div className="w-5 h-5 rounded-full bg-nvidia-green flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                                            <Check size={12} className="text-black font-bold" />
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      <div className="pt-2 border-t border-hairline/60 flex items-center justify-between gap-2 mt-auto">
-                                        <span className="text-[11px] text-zinc-400 font-semibold flex items-center gap-1">
-                                          <Clock size={11} className="text-nvidia-green" />
-                                          <span>{vibe.detailTime}</span>
-                                        </span>
-                                        <span className="text-sm font-black text-nvidia-green tabular-nums">
-                                          Rp {pkg.price.toLocaleString("id-ID")}
-                                        </span>
-                                      </div>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div className="p-3 rounded-lg bg-black/40 border border-hairline text-center text-xs text-zinc-400">
-                                Tidak ada nominal pecahan yang cocok dengan kata kunci &quot;{searchPaket}&quot;.
-                              </div>
-                            )}
-
-                            {/* Custom Nominal Box */}
-                            <div className="p-3 rounded-lg bg-black/40 border border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                              <div>
-                                <span className="text-xs font-bold text-white uppercase tracking-wider block">
-                                  Punya Uang Pas Sendiri?
-                                </span>
-                                <span className="text-[11px] text-zinc-400">
-                                  Ketik nominal rupiah, durasi dihitung otomatis, minimal Rp 3.000.
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-zinc-400">Rp</span>
-                                <input
-                                  type="number"
-                                  placeholder="15000"
-                                  value={customNominalInput}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setCustomNominalInput(val);
-                                    const num = parseInt(val);
-                                    if (num >= 3000) {
-                                      setSelectedPaket(`custom-${num}`);
-                                      if (formError) setFormError(null);
-                                    } else if (!val) {
-                                      if (selectedPaket?.startsWith("custom-")) setSelectedPaket(null);
-                                    }
-                                  }}
-                                  className="w-full sm:w-32 bg-black/60 border border-hairline text-white px-3 py-1.5 rounded-lg text-xs font-bold focus:border-nvidia-green outline-none"
-                                />
-                              </div>
-                            </div>
-                          </div>
                         )}
                       </div>
                     </div>
@@ -2437,7 +2461,7 @@ export default function Home() {
                         <div className="hidden lg:flex items-start justify-between gap-3 pb-3 border-b border-hairline/60 relative z-10">
                           <div>
                             <span className="text-[10px] font-black text-nvidia-green uppercase tracking-widest block mb-0.5">
-                              TIKET PEMESANAN
+                              TIKET BOOKING PC
                             </span>
                             <h3 className="text-xl font-black text-white tracking-tight uppercase">
                               {selectedPcObj?.name || selectedPc}
@@ -2457,13 +2481,13 @@ export default function Home() {
                             </strong>
                           </div>
                           <div className="p-2.5 rounded-lg bg-[#14161b] border border-zinc-700/60 flex justify-between items-center">
-                            <span className="text-zinc-300 font-semibold">Paket:</span>
+                            <span className="text-zinc-300 font-semibold">Paket Billing:</span>
                             <strong className="text-white font-bold truncate max-w-[170px]">
                               {selectedPaketVibe ? `${selectedPaketVibe.title} (${selectedPaketVibe.badge})` : (selectedPaketObj?.name || "Belum dipilih")}
                             </strong>
                           </div>
                           <div className="p-2.5 rounded-lg bg-[#14161b] border border-zinc-700/60 flex justify-between items-center">
-                            <span className="text-zinc-300 font-semibold">Estimasi Main:</span>
+                            <span className="text-zinc-300 font-semibold">Durasi Billing:</span>
                             <strong className="text-white font-bold">
                               {selectedPaketDuration}
                             </strong>
@@ -2722,24 +2746,24 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar tracking-tight text-sm text-white/70 space-y-4">
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} className="text-purple-400 shrink-0" /> Dateng On-Time Yuk!</h3>
-                    <p>Kalo kamu udah <em>booking</em>, usahain on-time ya! Kita kasih toleransi telat maksimal <strong>5 menit</strong>. Lewat dari itu, argometernya otomatis jalan atau PC-nya bakal kita oper ke <em>player</em> lain yang udah standby duluan. Hargain waktu sesama <em>gamers</em> yuk!</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} className="text-purple-400 shrink-0" /> Dateng Tepat Waktu</h3>
+                    <p>Kalau kamu sudah booking, usahakan datang tepat waktu ya. Toleransi keterlambatan maksimal <strong>5 menit</strong>. Lewat dari itu, durasi billing otomatis berjalan atau PC dialihkan ke pemain antrean berikutnya yang sudah standby di lokasi.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Crown size={20} className="text-purple-400 shrink-0" /> Prioritas Walk-in & Antrean</h3>
-                    <p>Booking web ini gunanya buat <strong>masuk ke dalam antrean</strong>. <em>Gamers</em> yang datang langsung (<em>walk-in</em>) ke warnet tetep dapet prioritas utama kalau ada PC kosong. Kalau kamu <em>booking</em> buat main setelah sesi orang lain, pastiin kamu udah <em>standby</em> di lokasi sebelum durasinya habis biar bisa langsung sambung main!</p>
+                    <p>Booking via web berfungsi untuk <strong>mengamankan nomor antrean PC</strong>. Pemain yang datang langsung ke meja OP tetap mendapatkan prioritas jika ada unit kosong. Kalau kamu booking untuk main setelah sesi pemain lain, pastikan sudah standby sebelum billing selesai agar langsung sambung main.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><UtensilsCrossed size={20} className="text-purple-400 shrink-0" /> Urusan Makanan dan Minuman</h3>
-                    <p>Dilarang keras bawa <em>F&B</em> dari luar yang gampang tumpah, berminyak, apalagi berpotensi merusak <em>gear</em> warnet kita. Gak usah repot, <em>order</em> aja langsung di kantin GC Net! Variannya banyak, harga cincai, dan wadahnya dijamin aman buat nge-game.</p>
+                    <p>Dilarang keras bawa makanan dan minuman dari luar yang mudah tumpah atau berpotensi merusak periferal warnet. Pesan langsung snack dan minuman di meja OP atau kantin GC Net.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Ban size={20} className="text-purple-400 shrink-0" /> Area Bebas Asap</h3>
-                    <p>Seluruh ruangan GC Net itu 100% bebas asap ya, <em>guys</em>. Buat kamu yang mau sebat atau nge-<em>vape</em>, silakan <em>melipir</em> ke area luar warnet. Biar tetep adem dan wangi buat semua <em>user</em>.</p>
+                    <p>Seluruh bilik PC GC Net 100% bebas asap rokok dan vape. Untuk merokok atau vape, silakan gunakan area outdoor di luar ruangan warnet agar ruangan tetap adem dan nyaman.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Banknote size={20} className="text-purple-400 shrink-0" /> No Refund Ya</h3>
-                    <p>Buat paket <em>booking</em> atau waktu <em>custom</em> yang udah sukses di-<em>checkout</em> dan aktif, otomatis <strong>gak bisa di-refund</strong> atau dibatalin. Jadi pastiin lagi semuanya udah pas sebelum bayar!</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Banknote size={20} className="text-purple-400 shrink-0" /> Ketentuan Pembayaran</h3>
+                    <p>Paket booking atau sesi billing yang sudah terkonfirmasi dan aktif <strong>tidak dapat di-refund</strong> atau dibatalkan. Pastikan pilihan PC dan paket billing sudah sesuai sebelum melakukan konfirmasi.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20} className="text-purple-400 shrink-0" /> Anti-Cheat & Fair Play</h3>

@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { href: "/companion", label: "GC Hub Mobile", icon: Smartphone, admin: true },
   { href: "/data-booking", label: "Antrean Booking", icon: Database, admin: true },
   { href: "/kasir", label: "Kasir POS", icon: ShoppingCart, admin: true },
-  { href: "/data-pc", label: "Bilik Komputer", icon: Monitor, admin: true },
+  { href: "/data-pc", label: "Data PC & Spek", icon: Monitor, admin: true },
   { href: "/rekap", label: "Rekap Keuangan", icon: TrendingUp, admin: true },
   { href: "/paket-billing", label: "Paket Billing", icon: Sliders, admin: true },
   { href: "/stok-kasir", label: "Stok Etalase", icon: Package, admin: true },

@@ -518,7 +518,7 @@ export default function DataBookingPage() {
                   </span>
                 </div>
                 <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
-                  Pantau antrean bilik komputer, konfirmasi pembayaran, dan panggil pemain saat giliran tiba
+                  Pantau antrean booking PC, konfirmasi pembayaran, dan panggil pemain saat giliran main tiba
                 </p>
               </div>
             </div>
