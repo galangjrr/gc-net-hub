@@ -146,7 +146,7 @@ export default function PaketBillingPage() {
         groups.push({
           id: 'jam',
           title: 'Paket Jam Reguler',
-          description: 'Durasi per jam standar warnet (1 Jam, 2 Jam, 3 Jam, dst)',
+          description: 'Durasi per jam standar warnet mulai 1 jam sampai 10 jam',
           badge: `${jam.length} Paket`,
           badgeColor: 'bg-blue-500/10 text-blue-300 border-blue-500/30',
           icon: Clock,
@@ -161,7 +161,7 @@ export default function PaketBillingPage() {
         groups.push({
           id: 'uang_pas',
           title: 'Paket Uang Pas',
-          description: 'Pecahan nominal tunai dengan durasi proporsional (Kilat, Goceng, Ceban, dst)',
+          description: 'Pecahan nominal pas di kantong seperti Kilat, Goceng, dan Ceban',
           badge: `${uangPas.length} Paket`,
           badgeColor: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
           icon: Zap,
@@ -176,7 +176,7 @@ export default function PaketBillingPage() {
         groups.push({
           id: 'spesial',
           title: 'Paket Spesial & Malam',
-          description: 'Sesi waktu tetap (Paket Malam, Subuh, Ramadan)',
+          description: 'Sesi jadwal khusus seperti Paket Malam, Subuh, dan Ramadan',
           badge: `${spesial.length} Paket`,
           badgeColor: 'bg-purple-500/10 text-purple-300 border-purple-500/30',
           icon: Sparkles,

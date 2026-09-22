@@ -1084,7 +1084,7 @@ export default function Home() {
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
                   <Check className="text-nvidia-green" size={12} />
                 </div>
-                <span>Saat PC penuh, wajib catat antrean booking.</span>
+                <span>Saat PC penuh, booking online buat amankan nomor antrean.</span>
               </div>
               <div className="flex items-center gap-3 text-xs md:text-sm text-zinc-300">
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
@@ -1096,7 +1096,7 @@ export default function Home() {
                 <div className="w-5 h-5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
                   <Check className="text-nvidia-green" size={12} />
                 </div>
-                <span>OP konfirmasi, pantau posisi antrean, giliran main tiba.</span>
+                <span>Tunggu konfirmasi OP, pantau antrean, langsung duduk main.</span>
               </div>
             </div>
 
@@ -1196,7 +1196,7 @@ export default function Home() {
         <div className="max-w-[1400px] w-full mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tighter uppercase tracking-tight mb-4">DAFTAR HARGA PAKET BILLING</h2>
-            <p className="text-white/50 tracking-tight max-w-xl mx-auto">Pilih paket billing sesuai durasi main yang kamu butuhkan. Tersedia jam reguler, uang pas, dan paket spesial.</p>
+            <p className="text-white/50 tracking-tight max-w-xl mx-auto">Pilih paket billing yang paling pas buat lu. Mulai dari jam reguler, uang pas pecahan, sampai paket malam begadang.</p>
           </div>
 
           <div className="flex flex-col gap-12">
@@ -1373,7 +1373,7 @@ export default function Home() {
                 <span className="text-xs font-bold text-nvidia-green uppercase tracking-widest">LIVE MONITORING</span>
               </div>
               <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight uppercase">STATUS ANTREAN BOOKING</h2>
-              <p className="text-white/50 tracking-tight text-sm mt-2 max-w-xl">Pantau posisi antrean pemain dan ketersediaan PC secara langsung.</p>
+              <p className="text-white/50 tracking-tight text-sm mt-2 max-w-xl">Pantau posisi antrean pemain dan sisa waktu PC secara langsung.</p>
             </div>
 
             {/* Search Bar */}
@@ -2035,7 +2035,7 @@ export default function Home() {
                               )}
                             </div>
                             <span className="text-[11px] text-zinc-300 font-medium">
-                              {memberSession ? "Terkunci sesuai akun login lu" : "OP akan memanggil nama ini saat giliran main tiba"}
+                              {memberSession ? "Terkunci sesuai akun member lu" : "Nama ini bakal dipanggil OP pas giliran main lu tiba"}
                             </span>
                           </div>
                         </div>
@@ -2053,7 +2053,7 @@ export default function Home() {
                                 if (formError) setFormError(null);
                               }
                             }}
-                            placeholder="Ketik nama panggilan Anda..."
+                            placeholder="Ketik nickname main lu..."
                             className={`w-full border pl-9 pr-8 py-2 rounded-lg text-xs font-semibold outline-none transition placeholder:text-zinc-400 ${
                               memberSession 
                                 ? "bg-black/80 border-nvidia-green/40 text-nvidia-green cursor-not-allowed" 
@@ -2487,7 +2487,7 @@ export default function Home() {
                             </strong>
                           </div>
                           <div className="p-2.5 rounded-lg bg-[#14161b] border border-zinc-700/60 flex justify-between items-center">
-                            <span className="text-zinc-300 font-semibold">Durasi Billing:</span>
+                            <span className="text-zinc-300 font-semibold">Durasi Main:</span>
                             <strong className="text-white font-bold">
                               {selectedPaketDuration}
                             </strong>
@@ -2569,7 +2569,7 @@ export default function Home() {
                                 </span>
                               </div>
                               <p className="text-[11px] text-zinc-300 leading-relaxed">
-                                Barcode QRIS akan muncul otomatis setelah lu klik Konfirmasi. Scan pakai aplikasi DANA, GoPay, OVO, atau bank mana aja.
+                                Barcode QRIS bakal muncul otomatis setelah lu klik Konfirmasi. Scan langsung pakai DANA, GoPay, OVO, atau mobile banking apa aja.
                               </p>
                               {danaPaymentStatus === 'waiting' && danaBookingId && (
                                 <button
@@ -2747,35 +2747,35 @@ export default function Home() {
                 <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar tracking-tight text-sm text-white/70 space-y-4">
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Clock size={20} className="text-purple-400 shrink-0" /> Dateng Tepat Waktu</h3>
-                    <p>Kalau kamu sudah booking, usahakan datang tepat waktu ya. Toleransi keterlambatan maksimal <strong>5 menit</strong>. Lewat dari itu, durasi billing otomatis berjalan atau PC dialihkan ke pemain antrean berikutnya yang sudah standby di lokasi.</p>
+                    <p>Kalau lu udah booking PC, usahain datang tepat waktu ya. Kita kasih batas toleransi <strong>5 menit</strong>. Lewat dari itu, argo billing otomatis jalan atau unit PC bakal dioper ke antrean berikutnya yang udah standby di lokasi.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Crown size={20} className="text-purple-400 shrink-0" /> Prioritas Walk-in & Antrean</h3>
-                    <p>Booking via web berfungsi untuk <strong>mengamankan nomor antrean PC</strong>. Pemain yang datang langsung ke meja OP tetap mendapatkan prioritas jika ada unit kosong. Kalau kamu booking untuk main setelah sesi pemain lain, pastikan sudah standby sebelum billing selesai agar langsung sambung main.</p>
+                    <p>Booking web ini gunanya buat <strong>ngamanin nomor antrean PC</strong>. Pemain yang datang langsung ke meja OP tetap prioritas kalau ada unit kosong. Kalau lu booking buat nyambung setelah pemain lain selesai, pastiin lu udah standby sebelum durasi billing mereka habis biar langsung duduk main.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><UtensilsCrossed size={20} className="text-purple-400 shrink-0" /> Urusan Makanan dan Minuman</h3>
-                    <p>Dilarang keras bawa makanan dan minuman dari luar yang mudah tumpah atau berpotensi merusak periferal warnet. Pesan langsung snack dan minuman di meja OP atau kantin GC Net.</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><UtensilsCrossed size={20} className="text-purple-400 shrink-0" /> Makanan & Minuman</h3>
+                    <p>Jangan bawa makanan atau minuman dari luar yang gampang tumpah dan bisa ngerusak gear PC ya. Kalau laper atau haus, pesan aja langsung snack dan minuman dingin di meja OP atau kantin GC Net.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Ban size={20} className="text-purple-400 shrink-0" /> Area Bebas Asap</h3>
-                    <p>Seluruh bilik PC GC Net 100% bebas asap rokok dan vape. Untuk merokok atau vape, silakan gunakan area outdoor di luar ruangan warnet agar ruangan tetap adem dan nyaman.</p>
+                    <p>Semua area PC GC Net bebas asap rokok dan vape ya. Buat yang mau sebat atau nge-vape, silakan melipir santai ke area outdoor depan biar ruangan tetap adem dan wangi buat semua yang main.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
                     <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Banknote size={20} className="text-purple-400 shrink-0" /> Ketentuan Pembayaran</h3>
-                    <p>Paket booking atau sesi billing yang sudah terkonfirmasi dan aktif <strong>tidak dapat di-refund</strong> atau dibatalkan. Pastikan pilihan PC dan paket billing sudah sesuai sebelum melakukan konfirmasi.</p>
+                    <p>Paket booking atau durasi billing yang sudah aktif dan jalan <strong>gak bisa di-refund</strong> atau dibatalin. Pastiin pilihan unit PC dan paket billing lu udah pas sebelum bayar ya.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20} className="text-purple-400 shrink-0" /> Anti-Cheat & Fair Play</h3>
-                    <p>Main bersih itu keren! Kalo sampai ketahuan pake <em>cheat</em>, aplikasi ilegal, atau <em>browsing</em> yang aneh-aneh, sanksinya auto <strong>diomelin</strong> sama abang-abangan GC Net. <em>Play fair, play safe!</em></p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><AlertTriangle size={20} className="text-purple-400 shrink-0" /> Fair Play & No Cheat</h3>
+                    <p>Main bersih itu asik! Kalau ketahuan pakai cheat, program ilegal, atau buka hal-hal aneh, siap-siap langsung diomelin OP GC Net. Main sportif, mabar aman.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Sparkles size={20} className="text-purple-400 shrink-0" /> Jaga Kebersihan Bareng</h3>
-                    <p>Biar mainnya makin <em>pewe</em>, yuk sama-sama jaga kebersihan area dan <em>gear</em> yang kamu pake. Jangan lupa buang sisa sampahmu pada tempatnya ya!</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Sparkles size={20} className="text-purple-400 shrink-0" /> Jaga Kebersihan Gear</h3>
+                    <p>Biar main makin betah, yuk sama-sama rawat kebersihan meja dan gear PC yang lu pake. Jangan lupa buang sampah pada tempatnya sehabis main.</p>
                   </div>
                   <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-[2px] group hover:bg-purple-500/10 transition-colors">
-                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Monitor size={20} className="text-purple-400 shrink-0" /> Request Install Game?</h3>
-                    <p>Jangan sembarangan nge-<em>install</em> aplikasi pihak ketiga yang berisiko bikin sistem PC kita <em>ngambek</em>. Kalo butuh <em>request game</em> atau <em>software</em> tertentu, <em>bilang</em> aja sama Operator kita yang lagi <em>jaga</em>!</p>
+                    <h3 className="text-purple-400 font-bold mb-2 flex items-center gap-2"><Monitor size={20} className="text-purple-400 shrink-0" /> Request Game Baru?</h3>
+                    <p>Jangan asal install software aneh yang bisa bikin sistem PC bermasalah. Kalau mau request game atau update tertentu, bilang aja langsung ke OP yang lagi jaga.</p>
                   </div>
                 </div>
 
