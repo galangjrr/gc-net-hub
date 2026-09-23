@@ -293,6 +293,24 @@ const DAILY_QUESTS: DailyQuestItem[] = [
   }
 ];
 
+const authVariants = {
+  enter: (dir: number) => ({
+    opacity: 0,
+    x: dir > 0 ? 32 : -32,
+    filter: "blur(4px)",
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    filter: "blur(0px)",
+  },
+  exit: (dir: number) => ({
+    opacity: 0,
+    x: dir > 0 ? -32 : 32,
+    filter: "blur(4px)",
+  }),
+};
+
 export default function MemberPage() {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -362,6 +380,15 @@ export default function MemberPage() {
 
   // Auth Form States
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authDirection, setAuthDirection] = useState<number>(1);
+
+  const switchAuthMode = (mode: "login" | "register") => {
+    if (mode === authMode) return;
+    setAuthDirection(mode === "register" ? 1 : -1);
+    setAuthMode(mode);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+  };
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -1842,53 +1869,83 @@ export default function MemberPage() {
                   {/* Subtle Background Glow Accent */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-nvidia-green/20 via-nvidia-green/5 to-transparent rounded-[32px] blur-xl opacity-60 group-hover:opacity-100 transition duration-700 pointer-events-none" />
 
-                  <div className="relative rounded-3xl bg-zinc-950/90 backdrop-blur-xl border border-white/15 p-6 sm:p-8 shadow-2xl space-y-6">
+                  <motion.div 
+                    layout 
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative rounded-3xl bg-zinc-950/90 backdrop-blur-xl border border-white/15 p-6 sm:p-8 shadow-2xl space-y-6 overflow-hidden"
+                  >
                     {/* Header Terminal Card */}
                     <div className="flex items-center gap-3 pb-4 border-b border-white/10">
                       <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 shadow-sm">
-                        {authMode === "login" ? <LogIn size={20} /> : <UserPlus size={20} />}
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.div
+                            key={authMode}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            {authMode === "login" ? <LogIn size={20} /> : <UserPlus size={20} />}
+                          </motion.div>
+                        </AnimatePresence>
                       </div>
-                      <div>
-                        <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
-                          {authMode === "login" ? "Masuk Portal Member" : "Registrasi Member"}
-                        </h3>
-                        <p className="text-xs text-zinc-400 font-medium">
-                          {authMode === "login" ? "Gunakan email atau username terdaftar lu" : "Aktivasi akun untuk billing workstation warnet"}
-                        </p>
+                      <div className="overflow-hidden">
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.div
+                            key={authMode}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+                              {authMode === "login" ? "Masuk Portal Member" : "Registrasi Member"}
+                            </h3>
+                            <p className="text-xs text-zinc-400 font-medium">
+                              {authMode === "login" ? "Gunakan email atau username terdaftar lu" : "Aktivasi akun untuk billing workstation warnet"}
+                            </p>
+                          </motion.div>
+                        </AnimatePresence>
                       </div>
                     </div>
 
-                    {/* Tab Selector */}
-                    <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-zinc-900/90 border border-white/10">
+                    {/* Tab Selector with Smooth Sliding Pill */}
+                    <div className="relative grid grid-cols-2 p-1.5 rounded-2xl bg-zinc-900/90 border border-white/10">
                       <button
                         type="button"
-                        onClick={() => {
-                          setAuthMode("login");
-                          setErrorMessage(null);
-                          setSuccessMessage(null);
-                        }}
-                        className={`py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 ${
+                        onClick={() => switchAuthMode("login")}
+                        className={`relative z-10 py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2 ${
                           authMode === "login"
-                            ? "bg-nvidia-green text-black font-black shadow-md"
+                            ? "text-black font-black"
                             : "text-zinc-400 hover:text-white"
                         }`}
                       >
+                        {authMode === "login" && (
+                          <motion.div
+                            layoutId="activeAuthTab"
+                            className="absolute inset-0 bg-nvidia-green rounded-xl shadow-md -z-10"
+                            transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                          />
+                        )}
                         <LogIn size={15} />
                         <span>Masuk Akun</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          setAuthMode("register");
-                          setErrorMessage(null);
-                          setSuccessMessage(null);
-                        }}
-                        className={`py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 ${
+                        onClick={() => switchAuthMode("register")}
+                        className={`relative z-10 py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2 ${
                           authMode === "register"
-                            ? "bg-nvidia-green text-black font-black shadow-md"
+                            ? "text-black font-black"
                             : "text-zinc-400 hover:text-white"
                         }`}
                       >
+                        {authMode === "register" && (
+                          <motion.div
+                            layoutId="activeAuthTab"
+                            className="absolute inset-0 bg-nvidia-green rounded-xl shadow-md -z-10"
+                            transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                          />
+                        )}
                         <UserPlus size={15} />
                         <span>Daftar Baru</span>
                       </button>
@@ -1908,138 +1965,155 @@ export default function MemberPage() {
                       </div>
                     )}
 
-                    {/* Form Content */}
-                    <form onSubmit={authMode === "login" ? handleLogin : handleRegister} className="space-y-4 text-xs sm:text-sm">
-                      {authMode === "register" && (
-                        <>
-                          <div>
-                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                              Username Billing (IGN)
-                            </label>
-                            <div className="relative">
-                              <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                              <input
-                                type="text"
-                                required
-                                placeholder="contoh: pro_gamer123"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                              />
+                    {/* Form Content with Smooth Sliding Gesture */}
+                    <div className="overflow-hidden">
+                      <AnimatePresence mode="wait" custom={authDirection} initial={false}>
+                        <motion.div
+                          key={authMode}
+                          custom={authDirection}
+                          variants={authVariants}
+                          initial="enter"
+                          animate="center"
+                          exit="exit"
+                          transition={{
+                            duration: 0.26,
+                            ease: [0.16, 1, 0.3, 1]
+                          }}
+                        >
+                          <form onSubmit={authMode === "login" ? handleLogin : handleRegister} className="space-y-4 text-xs sm:text-sm">
+                            {authMode === "register" && (
+                              <>
+                                <div>
+                                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                    Username Billing (IGN)
+                                  </label>
+                                  <div className="relative">
+                                    <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                    <input
+                                      type="text"
+                                      required
+                                      placeholder="contoh: pro_gamer123"
+                                      value={username}
+                                      onChange={(e) => setUsername(e.target.value)}
+                                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                    />
+                                  </div>
+                                  <span className="text-[11px] text-zinc-400 block mt-1">
+                                    Huruf, angka, atau underscore 3 sampai 20 karakter untuk login PC.
+                                  </span>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                    Nama Lengkap
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="Nama asli atau nama panggilan"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                    Nomor WhatsApp
+                                  </label>
+                                  <div className="relative">
+                                    <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                    <input
+                                      type="tel"
+                                      placeholder="0812xxxxxxxx"
+                                      value={phone}
+                                      onChange={(e) => setPhone(e.target.value)}
+                                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                    />
+                                  </div>
+                                </div>
+                              </>
+                            )}
+
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                Alamat Email
+                              </label>
+                              <div className="relative">
+                                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <input
+                                  type="email"
+                                  required
+                                  placeholder="nama@email.com"
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                />
+                              </div>
                             </div>
-                            <span className="text-[11px] text-zinc-400 block mt-1">
-                              Huruf, angka, atau underscore 3 sampai 20 karakter untuk login PC.
-                            </span>
-                          </div>
 
-                          <div>
-                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                              Nama Lengkap
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Nama asli atau nama panggilan"
-                              value={fullName}
-                              onChange={(e) => setFullName(e.target.value)}
-                              className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                              Nomor WhatsApp
-                            </label>
-                            <div className="relative">
-                              <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                              <input
-                                type="tel"
-                                placeholder="0812xxxxxxxx"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                              />
+                            <div>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                                  Password Akun
+                                </label>
+                                {authMode === "login" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setForgotEmail(email);
+                                      setForgotError(null);
+                                      setForgotSuccess(null);
+                                      setShowForgotModal(true);
+                                    }}
+                                    className="text-xs text-nvidia-green hover:underline font-bold"
+                                  >
+                                    Lupa Password?
+                                  </button>
+                                )}
+                              </div>
+                              <div className="relative">
+                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <input
+                                  type={showPassword ? "text" : "password"}
+                                  required
+                                  placeholder="Minimal 6 karakter"
+                                  value={password}
+                                  onChange={(e) => setPassword(e.target.value)}
+                                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                                >
+                                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        </>
-                      )}
 
-                      <div>
-                        <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                          Alamat Email
-                        </label>
-                        <div className="relative">
-                          <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                          <input
-                            type="email"
-                            required
-                            placeholder="nama@email.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
-                            Password Akun
-                          </label>
-                          {authMode === "login" && (
                             <button
-                              type="button"
-                              onClick={() => {
-                                setForgotEmail(email);
-                                setForgotError(null);
-                                setForgotSuccess(null);
-                                setShowForgotModal(true);
-                              }}
-                              className="text-xs text-nvidia-green hover:underline font-bold"
+                              type="submit"
+                              disabled={actionLoading}
+                              className="w-full mt-4 py-3.5 px-4 rounded-xl bg-nvidia-green text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition shadow-[0_4px_20px_rgba(118,185,0,0.3)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.3)] active:scale-[0.99] disabled:opacity-50"
                             >
-                              Lupa Password?
+                              {actionLoading ? (
+                                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                              ) : authMode === "login" ? (
+                                <>
+                                  <span>Masuk ke Akun</span>
+                                  <ArrowRight size={16} />
+                                </>
+                              ) : (
+                                <>
+                                  <span>Daftar Sekarang</span>
+                                  <Sparkles size={16} />
+                                </>
+                              )}
                             </button>
-                          )}
-                        </div>
-                        <div className="relative">
-                          <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            placeholder="Minimal 6 karakter"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full pl-10 pr-10 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
-                          >
-                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={actionLoading}
-                        className="w-full mt-4 py-3.5 px-4 rounded-xl bg-nvidia-green text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition shadow-[0_4px_20px_rgba(118,185,0,0.3)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.3)] active:scale-[0.99] disabled:opacity-50"
-                      >
-                        {actionLoading ? (
-                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                        ) : authMode === "login" ? (
-                          <>
-                            <span>Masuk ke Akun</span>
-                            <ArrowRight size={16} />
-                          </>
-                        ) : (
-                          <>
-                            <span>Daftar Sekarang</span>
-                            <Sparkles size={16} />
-                          </>
-                        )}
-                      </button>
-                    </form>
+                          </form>
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
 
                     {/* Divider */}
                     <div className="relative flex items-center justify-center my-5">
@@ -2087,18 +2161,14 @@ export default function MemberPage() {
                         {authMode === "login" ? "Belum punya akun member?" : "Sudah punya akun?"}{" "}
                         <button
                           type="button"
-                          onClick={() => {
-                            setAuthMode(authMode === "login" ? "register" : "login");
-                            setErrorMessage(null);
-                            setSuccessMessage(null);
-                          }}
+                          onClick={() => switchAuthMode(authMode === "login" ? "register" : "login")}
                           className="text-nvidia-green font-black hover:underline ml-1"
                         >
                           {authMode === "login" ? "Daftar di sini" : "Login di sini"}
                         </button>
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
