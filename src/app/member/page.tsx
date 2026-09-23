@@ -36,6 +36,7 @@ import {
   UserPlus
 } from "lucide-react";
 import Link from "next/link";
+import Script from "next/script";
 import { supabase } from "@/lib/supabase";
 import FloatingChatMessenger from "@/components/chat/FloatingChatMessenger";
 
@@ -431,12 +432,83 @@ export default function MemberPage() {
   const [modalLoading, setModalLoading] = useState(false);
   const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
 
+  // Google Identity Services (GIS) Initializer
+  useEffect(() => {
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!googleClientId || typeof window === "undefined") return;
+
+    const initGIS = () => {
+      if ((window as any).google?.accounts?.id) {
+        try {
+          (window as any).google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: async (response: any) => {
+              if (!response?.credential) return;
+              setGoogleLoading(true);
+              setErrorMessage(null);
+              try {
+                const { error } = await supabase.auth.signInWithIdToken({
+                  provider: "google",
+                  token: response.credential,
+                });
+                if (error) throw error;
+              } catch (err: any) {
+                setErrorMessage(err?.message || "Gagal masuk menggunakan akun Google");
+              } finally {
+                setGoogleLoading(false);
+              }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+        } catch (e) {
+          // Abaikan kesalahan inisialisasi awal
+        }
+      }
+    };
+
+    if ((window as any).google?.accounts?.id) {
+      initGIS();
+    } else {
+      const interval = setInterval(() => {
+        if ((window as any).google?.accounts?.id) {
+          initGIS();
+          clearInterval(interval);
+        }
+      }, 250);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
   const handleGoogleLogin = async () => {
     setErrorMessage(null);
     setSuccessMessage(null);
     setGoogleLoading(true);
 
     try {
+      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+      // Jalur 1: Menggunakan Google Identity Services jika Client ID Google terpasang
+      if (googleClientId && typeof window !== "undefined" && (window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.prompt(async (notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // Fallback ke redirect OAuth jika browser memblokir prompt One Tap
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: {
+                redirectTo: `${window.location.origin}/member`,
+              },
+            });
+            if (error) {
+              setErrorMessage(error.message || "Gagal membuka otentikasi Google");
+              setGoogleLoading(false);
+            }
+          }
+        });
+        return;
+      }
+
+      // Jalur 2: Standar Supabase OAuth Redirect
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -839,6 +911,7 @@ export default function MemberPage() {
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-nvidia-green selection:text-black py-8 px-4 sm:px-6 lg:px-10 relative flex flex-col">
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       
       {/* Container Lebar Nyaman untuk Monitor Standar maupun Ultrawide 21:9 */}
       <div className="w-full max-w-7xl mx-auto space-y-6 flex-1 flex flex-col">
