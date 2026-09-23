@@ -135,12 +135,18 @@ export default function MemberManagementPage() {
 
   const submitTopUp = async () => {
     if (!topUpMember) return;
-    if (topUpAmount < 1000) {
-      alert("Minimal top up saldo adalah Rp 1.000");
+    if (topUpAmount < 5000) {
+      alert("Minimal top up saldo adalah Rp 5.000");
       return;
     }
-    if (topUpAmount > 2000000) {
-      alert("Maksimal top up kasir sekali transaksi adalah Rp 2.000.000");
+    if (topUpAmount > 500000) {
+      alert("Maksimal top up kasir sekali transaksi adalah Rp 500.000");
+      return;
+    }
+    const currentBal = Number(topUpMember.balance) || 0;
+    if (currentBal + topUpAmount > 1000000) {
+      const maxAllowed = Math.max(0, 1000000 - currentBal);
+      alert(`Saldo akun tidak boleh melebihi batas maksimal Rp 1.000.000. Sisa kuota pengisian saat ini adalah Rp ${maxAllowed.toLocaleString("id-ID")}`);
       return;
     }
     setIsSubmittingTopUp(true);
@@ -679,47 +685,71 @@ export default function MemberManagementPage() {
                   </button>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-surface-soft border border-hairline/60 flex items-center justify-between">
-                  <span className="text-xs text-zinc-400 font-medium">Saldo Saat Ini</span>
-                  <span className="text-sm font-bold text-white tabular-nums">
-                    Rp {Number(topUpMember.balance).toLocaleString("id-ID")}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-zinc-300 block">
-                    Pilih Nominal Cepat
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[10000, 20000, 50000, 100000].map((nominal) => (
-                      <button
-                        key={nominal}
-                        type="button"
-                        onClick={() => handleSelectPreset(nominal)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold tabular-nums transition ${
-                          topUpAmount === nominal
-                            ? "bg-nvidia-green text-black border-nvidia-green shadow-sm"
-                            : "bg-surface-soft border-hairline text-zinc-200 hover:bg-white/10"
-                        }`}
-                      >
-                        + Rp {nominal.toLocaleString("id-ID")}
-                      </button>
-                    ))}
+                <div className="p-3.5 rounded-xl bg-surface-soft border border-hairline/60 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-400 font-medium">Saldo Saat Ini</span>
+                    <span className="font-bold text-white tabular-nums text-sm">
+                      Rp {Number(topUpMember.balance).toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-hairline/40">
+                    <span className="text-zinc-400 font-medium">Sisa Kuota Pengisian</span>
+                    <span className="font-bold text-nvidia-green tabular-nums">
+                      Rp {Math.max(0, 1000000 - Number(topUpMember.balance)).toLocaleString("id-ID")}
+                    </span>
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-300 block">
-                    Nominal Kustom (Rupiah)
-                  </label>
-                  <input
-                    type="text"
-                    value={customTopUpInput}
-                    onChange={(e) => handleCustomAmountChange(e.target.value)}
-                    placeholder="Contoh: 35000"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-soft border border-hairline text-white font-bold text-sm focus:outline-none focus:border-nvidia-green"
-                  />
-                </div>
+                {Number(topUpMember.balance) >= 1000000 ? (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs">
+                    Akun member ini sudah mencapai batas maksimal saldo satu juta rupiah. Pengisian saldo ditutup sementara sampai saldo digunakan bermain.
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-zinc-300 block">
+                        Pilih Nominal Cepat
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[10000, 20000, 50000, 100000].map((nominal) => {
+                          const remainingQuota = Math.max(0, 1000000 - Number(topUpMember.balance));
+                          const isExceeded = nominal > remainingQuota;
+                          return (
+                            <button
+                              key={nominal}
+                              type="button"
+                              disabled={isExceeded}
+                              onClick={() => handleSelectPreset(nominal)}
+                              className={`py-2 px-3 rounded-xl border text-xs font-bold tabular-nums transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                                topUpAmount === nominal
+                                  ? "bg-nvidia-green text-black border-nvidia-green shadow-sm"
+                                  : "bg-surface-soft border-hairline text-zinc-200 hover:bg-white/10"
+                              }`}
+                            >
+                              + Rp {nominal.toLocaleString("id-ID")}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-zinc-300 block">
+                        Nominal Kustom Rupiah
+                      </label>
+                      <input
+                        type="text"
+                        value={customTopUpInput}
+                        onChange={(e) => handleCustomAmountChange(e.target.value)}
+                        placeholder="Minimal 5000, maksimal 500000"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-surface-soft border border-hairline text-white font-bold text-sm focus:outline-none focus:border-nvidia-green"
+                      />
+                      <span className="text-[10px] text-zinc-500 block">
+                        Maksimal pengisian per transaksi lima ratus ribu rupiah.
+                      </span>
+                    </div>
+                  </>
+                )}
 
                 <div className="flex items-center justify-end gap-2 pt-3 border-t border-hairline/60">
                   <button
@@ -731,7 +761,12 @@ export default function MemberManagementPage() {
                   </button>
                   <button
                     type="button"
-                    disabled={isSubmittingTopUp || topUpAmount === 0}
+                    disabled={
+                      isSubmittingTopUp || 
+                      topUpAmount < 5000 || 
+                      Number(topUpMember.balance) >= 1000000 ||
+                      Number(topUpMember.balance) + topUpAmount > 1000000
+                    }
                     onClick={submitTopUp}
                     className="px-5 py-2 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-50 text-black text-xs font-bold rounded-xl shadow-sm transition"
                   >
