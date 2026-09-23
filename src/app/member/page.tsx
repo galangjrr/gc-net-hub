@@ -805,11 +805,11 @@ export default function MemberPage() {
 
         {sessionUser ? (
           /* ── LOGGED IN: UNIFIED 2-PANEL COHESIVE DASHBOARD ── */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER, DOMPET & AKSI CEPAT */}
+            {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER SHOWCASE */}
             <div 
-              className="lg:col-span-5 relative rounded-3xl p-[1px] group flex flex-col transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.15)]"
+              className="lg:col-span-5 relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.15)]"
               style={{ perspective: "1000px" }}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
@@ -825,8 +825,8 @@ export default function MemberPage() {
                 }}
               />
 
-              {/* Kartu Utama Berlatar Hitam Solid (Menutupi Bagian Dalam Sehingga Hanya 1px Border Yang Berkilau) */}
-              <div className="relative flex-1 h-full w-full rounded-[23px] bg-zinc-950 p-6 sm:p-7 flex flex-col justify-between space-y-6 overflow-hidden">
+              {/* Kartu Utama Berlatar Hitam Solid (Compact & Ramping) */}
+              <div className="relative w-full rounded-[23px] bg-zinc-950 p-4 sm:p-5 overflow-hidden">
                 {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan Di Permukaan */}
                 <div 
                   className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-[23px] overflow-hidden"
@@ -835,9 +835,9 @@ export default function MemberPage() {
                   }}
                 />
 
-                {/* 3D Tilting Inner Card Wrapper */}
+                {/* 3D Tilting Inner Card Wrapper: Rapat & Compact */}
                 <div 
-                  className="space-y-5 sm:space-y-6 transition-transform duration-100 ease-out relative z-30 flex-1 flex flex-col justify-between"
+                  className="space-y-3 sm:space-y-3.5 transition-transform duration-100 ease-out relative z-30"
                   style={{
                     transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
                     transformStyle: "preserve-3d",
@@ -845,133 +845,133 @@ export default function MemberPage() {
                 >
                   {/* Header Kartu: Sim Chip & Status Rank Badge */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                    <div className="w-9 h-7 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
-                      <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
-                        <div className="border-r border-b border-amber-950/40" />
-                        <div className="border-b border-amber-950/40" />
-                        <div className="border-r border-amber-950/40" />
-                        <div />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-6 rounded bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
+                          <div className="border-r border-b border-amber-950/40" />
+                          <div className="border-b border-amber-950/40" />
+                          <div className="border-r border-amber-950/40" />
+                          <div />
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase font-bold">
+                        GC MEMBER ID
+                      </span>
+                    </div>
+
+                    <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} shadow-sm`}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                      <span className="font-mono font-bold tracking-wider text-[10px] uppercase">{currentTier.name}</span>
+                    </div>
+                  </div>
+
+                  {/* Nickname & Identitas Akun (Hero Player Treatment) */}
+                  <div className="flex items-center gap-3 pt-0.5">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-xl shrink-0 shadow-md ring-1 ring-white/10">
+                      {(profile?.username?.[0] || sessionUser.email?.[0] || "G").toUpperCase()}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase truncate">
+                          {profile?.username || sessionUser.email?.split("@")[0]}
+                        </h2>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-[10px] font-bold tracking-wide shrink-0">
+                          <CheckCircle2 size={12} className="text-nvidia-green shrink-0" />
+                          <span>Verified</span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 mt-0.5 truncate">
+                        <span className="text-[11px] text-zinc-300 font-bold">
+                          {currentTier.title}
+                        </span>
+                        <span className="text-zinc-600">•</span>
+                        <p className="text-[11px] text-zinc-400 font-medium truncate">
+                          {profile?.full_name || sessionUser.email}
+                        </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase font-bold">
-                      GC MEMBER ID
-                    </span>
                   </div>
 
-                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} shadow-sm`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                    <span className="font-mono font-bold tracking-wider text-[11px] uppercase">{currentTier.name}</span>
-                  </div>
-                </div>
-
-                {/* Nickname & Identitas Akun (Hero Player Treatment) */}
-                <div className="flex items-center gap-4 pt-1">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shrink-0 shadow-lg ring-1 ring-white/10">
-                    {(profile?.username?.[0] || sessionUser.email?.[0] || "G").toUpperCase()}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase truncate">
-                        {profile?.username || sessionUser.email?.split("@")[0]}
-                      </h2>
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-xs font-bold tracking-wide shrink-0">
-                        <CheckCircle2 size={14} className="text-nvidia-green shrink-0" />
-                        <span>Verified</span>
+                  {/* Saldo Deposit */}
+                  <div className="rounded-xl bg-zinc-900/60 border border-white/10 p-3 sm:p-3.5 backdrop-blur-sm">
+                    {/* Baris Atas Saldo: Label & ID Member */}
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider">
+                        Saldo Deposit
                       </span>
+
+                      <button
+                        type="button"
+                        onClick={() => handleCopyMemberId(memberCode)}
+                        title="Salin ID Member"
+                        className="px-2 py-0.5 rounded-md bg-zinc-950/80 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1 shrink-0 active:scale-95"
+                      >
+                        <span className="font-mono font-bold text-[10px] text-zinc-200">{memberCode}</span>
+                        {copiedId ? (
+                          <Check size={11} className="text-nvidia-green" />
+                        ) : (
+                          <Copy size={11} className="text-zinc-400" />
+                        )}
+                      </button>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-1 truncate">
-                      <span className="text-xs text-zinc-300 font-bold">
-                        {currentTier.title}
+                    {/* Nilai Saldo Hero Gold */}
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs font-black text-amber-400 font-mono tracking-wider">
+                        IDR
                       </span>
-                      <span className="text-zinc-600">•</span>
-                      <p className="text-xs text-zinc-400 font-medium truncate">
-                        {profile?.full_name || sessionUser.email}
-                      </p>
+                      <span className="text-2xl sm:text-3xl font-black font-mono tracking-tight bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_2px_12px_rgba(251,191,36,0.3)]">
+                        {currentBalance.toLocaleString("id-ID")}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Saldo Deposit */}
-                <div className="rounded-2xl bg-zinc-900/60 border border-white/10 p-4 sm:p-5 backdrop-blur-sm">
-                  {/* Baris Atas Saldo: Label & ID Member */}
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-[11px] uppercase text-zinc-400 font-bold tracking-wider">
-                      Saldo Deposit
-                    </span>
+                  {/* HUD Progres Rank Member: Compact & Seamless */}
+                  <div className="rounded-xl bg-zinc-900/60 border border-white/10 p-2.5 sm:p-3 backdrop-blur-sm space-y-1.5 relative overflow-hidden group/rank">
+                    <div className="absolute inset-0 bg-gradient-to-r from-nvidia-green/5 via-cyan-400/5 to-transparent opacity-0 group-hover/rank:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                    <button
-                      type="button"
-                      onClick={() => handleCopyMemberId(memberCode)}
-                      title="Salin ID Member"
-                      className="px-2.5 py-1 rounded-lg bg-zinc-950/80 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1.5 shrink-0 active:scale-95"
-                    >
-                      <span className="font-mono font-bold text-[11px] text-zinc-200">{memberCode}</span>
-                      {copiedId ? (
-                        <Check size={12} className="text-nvidia-green" />
-                      ) : (
-                        <Copy size={12} className="text-zinc-400" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Nilai Saldo Hero Gold */}
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs sm:text-sm font-black text-amber-400 font-mono tracking-wider">
-                      IDR
-                    </span>
-                    <span className="text-3xl sm:text-4xl font-black font-mono tracking-tight bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_2px_14px_rgba(251,191,36,0.35)]">
-                      {currentBalance.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                </div>
-
-                {/* HUD Progres Rank Member: Animasi Premium & Compact Tanpa Kata Tier */}
-                <div className="rounded-2xl bg-zinc-900/60 border border-white/10 p-3 sm:p-3.5 backdrop-blur-sm space-y-2 relative overflow-hidden group/rank">
-                  <div className="absolute inset-0 bg-gradient-to-r from-nvidia-green/5 via-cyan-400/5 to-transparent opacity-0 group-hover/rank:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                  {/* Header Progress: Label Rank & Persentase */}
-                  <div className="flex items-center justify-between text-xs relative z-10">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
-                        Rank {currentTier.name}
-                      </span>
-                      {currentTier.nextTier && (
-                        <span className="text-[10px] text-zinc-400 font-medium">
-                          menuju {currentTier.nextTier}
+                    {/* Header Progress: Label Rank & Persentase */}
+                    <div className="flex items-center justify-between text-xs relative z-10">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                          Rank {currentTier.name}
                         </span>
+                        {currentTier.nextTier && (
+                          <span className="text-[10px] text-zinc-400 font-medium">
+                            menuju {currentTier.nextTier}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono font-black text-white text-xs">
+                        {progressPercent}%
+                      </span>
+                    </div>
+
+                    {/* Track Bar Animasi Luminous Shimmer */}
+                    <div className="w-full h-1.5 rounded-full bg-black/80 border border-white/10 p-0.5 overflow-hidden relative z-10">
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-nvidia-green via-emerald-400 to-cyan-400 transition-all duration-700 relative overflow-hidden shadow-[0_0_8px_rgba(118,185,0,0.4)]"
+                        style={{ width: `${Math.max(4, progressPercent)}%` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+                      </div>
+                    </div>
+
+                    {/* Footer Threshold: IDR Current & Target */}
+                    <div className="flex items-center justify-between text-[10px] text-zinc-400 font-mono relative z-10">
+                      <span>IDR {currentBalance.toLocaleString("id-ID")}</span>
+                      {currentTier.nextTier ? (
+                        <span className="text-zinc-300 font-medium">
+                          Isi IDR {remainingToNext.toLocaleString("id-ID")} lagi
+                        </span>
+                      ) : (
+                        <span className="text-emerald-400 font-bold">Pangkat Tertinggi</span>
                       )}
                     </div>
-                    <span className="font-mono font-black text-white text-xs sm:text-sm">
-                      {progressPercent}%
-                    </span>
-                  </div>
-
-                  {/* Track Bar Animasi Luminous Shimmer */}
-                  <div className="w-full h-2 rounded-full bg-black/80 border border-white/10 p-0.5 overflow-hidden relative z-10">
-                    <div 
-                      className="h-full rounded-full bg-gradient-to-r from-nvidia-green via-emerald-400 to-cyan-400 transition-all duration-700 relative overflow-hidden shadow-[0_0_10px_rgba(118,185,0,0.4)]"
-                      style={{ width: `${Math.max(4, progressPercent)}%` }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
-                    </div>
-                  </div>
-
-                  {/* Footer Threshold: IDR Current & Target */}
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono relative z-10">
-                    <span>IDR {currentBalance.toLocaleString("id-ID")}</span>
-                    {currentTier.nextTier ? (
-                      <span className="text-zinc-300 font-medium">
-                        Isi IDR {remainingToNext.toLocaleString("id-ID")} lagi
-                      </span>
-                    ) : (
-                      <span className="text-emerald-400 font-bold">Pangkat Tertinggi</span>
-                    )}
                   </div>
                 </div>
-              </div>
 
               </div>
             </div>
