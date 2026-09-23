@@ -183,6 +183,7 @@ export default function ActivityLogPage() {
             <button
               onClick={() => loadLogs(true)}
               disabled={isRefreshing}
+              aria-label="Segarkan data log aktivitas"
               className="px-3.5 py-2 rounded-xl bg-surface-soft hover:bg-white/10 border border-hairline text-zinc-200 text-xs font-semibold flex items-center gap-2 transition disabled:opacity-50"
             >
               <RotateCw size={13} className={isRefreshing ? "animate-spin text-nvidia-green" : ""} />
@@ -272,6 +273,7 @@ export default function ActivityLogPage() {
               <input
                 type="date"
                 value={customDate}
+                aria-label="Pilih tanggal log aktivitas"
                 onChange={(e) => setCustomDate(e.target.value)}
                 className="px-3 py-1.5 rounded-xl bg-surface-soft border border-hairline text-zinc-200 focus:outline-none focus:border-nvidia-green"
               />
@@ -281,6 +283,7 @@ export default function ActivityLogPage() {
             {uniqueOperators.length > 0 && (
               <select
                 value={selectedOperator}
+                aria-label="Filter berdasarkan operator"
                 onChange={(e) => setSelectedOperator(e.target.value)}
                 className="px-3 py-1.5 rounded-xl bg-surface-soft border border-hairline text-zinc-200 focus:outline-none focus:border-nvidia-green font-medium"
               >
@@ -299,6 +302,7 @@ export default function ActivityLogPage() {
             <input
               type="text"
               placeholder="Cari aksi, operator, target PC..."
+              aria-label="Cari aksi, operator, atau target PC"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-surface-soft border border-hairline text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green transition"
@@ -365,11 +369,11 @@ export default function ActivityLogPage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-hairline text-zinc-400 uppercase tracking-wider text-[11px] font-bold bg-surface-soft/40">
-                    <th className="py-3.5 pl-6 pr-4 w-[16%]">Waktu Eksekusi</th>
-                    <th className="py-3.5 px-4 w-[18%]">Operator / Staf</th>
-                    <th className="py-3.5 px-4 w-[20%]">Jenis Aksi</th>
-                    <th className="py-3.5 px-4 w-[16%]">Target</th>
-                    <th className="py-3.5 pr-6 pl-4 w-[30%]">Detail Keterangan</th>
+                    <th scope="col" className="py-3.5 pl-6 pr-4 w-[16%]">Waktu Eksekusi</th>
+                    <th scope="col" className="py-3.5 px-4 w-[18%]">Operator / Staf</th>
+                    <th scope="col" className="py-3.5 px-4 w-[20%]">Jenis Aksi</th>
+                    <th scope="col" className="py-3.5 px-4 w-[16%]">Target</th>
+                    <th scope="col" className="py-3.5 pr-6 pl-4 w-[30%]">Detail Keterangan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
