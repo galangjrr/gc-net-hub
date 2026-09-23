@@ -782,22 +782,30 @@ export default function MemberPage() {
             
             {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER, DOMPET & AKSI CEPAT */}
             <div 
-              className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 flex flex-col justify-between shadow-2xl space-y-6 relative overflow-hidden group transition-all duration-300"
+              className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 hover:border-nvidia-green/70 p-6 sm:p-7 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_40px_rgba(118,185,0,0.25),inset_0_0_20px_rgba(118,185,0,0.06)] space-y-6 relative overflow-hidden group transition-all duration-500"
               style={{ perspective: "1000px" }}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
             >
-              {/* Dynamic Holographic Glare Overlay */}
+              {/* Kilauan Hijau Neon di Outline Luar Kartu (Dynamic Glowing Edge Spotlight) */}
               <div 
-                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                className="absolute -inset-[1px] rounded-3xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-[3px]"
                 style={{
-                  background: `radial-gradient(circle 350px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.06), transparent 70%)`,
+                  background: `radial-gradient(420px circle at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(118,185,0,0.85), transparent 75%)`,
+                }}
+              />
+
+              {/* Lapisan Kaca Tipis Depan (Frosted Glass Sheen with Specular Edge) */}
+              <div 
+                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 rounded-3xl overflow-hidden backdrop-blur-[1px] bg-white/[0.02] border-t border-l border-white/30"
+                style={{
+                  background: `radial-gradient(circle 380px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.12), transparent 60%), linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 45%)`,
                 }}
               />
 
               {/* 3D Tilting Inner Card Wrapper */}
               <div 
-                className="space-y-6 transition-transform duration-100 ease-out"
+                className="space-y-6 transition-transform duration-100 ease-out relative z-30"
                 style={{
                   transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
                   transformStyle: "preserve-3d",
@@ -891,7 +899,7 @@ export default function MemberPage() {
               </div>
 
               {/* Aksi Cepat Terintegrasi (Proporsional & Ramping) */}
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-2.5 pt-2 relative z-30">
                 <Link
                   href="/"
                   className="w-full py-2.5 px-4 rounded-xl bg-nvidia-green hover:bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-sm hover:scale-[1.01] active:scale-[0.99]"
