@@ -127,9 +127,9 @@ function calculateTier(balance: number): TierConfig {
       nextTier: "PLATINUM",
       nextThreshold: 350000,
       perks: [
-        "Akses PC VIP room",
-        "Diskon lima persen fnb",
-        "Badge striker di layar PC"
+        "Akses bilik PC VIP",
+        "Badge rank di layar PC",
+        "Prioritas antrean kasir"
       ]
     };
   }
@@ -146,9 +146,9 @@ function calculateTier(balance: number): TierConfig {
       nextTier: "DIAMOND",
       nextThreshold: 700000,
       perks: [
-        "Prioritas penuh VIP booking",
-        "Diskon sepuluh persen fnb",
-        "Minuman sachet gratis tiap sesi"
+        "Prioritas penuh booking PC",
+        "Akses bilik PC VIP",
+        "Layanan kasir prioritas"
       ]
     };
   }
@@ -164,10 +164,10 @@ function calculateTier(balance: number): TierConfig {
     nextTier: null,
     nextThreshold: null,
     perks: [
-      "Akses bebas seluruh PC VIP",
-      "Layanan prioritas kasir operator",
-      "Diskon lima belas persen fnb",
-      "Badge champion eksklusif"
+      "Akses bebas seluruh workstation PC",
+      "Layanan prioritas operator kasir",
+      "Badge champion eksklusif",
+      "Prioritas antrean utama"
     ]
   };
 }
@@ -1703,10 +1703,10 @@ export default function MemberPage() {
                     <span>Sistem Billing & Keanggotaan Member GC-Net</span>
                   </div>
                   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-                    Tarif Khusus Member, Masa Aktif Akun & Startup Fee
+                    Akses Billing Member Cepat, Praktis & Terintegrasi
                   </h2>
                   <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-xl leading-relaxed">
-                    Sistem keanggotaan warnet GC-Net dengan lima level pangkat. Akun memiliki masa aktif berkala dan potongan biaya pembuka sesi (startup fee) saat login workstation PC, dengan perpanjangan mudah saat top up di kasir.
+                    Sistem keanggotaan warnet GC-Net dengan tier level gamer terpadu. Akun memiliki masa aktif berkala dan potongan biaya pembuka sesi (startup fee) saat login workstation PC, dengan perpanjangan mudah saat top up di kasir.
                   </p>
                 </div>
 
@@ -1758,7 +1758,7 @@ export default function MemberPage() {
                         <div className="flex items-center gap-2 mt-0.5 text-xs">
                           <span className="text-yellow-400 font-bold">Striker</span>
                           <span className="text-zinc-600">•</span>
-                          <span className="text-zinc-400">Akses PC VIP & Diskon 5% FnB</span>
+                          <span className="text-zinc-400">Member Aktif Workstation GC-Net</span>
                         </div>
                       </div>
                     </div>
@@ -1788,59 +1788,62 @@ export default function MemberPage() {
 
                       <div className="space-y-1 pt-1">
                         <div className="flex justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                          <span>Menuju Rank Platinum</span>
-                          <span className="text-nvidia-green font-mono">71%</span>
+                          <span>Sistem EXP Pangkat Billing</span>
+                          <span className="text-nvidia-green font-mono text-[10px]">Integrasi GC-Hub</span>
                         </div>
                         <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
-                          <div className="h-full bg-gradient-to-r from-yellow-500 to-nvidia-green rounded-full w-[71%]" />
+                          <div className="h-full bg-gradient-to-r from-yellow-500 to-nvidia-green rounded-full w-[65%]" />
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Strip 5 Pangkat Member (Roadmap Bisnis Nyata GC-Net) */}
+                {/* Strip 5 Pangkat Member (Roadmap Tier Gamer) */}
                 <div className="space-y-2.5 max-w-xl">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">
-                      Tingkatan Pangkat Member
+                      Tingkatan Pangkat Gamer
                     </span>
-                    <span className="text-[11px] text-zinc-500 font-medium">Akumulasi Saldo & Jam Main</span>
+                    <span className="text-[11px] text-zinc-500 font-medium">Akumulasi EXP Sesi & Keaktifan Main</span>
                   </div>
 
                   <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                    {ALL_RANKS.map((rank, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-2 sm:p-2.5 rounded-xl border text-center transition ${
-                          rank.name === "GOLD"
-                            ? "bg-zinc-900 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.15)] ring-1 ring-yellow-500/30"
-                            : "bg-zinc-950/60 border-white/10"
-                        }`}
-                      >
-                        <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${rank.badgeText}`}>
-                          {rank.name}
+                    {ALL_RANKS.map((rank, idx) => {
+                      const tierLabels = ["Tier I", "Tier II", "Tier III", "Tier IV", "Tier V"];
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-2 sm:p-2.5 rounded-xl border text-center transition ${
+                            rank.name === "GOLD"
+                              ? "bg-zinc-900 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.15)] ring-1 ring-yellow-500/30"
+                              : "bg-zinc-950/60 border-white/10"
+                          }`}
+                        >
+                          <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${rank.badgeText}`}>
+                            {rank.name}
+                          </div>
+                          <div className="text-[10px] sm:text-xs font-bold text-white mt-0.5 truncate">
+                            {rank.title}
+                          </div>
+                          <div className="text-[9px] font-mono text-zinc-400 mt-1 truncate">
+                            {tierLabels[idx]}
+                          </div>
                         </div>
-                        <div className="text-[10px] sm:text-xs font-bold text-white mt-0.5 truncate">
-                          {rank.title}
-                        </div>
-                        <div className="text-[9px] font-mono text-zinc-400 mt-1 truncate">
-                          {rank.threshold === 0 ? "Baru" : `${rank.threshold / 1000}k`}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* 4 Feature Highlight Bento Grid (Privilese Bisnis Nyata) */}
+                {/* 4 Feature Highlight Bento Grid (Fitur Nyata Bebas Janji Palsu) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
                   <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-yellow-500/40 transition-colors flex items-start gap-3.5 group">
                     <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-yellow-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Gift size={18} />
+                      <Zap size={18} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Diskon FnB Kasir</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Potongan harga makanan dan minuman hingga 15 persen otomatis saat order di kasir.</p>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Tarif Khusus Member</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Tarif billing per jam lebih hemat dan terjangkau dibanding biaya sewa tamu personal.</p>
                     </div>
                   </div>
 
@@ -1849,8 +1852,8 @@ export default function MemberPage() {
                       <Monitor size={18} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Akses Bilik PC VIP</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Hak istimewa bermain di bilik PC VIP Room tanpa biaya surcharge tambahan.</p>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Login Otomatis Workstation</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Buka kunci bilik PC langsung di layar client menggunakan username akun tanpa antre kasir.</p>
                     </div>
                   </div>
 
@@ -1860,13 +1863,13 @@ export default function MemberPage() {
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-wider text-white">Masa Aktif Akun</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Akun memiliki periode aktif terproteksi dan diperpanjang otomatis tiap top up di kasir.</p>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Akun memiliki periode aktif 30 hari yang otomatis diperpanjang saat isi ulang saldo deposit.</p>
                     </div>
                   </div>
 
                   <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-emerald-500/40 transition-colors flex items-start gap-3.5 group">
                     <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Zap size={18} />
+                      <ShieldCheck size={18} />
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-wider text-white">Biaya Awal (Startup Fee)</h4>
