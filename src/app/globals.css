@@ -116,3 +116,12 @@ body {
 .gpu-layer {
   will-change: transform, opacity;
 }
+
+/* Shimmer beam animation for progress bars */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.animate-shimmer {
+  animation: shimmer 2.4s infinite ease-in-out;
+}

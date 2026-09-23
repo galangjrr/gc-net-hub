@@ -168,6 +168,23 @@ function calculateTier(balance: number): TierConfig {
   };
 }
 
+interface RankRoadmapItem {
+  name: string;
+  title: string;
+  threshold: number;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+}
+
+const ALL_RANKS: RankRoadmapItem[] = [
+  { name: "BRONZE", title: "Rookie Warnet", threshold: 0, badgeBg: "bg-amber-500/15", badgeText: "text-amber-300", badgeBorder: "border-amber-500/30" },
+  { name: "SILVER", title: "Cyber Scout", threshold: 50000, badgeBg: "bg-slate-300/15", badgeText: "text-slate-200", badgeBorder: "border-slate-300/30" },
+  { name: "GOLD", title: "Esports Striker", threshold: 150000, badgeBg: "bg-yellow-500/15", badgeText: "text-yellow-300", badgeBorder: "border-yellow-500/30" },
+  { name: "PLATINUM", title: "Warnet Veteran", threshold: 350000, badgeBg: "bg-cyan-500/15", badgeText: "text-cyan-300", badgeBorder: "border-cyan-500/30" },
+  { name: "DIAMOND", title: "Sultan Cyber", threshold: 700000, badgeBg: "bg-emerald-500/15", badgeText: "text-emerald-300", badgeBorder: "border-emerald-500/30" },
+];
+
 interface DailyQuestItem {
   id: string;
   tag: string;
@@ -810,7 +827,7 @@ export default function MemberPage() {
 
                 {/* 3D Tilting Inner Card Wrapper */}
                 <div 
-                  className="space-y-6 transition-transform duration-100 ease-out relative z-30"
+                  className="space-y-3.5 sm:space-y-4 transition-transform duration-100 ease-out relative z-30"
                   style={{
                     transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
                     transformStyle: "preserve-3d",
@@ -901,6 +918,50 @@ export default function MemberPage() {
                     <span className="text-3xl sm:text-4xl font-black font-mono tracking-tight bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_2px_14px_rgba(251,191,36,0.35)]">
                       {currentBalance.toLocaleString("id-ID")}
                     </span>
+                  </div>
+                </div>
+
+                {/* HUD Progres Rank Member: Animasi Premium & Compact Tanpa Kata Tier */}
+                <div className="rounded-2xl bg-zinc-900/60 border border-white/10 p-3 sm:p-3.5 backdrop-blur-sm space-y-2 relative overflow-hidden group/rank">
+                  <div className="absolute inset-0 bg-gradient-to-r from-nvidia-green/5 via-cyan-400/5 to-transparent opacity-0 group-hover/rank:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                  {/* Header Progress: Label Rank & Persentase */}
+                  <div className="flex items-center justify-between text-xs relative z-10">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                        Rank {currentTier.name}
+                      </span>
+                      {currentTier.nextTier && (
+                        <span className="text-[10px] text-zinc-400 font-medium">
+                          menuju {currentTier.nextTier}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono font-black text-white text-xs sm:text-sm">
+                      {progressPercent}%
+                    </span>
+                  </div>
+
+                  {/* Track Bar Animasi Luminous Shimmer */}
+                  <div className="w-full h-2 rounded-full bg-black/80 border border-white/10 p-0.5 overflow-hidden relative z-10">
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-nvidia-green via-emerald-400 to-cyan-400 transition-all duration-700 relative overflow-hidden shadow-[0_0_10px_rgba(118,185,0,0.4)]"
+                      style={{ width: `${Math.max(4, progressPercent)}%` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" />
+                    </div>
+                  </div>
+
+                  {/* Footer Threshold: IDR Current & Target */}
+                  <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono relative z-10">
+                    <span>IDR {currentBalance.toLocaleString("id-ID")}</span>
+                    {currentTier.nextTier ? (
+                      <span className="text-zinc-300 font-medium">
+                        Isi IDR {remainingToNext.toLocaleString("id-ID")} lagi
+                      </span>
+                    ) : (
+                      <span className="text-emerald-400 font-bold">Pangkat Tertinggi</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -996,77 +1057,96 @@ export default function MemberPage() {
                 
                 {/* TAB 1: PANGKAT & BENEFIT */}
                 {activeTab === "level" && (
-                  <div className="space-y-6">
-                    {/* Header Pangkat */}
+                  <div className="space-y-4">
+                    {/* Header Pangkat Tanpa Kata Tier */}
                     <div className="flex items-center justify-between flex-wrap gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Trophy size={24} />
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0 shadow-sm">
+                          <Trophy size={20} />
                         </div>
                         <div>
-                          <h3 className="text-lg sm:text-xl font-black uppercase text-white tracking-wide">
+                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
                             Level Peringkat Gamer
                           </h3>
-                          <p className="text-xs sm:text-sm text-zinc-300 font-medium">
-                            Akumulasi saldo deposit membuka benefit dan prioritas bilik
+                          <p className="text-xs text-zinc-400 font-medium">
+                            Tingkatan peringkat akun berdasarkan total akumulasi saldo deposit
                           </p>
                         </div>
                       </div>
 
-                      <span className={`text-xs sm:text-sm font-black uppercase px-4 py-1.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
-                        Tier {currentTier.name}
+                      <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
+                        {currentTier.name}
                       </span>
                     </div>
 
-                    {/* Progress Bar HUD */}
-                    <div className="p-5 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-3">
-                      <div className="flex items-center justify-between text-xs sm:text-sm">
-                        <span className="text-zinc-200 font-bold">Progres Menuju Rank Berikutnya</span>
-                        <span className="font-mono font-black text-white text-sm sm:text-base">{progressPercent}%</span>
-                      </div>
-
-                      <div className="w-full h-3.5 rounded-full bg-black border border-white/15 p-0.5 overflow-hidden">
-                        <div 
-                          className="h-full rounded-full bg-gradient-to-r from-nvidia-green to-cyan-400 transition-all duration-500"
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs sm:text-sm text-zinc-300 font-mono font-medium">
-                        <span>Rp {currentBalance.toLocaleString("id-ID")}</span>
-                        {currentTier.nextTier ? (
-                          <span>
-                            Isi Rp {remainingToNext.toLocaleString("id-ID")} lagi menuju {currentTier.nextTier}
-                          </span>
-                        ) : (
-                          <span className="text-emerald-400 font-black">Pangkat Tertinggi Tercapai</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Daftar Keuntungan Pangkat */}
-                    <div>
-                      <span className="text-xs uppercase font-black text-zinc-400 tracking-wider block mb-3">
-                        Privilese Pangkat {currentTier.name} Lu
+                    {/* Tangga Pangkat Gamer: Compact & Seamless */}
+                    <div className="space-y-2">
+                      <span className="text-[11px] uppercase font-bold text-zinc-400 tracking-wider block">
+                        Daftar Tingkatan Pangkat
                       </span>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {currentTier.perks.map((perk, idx) => (
-                          <div key={idx} className="p-3.5 rounded-xl bg-zinc-900 border border-white/10 flex items-center gap-2.5 text-xs sm:text-sm">
-                            <Check size={16} className="text-nvidia-green shrink-0" />
-                            <span className="text-zinc-200 font-bold leading-snug">{perk}</span>
-                          </div>
-                        ))}
+                      <div className="space-y-1.5">
+                        {ALL_RANKS.map((rank, idx) => {
+                          const isCurrent = currentTier.name === rank.name;
+                          const isUnlocked = currentBalance >= rank.threshold;
+                          return (
+                            <div 
+                              key={idx}
+                              className={`p-2.5 sm:p-3 px-3.5 sm:px-4 rounded-xl border transition flex items-center justify-between gap-3 ${
+                                isCurrent
+                                  ? "bg-zinc-900 border-nvidia-green/50 shadow-[0_0_20px_rgba(118,185,0,0.12)]"
+                                  : isUnlocked
+                                  ? "bg-zinc-950/60 border-white/10 hover:border-white/20"
+                                  : "bg-zinc-950/30 border-white/5 opacity-55"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${rank.badgeBg} ${rank.badgeText} ${rank.badgeBorder} tracking-wider shrink-0`}>
+                                  {rank.name}
+                                </span>
+                                <span className="text-xs sm:text-sm font-bold text-white truncate">
+                                  {rank.title}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                                <span className="text-[11px] sm:text-xs font-mono text-zinc-400">
+                                  {rank.threshold === 0 ? "Akun Baru" : `IDR ${rank.threshold.toLocaleString("id-ID")}`}
+                                </span>
+                                {isCurrent ? (
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-nvidia-green/15 text-nvidia-green text-[10px] font-bold border border-nvidia-green/30">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green animate-pulse" />
+                                    <span>Aktif</span>
+                                  </span>
+                                ) : isUnlocked ? (
+                                  <span className="text-emerald-400 text-xs flex items-center gap-1 font-bold">
+                                    <Check size={13} />
+                                    <span className="text-[10px] hidden sm:inline">Terbuka</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-zinc-500 text-[10px] font-bold uppercase">
+                                    Terkunci
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    {/* Ringkasan Booking Member */}
-                    <div className="pt-2">
-                      <div className="p-4 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <Flame size={16} className="text-amber-400" />
-                          <span className="text-xs font-bold uppercase">Total Booking Selesai</span>
+                    {/* Ringkasan Booking Member: Compact & Seamless */}
+                    <div className="flex items-center justify-between p-3 px-4 rounded-xl bg-zinc-900/60 border border-white/10">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                          <Flame size={15} />
                         </div>
-                        <span className="text-sm font-black text-white font-mono">{bookings.length} Pesanan</span>
+                        <span className="text-xs font-bold uppercase text-zinc-300 tracking-wider">
+                          Total Booking Selesai
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-1.5 font-mono">
+                        <span className="text-base sm:text-lg font-black text-white">{bookings.length}</span>
+                        <span className="text-xs text-zinc-400 font-medium">Pesanan</span>
                       </div>
                     </div>
                   </div>
