@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   User, 
@@ -293,24 +293,6 @@ const DAILY_QUESTS: DailyQuestItem[] = [
   }
 ];
 
-const authVariants = {
-  enter: (dir: number) => ({
-    opacity: 0,
-    x: dir > 0 ? 32 : -32,
-    filter: "blur(4px)",
-  }),
-  center: {
-    opacity: 1,
-    x: 0,
-    filter: "blur(0px)",
-  },
-  exit: (dir: number) => ({
-    opacity: 0,
-    x: dir > 0 ? -32 : 32,
-    filter: "blur(4px)",
-  }),
-};
-
 export default function MemberPage() {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -380,15 +362,6 @@ export default function MemberPage() {
 
   // Auth Form States
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [authDirection, setAuthDirection] = useState<number>(1);
-
-  const switchAuthMode = (mode: "login" | "register") => {
-    if (mode === authMode) return;
-    setAuthDirection(mode === "register" ? 1 : -1);
-    setAuthMode(mode);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-  };
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -397,6 +370,35 @@ export default function MemberPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const loginFormRef = useRef<HTMLDivElement>(null);
+  const registerFormRef = useRef<HTMLDivElement>(null);
+  const [formHeight, setFormHeight] = useState<number | undefined>(undefined);
+
+  const switchAuthMode = (mode: "login" | "register") => {
+    if (mode === authMode) return;
+    setAuthMode(mode);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+  };
+
+  useEffect(() => {
+    const syncHeight = () => {
+      if (authMode === "login" && loginFormRef.current) {
+        setFormHeight(loginFormRef.current.scrollHeight);
+      } else if (authMode === "register" && registerFormRef.current) {
+        setFormHeight(registerFormRef.current.scrollHeight);
+      }
+    };
+
+    syncHeight();
+    const timer = setTimeout(syncHeight, 50);
+    window.addEventListener("resize", syncHeight);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", syncHeight);
+    };
+  }, [authMode, errorMessage, successMessage]);
 
   // Topup Info Modal State
   const [showTopupInfoModal, setShowTopupInfoModal] = useState(false);
@@ -1876,36 +1878,47 @@ export default function MemberPage() {
                   >
                     {/* Header Terminal Card */}
                     <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                      <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 shadow-sm">
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.div
-                            key={authMode}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            {authMode === "login" ? <LogIn size={20} /> : <UserPlus size={20} />}
-                          </motion.div>
-                        </AnimatePresence>
+                      <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 shadow-sm relative overflow-hidden">
+                        <motion.div
+                          animate={{ y: authMode === "login" ? 0 : -32, opacity: authMode === "login" ? 1 : 0 }}
+                          transition={{ duration: 0.22, ease: "easeInOut" }}
+                          className="absolute flex items-center justify-center"
+                        >
+                          <LogIn size={20} />
+                        </motion.div>
+                        <motion.div
+                          animate={{ y: authMode === "register" ? 0 : 32, opacity: authMode === "register" ? 1 : 0 }}
+                          transition={{ duration: 0.22, ease: "easeInOut" }}
+                          className="absolute flex items-center justify-center"
+                        >
+                          <UserPlus size={20} />
+                        </motion.div>
                       </div>
-                      <div className="overflow-hidden">
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.div
-                            key={authMode}
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
-                              {authMode === "login" ? "Masuk Portal Member" : "Registrasi Member"}
-                            </h3>
-                            <p className="text-xs text-zinc-400 font-medium">
-                              {authMode === "login" ? "Gunakan email atau username terdaftar lu" : "Aktivasi akun untuk billing workstation warnet"}
-                            </p>
-                          </motion.div>
-                        </AnimatePresence>
+                      <div className="relative h-11 flex-1 overflow-hidden">
+                        <motion.div
+                          animate={{ y: authMode === "login" ? 0 : -44, opacity: authMode === "login" ? 1 : 0 }}
+                          transition={{ duration: 0.22, ease: "easeInOut" }}
+                          className="absolute inset-0 flex flex-col justify-center"
+                        >
+                          <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+                            Masuk Portal Member
+                          </h3>
+                          <p className="text-xs text-zinc-400 font-medium truncate">
+                            Gunakan email atau username terdaftar lu
+                          </p>
+                        </motion.div>
+                        <motion.div
+                          animate={{ y: authMode === "register" ? 0 : 44, opacity: authMode === "register" ? 1 : 0 }}
+                          transition={{ duration: 0.22, ease: "easeInOut" }}
+                          className="absolute inset-0 flex flex-col justify-center"
+                        >
+                          <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+                            Registrasi Member
+                          </h3>
+                          <p className="text-xs text-zinc-400 font-medium truncate">
+                            Aktivasi akun untuk billing workstation warnet
+                          </p>
+                        </motion.div>
                       </div>
                     </div>
 
@@ -1924,7 +1937,7 @@ export default function MemberPage() {
                           <motion.div
                             layoutId="activeAuthTab"
                             className="absolute inset-0 bg-nvidia-green rounded-xl shadow-md -z-10"
-                            transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                            transition={{ type: "spring", stiffness: 350, damping: 30 }}
                           />
                         )}
                         <LogIn size={15} />
@@ -1943,7 +1956,7 @@ export default function MemberPage() {
                           <motion.div
                             layoutId="activeAuthTab"
                             className="absolute inset-0 bg-nvidia-green rounded-xl shadow-md -z-10"
-                            transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                            transition={{ type: "spring", stiffness: 350, damping: 30 }}
                           />
                         )}
                         <UserPlus size={15} />
@@ -1965,75 +1978,20 @@ export default function MemberPage() {
                       </div>
                     )}
 
-                    {/* Form Content with Smooth Sliding Gesture */}
-                    <div className="overflow-hidden">
-                      <AnimatePresence mode="wait" custom={authDirection} initial={false}>
-                        <motion.div
-                          key={authMode}
-                          custom={authDirection}
-                          variants={authVariants}
-                          initial="enter"
-                          animate="center"
-                          exit="exit"
-                          transition={{
-                            duration: 0.26,
-                            ease: [0.16, 1, 0.3, 1]
-                          }}
-                        >
-                          <form onSubmit={authMode === "login" ? handleLogin : handleRegister} className="space-y-4 text-xs sm:text-sm">
-                            {authMode === "register" && (
-                              <>
-                                <div>
-                                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                                    Username Billing (IGN)
-                                  </label>
-                                  <div className="relative">
-                                    <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                    <input
-                                      type="text"
-                                      required
-                                      placeholder="contoh: pro_gamer123"
-                                      value={username}
-                                      onChange={(e) => setUsername(e.target.value)}
-                                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                                    />
-                                  </div>
-                                  <span className="text-[11px] text-zinc-400 block mt-1">
-                                    Huruf, angka, atau underscore 3 sampai 20 karakter untuk login PC.
-                                  </span>
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                                    Nama Lengkap
-                                  </label>
-                                  <input
-                                    type="text"
-                                    placeholder="Nama asli atau nama panggilan"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                                    Nomor WhatsApp
-                                  </label>
-                                  <div className="relative">
-                                    <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                    <input
-                                      type="tel"
-                                      placeholder="0812xxxxxxxx"
-                                      value={phone}
-                                      onChange={(e) => setPhone(e.target.value)}
-                                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
-                                    />
-                                  </div>
-                                </div>
-                              </>
-                            )}
-
+                    {/* 2-Pane Carousel Slider: Pure Simultaneous Horizontal Slide */}
+                    <motion.div 
+                      animate={{ height: formHeight }}
+                      transition={{ type: "spring", stiffness: 350, damping: 32 }}
+                      className="relative overflow-hidden w-full"
+                    >
+                      <motion.div
+                        className="flex w-[200%] items-start"
+                        animate={{ x: authMode === "login" ? "0%" : "-50%" }}
+                        transition={{ type: "spring", stiffness: 350, damping: 32 }}
+                      >
+                        {/* PANE 1: LOGIN FORM */}
+                        <div ref={loginFormRef} className="w-1/2 pr-3 shrink-0">
+                          <form onSubmit={handleLogin} className="space-y-4 text-xs sm:text-sm">
                             <div>
                               <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
                                 Alamat Email
@@ -2056,20 +2014,18 @@ export default function MemberPage() {
                                 <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
                                   Password Akun
                                 </label>
-                                {authMode === "login" && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setForgotEmail(email);
-                                      setForgotError(null);
-                                      setForgotSuccess(null);
-                                      setShowForgotModal(true);
-                                    }}
-                                    className="text-xs text-nvidia-green hover:underline font-bold"
-                                  >
-                                    Lupa Password?
-                                  </button>
-                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setForgotEmail(email);
+                                    setForgotError(null);
+                                    setForgotSuccess(null);
+                                    setShowForgotModal(true);
+                                  }}
+                                  className="text-xs text-nvidia-green hover:underline font-bold"
+                                >
+                                  Lupa Password?
+                                </button>
                               </div>
                               <div className="relative">
                                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -2098,11 +2054,116 @@ export default function MemberPage() {
                             >
                               {actionLoading ? (
                                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                              ) : authMode === "login" ? (
+                              ) : (
                                 <>
                                   <span>Masuk ke Akun</span>
                                   <ArrowRight size={16} />
                                 </>
+                              )}
+                            </button>
+                          </form>
+                        </div>
+
+                        {/* PANE 2: REGISTER FORM */}
+                        <div ref={registerFormRef} className="w-1/2 pl-3 shrink-0">
+                          <form onSubmit={handleRegister} className="space-y-4 text-xs sm:text-sm">
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                Username Billing (IGN)
+                              </label>
+                              <div className="relative">
+                                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <input
+                                  type="text"
+                                  required
+                                  placeholder="contoh: pro_gamer123"
+                                  value={username}
+                                  onChange={(e) => setUsername(e.target.value)}
+                                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                />
+                              </div>
+                              <span className="text-[11px] text-zinc-400 block mt-1">
+                                Huruf, angka, atau underscore 3 sampai 20 karakter untuk login PC.
+                              </span>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                Nama Lengkap
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Nama asli atau nama panggilan"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                Nomor WhatsApp
+                              </label>
+                              <div className="relative">
+                                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <input
+                                  type="tel"
+                                  placeholder="0812xxxxxxxx"
+                                  value={phone}
+                                  onChange={(e) => setPhone(e.target.value)}
+                                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                Alamat Email
+                              </label>
+                              <div className="relative">
+                                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <input
+                                  type="email"
+                                  required
+                                  placeholder="nama@email.com"
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                                Password Akun
+                              </label>
+                              <div className="relative">
+                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                                <input
+                                  type={showPassword ? "text" : "password"}
+                                  required
+                                  placeholder="Minimal 6 karakter"
+                                  value={password}
+                                  onChange={(e) => setPassword(e.target.value)}
+                                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                                >
+                                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                              </div>
+                            </div>
+
+                            <button
+                              type="submit"
+                              disabled={actionLoading}
+                              className="w-full mt-4 py-3.5 px-4 rounded-xl bg-nvidia-green text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition shadow-[0_4px_20px_rgba(118,185,0,0.3)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.3)] active:scale-[0.99] disabled:opacity-50"
+                            >
+                              {actionLoading ? (
+                                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                               ) : (
                                 <>
                                   <span>Daftar Sekarang</span>
@@ -2111,9 +2172,9 @@ export default function MemberPage() {
                               )}
                             </button>
                           </form>
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
+                        </div>
+                      </motion.div>
+                    </motion.div>
 
                     {/* Divider */}
                     <div className="relative flex items-center justify-center my-5">
