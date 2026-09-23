@@ -7,7 +7,11 @@ export async function GET() {
   try {
     const { data: pcs, error } = await supabaseAdmin.from('pcs').select('*').order('id', { ascending: true });
     if (error) throw error;
-    return NextResponse.json(pcs);
+    return NextResponse.json(pcs, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3, stale-while-revalidate=10',
+      },
+    });
   } catch (err: any) {
     return NextResponse.json({ error: 'Failed to fetch PCs' }, { status: 500 });
   }

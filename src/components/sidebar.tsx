@@ -57,12 +57,16 @@ export default function Sidebar() {
         const res = await fetch("/api/auth/verify");
         if (res.ok) {
           const data = await res.json();
-          setIsUnlocked(Boolean(data.authenticated));
+          const authed = Boolean(data.authenticated);
+          setIsUnlocked(authed);
+          return authed;
         } else {
           setIsUnlocked(false);
+          return false;
         }
       } catch {
         setIsUnlocked(false);
+        return false;
       }
     };
 
@@ -77,8 +81,11 @@ export default function Sidebar() {
       } catch (_) {}
     };
 
-    checkAuth();
-    fetchPending();
+    checkAuth().then((authed) => {
+      if (authed) {
+        fetchPending();
+      }
+    });
 
     // Check member session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -89,10 +96,13 @@ export default function Sidebar() {
       setMemberUser(session?.user || null);
     });
 
-    const interval = setInterval(() => {
-      checkAuth();
-      fetchPending();
-    }, 10000);
+    // Polling interval: hanya fetch antrean jika sesi kasir aktif
+    const interval = setInterval(async () => {
+      const authed = await checkAuth();
+      if (authed) {
+        fetchPending();
+      }
+    }, 20000);
 
     return () => {
       clearInterval(interval);
