@@ -843,7 +843,7 @@ export default function MemberPage() {
               
               {/* PANEL KIRI: KARTU MEMBER VIP 3D (5 KOLOM) */}
               <div 
-                className="lg:col-span-5 relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.18)] flex flex-col"
+                className="lg:col-span-5 relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.18)] flex flex-col min-h-[490px] sm:min-h-[510px]"
                 style={{ perspective: "1000px" }}
                 onMouseMove={handleCardMouseMove}
                 onMouseLeave={handleCardMouseLeave}
@@ -860,7 +860,7 @@ export default function MemberPage() {
                 />
 
                 {/* Kartu Utama Berlatar Hitam Solid (Proporsional & Elegan) */}
-                <div className="relative w-full h-full rounded-[23px] bg-zinc-950 p-5 sm:p-6 overflow-hidden flex flex-col justify-between">
+                <div className="relative w-full h-full rounded-[23px] bg-zinc-950 p-6 sm:p-7 overflow-hidden flex flex-col justify-between">
                   {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan Di Permukaan */}
                   <div 
                     className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-[23px] overflow-hidden"
@@ -879,8 +879,8 @@ export default function MemberPage() {
                   >
                   {/* Header Kartu: Sim Chip & Status Rank Badge */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-6 rounded bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-7 rounded bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
                         <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
                           <div className="border-r border-b border-amber-950/40" />
                           <div className="border-b border-amber-950/40" />
@@ -888,40 +888,40 @@ export default function MemberPage() {
                           <div />
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase font-bold">
+                      <span className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-bold">
                         GC MEMBER ID
                       </span>
                     </div>
 
-                    <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} shadow-sm`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                      <span className="font-mono font-bold tracking-wider text-[10px] uppercase">{currentTier.name}</span>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} shadow-sm`}>
+                      <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
+                      <span className="font-mono font-bold tracking-wider text-xs uppercase">{currentTier.name}</span>
                     </div>
                   </div>
 
                   {/* Nickname & Identitas Akun (Hero Player Treatment) */}
-                  <div className="flex items-center gap-3 pt-0.5">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-xl shrink-0 shadow-md ring-1 ring-white/10">
+                  <div className="flex items-center gap-3.5 pt-1">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-2xl shrink-0 shadow-md ring-1 ring-white/10">
                       {(profile?.username?.[0] || sessionUser.email?.[0] || "G").toUpperCase()}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase truncate">
+                        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase truncate">
                           {profile?.username || sessionUser.email?.split("@")[0]}
                         </h2>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-[10px] font-bold tracking-wide shrink-0">
-                          <CheckCircle2 size={12} className="text-nvidia-green shrink-0" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-xs font-bold tracking-wide shrink-0">
+                          <CheckCircle2 size={13} className="text-nvidia-green shrink-0" />
                           <span>Verified</span>
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 mt-0.5 truncate">
-                        <span className="text-[11px] text-zinc-300 font-bold">
+                      <div className="flex items-center gap-2 mt-1 truncate">
+                        <span className="text-xs sm:text-sm text-zinc-200 font-bold">
                           {currentTier.title}
                         </span>
                         <span className="text-zinc-600">•</span>
-                        <p className="text-[11px] text-zinc-400 font-medium truncate">
+                        <p className="text-xs sm:text-sm text-zinc-400 font-medium truncate">
                           {profile?.full_name || sessionUser.email}
                         </p>
                       </div>
@@ -929,10 +929,10 @@ export default function MemberPage() {
                   </div>
 
                   {/* Saldo Deposit */}
-                  <div className="rounded-xl bg-zinc-900/60 border border-white/10 p-3.5 sm:p-4 backdrop-blur-sm">
+                  <div className="rounded-2xl bg-zinc-900/70 border border-white/10 p-4 sm:p-5 backdrop-blur-sm">
                     {/* Baris Atas Saldo: Label & ID Member */}
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-xs uppercase text-zinc-400 font-bold tracking-wider">
                         Saldo Deposit
                       </span>
 
@@ -940,51 +940,51 @@ export default function MemberPage() {
                         type="button"
                         onClick={() => handleCopyMemberId(memberCode)}
                         title="Salin ID Member"
-                        className="px-2 py-0.5 rounded-md bg-zinc-950/80 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1 shrink-0 active:scale-95"
+                        className="px-2.5 py-1 rounded-lg bg-zinc-950/80 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1.5 shrink-0 active:scale-95"
                       >
-                        <span className="font-mono font-bold text-[10px] text-zinc-200">{memberCode}</span>
+                        <span className="font-mono font-bold text-xs text-zinc-200">{memberCode}</span>
                         {copiedId ? (
-                          <Check size={11} className="text-nvidia-green" />
+                          <Check size={12} className="text-nvidia-green" />
                         ) : (
-                          <Copy size={11} className="text-zinc-400" />
+                          <Copy size={12} className="text-zinc-400" />
                         )}
                       </button>
                     </div>
 
                     {/* Nilai Saldo Hero Gold */}
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-xs font-black text-amber-400 font-mono tracking-wider">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm font-black text-amber-400 font-mono tracking-wider">
                         IDR
                       </span>
-                      <span className="text-2xl sm:text-3xl font-black font-mono tracking-tight bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_2px_12px_rgba(251,191,36,0.3)]">
+                      <span className="text-3xl sm:text-4xl font-black font-mono tracking-tight bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_2px_12px_rgba(251,191,36,0.3)]">
                         {currentBalance.toLocaleString("id-ID")}
                       </span>
                     </div>
                   </div>
 
                   {/* HUD Progres Rank Member: Proporsional & Seamless */}
-                  <div className="rounded-xl bg-zinc-900/60 border border-white/10 p-3 sm:p-3.5 backdrop-blur-sm space-y-2 relative overflow-hidden group/rank">
+                  <div className="rounded-2xl bg-zinc-900/70 border border-white/10 p-4 backdrop-blur-sm space-y-2.5 relative overflow-hidden group/rank">
                     <div className="absolute inset-0 bg-gradient-to-r from-nvidia-green/5 via-cyan-400/5 to-transparent opacity-0 group-hover/rank:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                     {/* Header Progress: Label Rank & Persentase */}
                     <div className="flex items-center justify-between text-xs relative z-10">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                        <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
                           Rank {currentTier.name}
                         </span>
                         {currentTier.nextTier && (
-                          <span className="text-[10px] text-zinc-400 font-medium">
+                          <span className="text-xs text-zinc-400 font-medium">
                             menuju {currentTier.nextTier}
                           </span>
                         )}
                       </div>
-                      <span className="font-mono font-black text-white text-xs">
+                      <span className="font-mono font-black text-white text-sm">
                         {progressPercent}%
                       </span>
                     </div>
 
                     {/* Track Bar Animasi Luminous Shimmer */}
-                    <div className="w-full h-2 rounded-full bg-black/80 border border-white/10 p-0.5 overflow-hidden relative z-10">
+                    <div className="w-full h-2.5 rounded-full bg-black/80 border border-white/10 p-0.5 overflow-hidden relative z-10">
                       <div 
                         className="h-full rounded-full bg-gradient-to-r from-nvidia-green via-emerald-400 to-cyan-400 transition-all duration-700 relative overflow-hidden shadow-[0_0_10px_rgba(118,185,0,0.4)]"
                         style={{ width: `${Math.max(4, progressPercent)}%` }}
@@ -994,7 +994,7 @@ export default function MemberPage() {
                     </div>
 
                     {/* Footer Threshold: IDR Current & Target */}
-                    <div className="flex items-center justify-between text-[10px] text-zinc-400 font-mono relative z-10">
+                    <div className="flex items-center justify-between text-xs text-zinc-400 font-mono relative z-10">
                       <span>IDR {currentBalance.toLocaleString("id-ID")}</span>
                       {currentTier.nextTier ? (
                         <span className="text-zinc-300 font-medium">
@@ -1011,59 +1011,59 @@ export default function MemberPage() {
             </div>
 
             {/* PANEL KANAN: PANEL COMMAND HUD GAMER (7 KOLOM) */}
-            <div className="lg:col-span-7 rounded-3xl bg-zinc-950 border border-white/15 p-5 sm:p-6 shadow-xl flex flex-col justify-between relative overflow-hidden group">
+            <div className="lg:col-span-7 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 shadow-xl flex flex-col justify-between relative overflow-hidden group min-h-[490px] sm:min-h-[510px]">
               {/* Subtle Ambient Glow */}
               <div className="absolute -top-24 -right-24 w-64 h-64 bg-nvidia-green/10 rounded-full blur-3xl pointer-events-none group-hover:bg-nvidia-green/15 transition-all duration-500" />
 
               {/* Header HUD */}
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 relative z-10">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shadow-sm">
-                    <Sparkles size={16} />
+              <div className="flex items-center justify-between pb-3.5 border-b border-white/10 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shadow-sm">
+                    <Sparkles size={18} />
                   </div>
                   <div>
-                    <h3 className="text-xs sm:text-sm font-black uppercase text-white tracking-wider">
+                    <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wider">
                       Status & Aktivitas Member
                     </h3>
-                    <p className="text-[11px] text-zinc-400 font-medium">
+                    <p className="text-xs text-zinc-400 font-medium">
                       Ringkasan preferensi bermain di GC-Net
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-white/10">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10">
                   <span className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse" />
-                  <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase">
+                  <span className="text-xs font-mono font-bold text-zinc-300 uppercase">
                     10 Unit Aktif
                   </span>
                 </div>
               </div>
 
               {/* Grid 4 Kartu Interaktif Beranimasi */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-3 relative z-10 flex-1 content-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 py-4 relative z-10 flex-1 content-center">
                 {/* 1. PC Jagoan */}
                 <motion.div 
                   whileHover={{ scale: 1.02, y: -2 }}
                   transition={{ duration: 0.15 }}
-                  className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900/90 border border-white/10 hover:border-emerald-500/40 transition-all duration-200 shadow-sm space-y-1.5 cursor-default group/card"
+                  className="p-4 sm:p-4.5 rounded-2xl bg-zinc-900/70 hover:bg-zinc-900/90 border border-white/10 hover:border-emerald-500/40 transition-all duration-200 shadow-sm space-y-2 cursor-default group/card"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                        <Monitor size={14} />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <Monitor size={16} />
                       </div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
                         PC Jagoan
                       </span>
                     </div>
-                    <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
                       Favorit
                     </span>
                   </div>
-                  <div className="text-base sm:text-lg font-black text-white font-mono tracking-tight pt-0.5">
+                  <div className="text-lg sm:text-xl font-black text-white font-mono tracking-tight pt-0.5">
                     {favoritePc}
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-medium">
+                  <p className="text-xs text-zinc-400 font-medium">
                     Meja gaming yang paling sering lu pesan
                   </p>
                 </motion.div>
@@ -1072,25 +1072,25 @@ export default function MemberPage() {
                 <motion.div 
                   whileHover={{ scale: 1.02, y: -2 }}
                   transition={{ duration: 0.15 }}
-                  className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900/90 border border-white/10 hover:border-amber-500/40 transition-all duration-200 shadow-sm space-y-1.5 cursor-default group/card"
+                  className="p-4 sm:p-4.5 rounded-2xl bg-zinc-900/70 hover:bg-zinc-900/90 border border-white/10 hover:border-amber-500/40 transition-all duration-200 shadow-sm space-y-2 cursor-default group/card"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                        <Clock size={14} />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                        <Clock size={16} />
                       </div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
                         Paket Andalan
                       </span>
                     </div>
-                    <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
                       Billing
                     </span>
                   </div>
-                  <div className="text-base sm:text-lg font-black text-white truncate tracking-tight pt-0.5">
+                  <div className="text-lg sm:text-xl font-black text-white truncate tracking-tight pt-0.5">
                     {favoritePaket}
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-medium">
+                  <p className="text-xs text-zinc-400 font-medium truncate">
                     Pilihan paket main yang paling rutin lu ambil
                   </p>
                 </motion.div>
@@ -1099,25 +1099,25 @@ export default function MemberPage() {
                 <motion.div 
                   whileHover={{ scale: 1.02, y: -2 }}
                   transition={{ duration: 0.15 }}
-                  className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900/90 border border-white/10 hover:border-cyan-500/40 transition-all duration-200 shadow-sm space-y-1.5 cursor-default group/card"
+                  className="p-4 sm:p-4.5 rounded-2xl bg-zinc-900/70 hover:bg-zinc-900/90 border border-white/10 hover:border-cyan-500/40 transition-all duration-200 shadow-sm space-y-2 cursor-default group/card"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                        <ShieldCheck size={14} />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                        <ShieldCheck size={16} />
                       </div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
                         Privilese {currentTier.name}
                       </span>
                     </div>
-                    <span className="text-[9px] font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
+                    <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
                       {currentTier.title}
                     </span>
                   </div>
-                  <div className="text-sm sm:text-base font-bold text-white tracking-tight pt-0.5 truncate">
+                  <div className="text-base sm:text-lg font-bold text-white tracking-tight pt-0.5 truncate">
                     {currentTier.perks?.[0] || "Akses standard billing"}
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-medium truncate">
+                  <p className="text-xs text-zinc-400 font-medium truncate">
                     Hak istimewa aktif member pangkat {currentTier.name}
                   </p>
                 </motion.div>
@@ -1128,14 +1128,14 @@ export default function MemberPage() {
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setIsChatOpen(true)}
-                  className="p-3.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-nvidia-green/40 hover:border-nvidia-green text-left transition-all duration-200 shadow-md space-y-1.5 flex flex-col justify-between group/chat cursor-pointer"
+                  className="p-4 sm:p-4.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-nvidia-green/40 hover:border-nvidia-green text-left transition-all duration-200 shadow-md space-y-2 flex flex-col justify-between group/chat cursor-pointer"
                 >
                   <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green">
-                        <Headphones size={14} className="group-hover/chat:rotate-12 transition-transform duration-300" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green">
+                        <Headphones size={16} className="group-hover/chat:rotate-12 transition-transform duration-300" />
                       </div>
-                      <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
                         Chat Operator Kasir
                       </span>
                     </div>
@@ -1145,19 +1145,19 @@ export default function MemberPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between w-full pt-0.5">
-                    <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wide group-hover/chat:text-nvidia-green transition-colors">
+                    <span className="text-sm sm:text-base font-black text-white uppercase tracking-wide group-hover/chat:text-nvidia-green transition-colors">
                       Buka Pesan Kasir
                     </span>
-                    <ArrowRight size={14} className="text-zinc-400 group-hover/chat:text-nvidia-green group-hover/chat:translate-x-1 transition-all" />
+                    <ArrowRight size={16} className="text-zinc-400 group-hover/chat:text-nvidia-green group-hover/chat:translate-x-1 transition-all" />
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-medium">
+                  <p className="text-xs text-zinc-400 font-medium">
                     Bantuan cepat seputar PC dan pesanan
                   </p>
                 </motion.button>
               </div>
 
               {/* Footer Mini HUD */}
-              <div className="flex items-center justify-between pt-2.5 border-t border-white/5 text-[11px] text-zinc-400 font-mono relative z-10">
+              <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs text-zinc-400 font-mono relative z-10">
                 <span>Member ID: {memberCode}</span>
                 <span className="text-zinc-300 font-medium">Total Booking: {bookings.length} Pesanan</span>
               </div>
@@ -1165,11 +1165,11 @@ export default function MemberPage() {
 
           </div>
 
-          {/* ── TINGKAT 2: PANGGUNG TAB HUB AKTIVITAS LEBAR PENUH ── */}
-          <div className="rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 shadow-xl space-y-6">
+          {/* ── TINGKAT 2: PANGGUNG TAB HUB AKTIVITAS LEBAR PENUH (RINGKAS & RAMPING) ── */}
+          <div className="rounded-3xl bg-zinc-950 border border-white/15 p-4 sm:p-5 shadow-xl space-y-4">
             
             {/* Header Tab Terintegrasi dengan Animasi Sliding Pill */}
-            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 overflow-x-auto relative">
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-white/10 overflow-x-auto relative">
               {[
                 { id: "quests", label: "Misi Warnet" },
                 { id: "level", label: "Pangkat & Benefit" },
@@ -1182,14 +1182,14 @@ export default function MemberPage() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                    className={`relative flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-colors whitespace-nowrap z-10 ${
+                    className={`relative flex-1 py-2 px-3 text-xs font-black uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap z-10 ${
                       isActive ? "text-black" : "text-zinc-400 hover:text-white"
                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activeTabPill"
-                        className="absolute inset-0 bg-nvidia-green rounded-xl shadow-md z-[-1]"
+                        className="absolute inset-0 bg-nvidia-green rounded-lg shadow-md z-[-1]"
                         transition={{ type: "spring", stiffness: 450, damping: 35 }}
                       />
                     )}
@@ -1212,15 +1212,15 @@ export default function MemberPage() {
                 
                 {/* TAB 1: PANGKAT & BENEFIT */}
                 {activeTab === "level" && (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* Header Pangkat Tanpa Kata Tier */}
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0 shadow-sm">
-                          <Trophy size={20} />
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0 shadow-sm">
+                          <Trophy size={16} />
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                          <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
                             Pangkat Akun
                           </h3>
                           <p className="text-xs text-zinc-400 font-medium">
@@ -1229,56 +1229,56 @@ export default function MemberPage() {
                         </div>
                       </div>
 
-                      <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
+                      <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
                         {currentTier.name}
                       </span>
                     </div>
 
                     {/* Tangga Pangkat Gamer: Compact & Seamless */}
-                    <div className="space-y-2">
-                      <span className="text-[11px] uppercase font-bold text-zinc-400 tracking-wider block">
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">
                         Daftar Tingkatan Pangkat
                       </span>
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         {ALL_RANKS.map((rank, idx) => {
                           const isCurrent = currentTier.name === rank.name;
                           const isUnlocked = currentBalance >= rank.threshold;
                           return (
                             <div 
                               key={idx}
-                              className={`p-2.5 sm:p-3 px-3.5 sm:px-4 rounded-xl border transition flex items-center justify-between gap-3 ${
+                              className={`p-2 px-3 rounded-lg border transition flex items-center justify-between gap-2.5 ${
                                 isCurrent
-                                  ? "bg-zinc-900 border-nvidia-green/50 shadow-[0_0_20px_rgba(118,185,0,0.12)]"
+                                  ? "bg-zinc-900 border-nvidia-green/50 shadow-[0_0_15px_rgba(118,185,0,0.12)]"
                                   : isUnlocked
                                   ? "bg-zinc-950/60 border-white/10 hover:border-white/20"
                                   : "bg-zinc-950/30 border-white/5 opacity-55"
                               }`}
                             >
-                              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${rank.badgeBg} ${rank.badgeText} ${rank.badgeBorder} tracking-wider shrink-0`}>
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${rank.badgeBg} ${rank.badgeText} ${rank.badgeBorder} tracking-wider shrink-0`}>
                                   {rank.name}
                                 </span>
-                                <span className="text-xs sm:text-sm font-bold text-white truncate">
+                                <span className="text-xs font-bold text-white truncate">
                                   {rank.title}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-                                <span className="text-[11px] sm:text-xs font-mono text-zinc-400">
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[10px] sm:text-xs font-mono text-zinc-400">
                                   {rank.threshold === 0 ? "Akun Baru" : `IDR ${rank.threshold.toLocaleString("id-ID")}`}
                                 </span>
                                 {isCurrent ? (
-                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-nvidia-green/15 text-nvidia-green text-[10px] font-bold border border-nvidia-green/30">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nvidia-green/15 text-nvidia-green text-[9px] font-bold border border-nvidia-green/30">
                                     <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green animate-pulse" />
                                     <span>Aktif</span>
                                   </span>
                                 ) : isUnlocked ? (
                                   <span className="text-emerald-400 text-xs flex items-center gap-1 font-bold">
-                                    <Check size={13} />
-                                    <span className="text-[10px] hidden sm:inline">Terbuka</span>
+                                    <Check size={12} />
+                                    <span className="text-[9px] hidden sm:inline">Terbuka</span>
                                   </span>
                                 ) : (
-                                  <span className="text-zinc-500 text-[10px] font-bold uppercase">
+                                  <span className="text-zinc-500 text-[9px] font-bold uppercase">
                                     Terkunci
                                   </span>
                                 )}
@@ -1290,18 +1290,18 @@ export default function MemberPage() {
                     </div>
 
                     {/* Ringkasan Booking Member: Compact & Seamless */}
-                    <div className="flex items-center justify-between p-3 px-4 rounded-xl bg-zinc-900/60 border border-white/10">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                          <Flame size={15} />
+                    <div className="flex items-center justify-between p-2.5 px-3 rounded-lg bg-zinc-900/60 border border-white/10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                          <Flame size={13} />
                         </div>
-                        <span className="text-xs font-bold uppercase text-zinc-300 tracking-wider">
+                        <span className="text-[11px] font-bold uppercase text-zinc-300 tracking-wider">
                           Total Booking Selesai
                         </span>
                       </div>
-                      <div className="flex items-baseline gap-1.5 font-mono">
-                        <span className="text-base sm:text-lg font-black text-white">{bookings.length}</span>
-                        <span className="text-xs text-zinc-400 font-medium">Pesanan</span>
+                      <div className="flex items-baseline gap-1 font-mono">
+                        <span className="text-sm sm:text-base font-black text-white">{bookings.length}</span>
+                        <span className="text-[10px] text-zinc-400 font-medium">Pesanan</span>
                       </div>
                     </div>
                   </div>
@@ -1309,32 +1309,32 @@ export default function MemberPage() {
 
                 {/* TAB 2: MISI WARNET */}
                 {activeTab === "quests" && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Gift size={20} />
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Gift size={16} />
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                          <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
                             Misi Harian
                           </h3>
-                          <p className="text-xs text-zinc-300 font-medium">
+                          <p className="text-xs text-zinc-400 font-medium">
                             Selesaikan misi harian untuk mengumpulkan EXP akun
                           </p>
                         </div>
                       </div>
 
-                      <span className="hidden sm:inline-flex text-[11px] font-mono font-bold text-zinc-400 px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/10">
+                      <span className="hidden sm:inline-flex text-[10px] font-mono font-bold text-zinc-400 px-2 py-0.5 rounded-md bg-zinc-900 border border-white/10">
                         RESET 24 JAM
                       </span>
                     </div>
 
-                    {/* 3D Quest Coverflow Carousel Stage */}
-                    <div className="relative w-full h-[320px] flex items-center justify-center overflow-hidden rounded-2xl bg-zinc-950/40 border border-white/5" style={{ perspective: "1000px" }}>
+                    {/* 3D Quest Coverflow Carousel Stage: Compact Height */}
+                    <div className="relative w-full h-[220px] flex items-center justify-center overflow-hidden rounded-2xl bg-zinc-950/40 border border-white/5" style={{ perspective: "1000px" }}>
                       {/* Dynamic Atmospheric Glow */}
                       <div 
-                        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] ${DAILY_QUESTS[activeQuestIndex].theme.glow} blur-[90px] rounded-full pointer-events-none transition-colors duration-700`} 
+                        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] ${DAILY_QUESTS[activeQuestIndex].theme.glow} blur-[70px] rounded-full pointer-events-none transition-colors duration-700`} 
                       />
 
                       {/* Nav Button Left */}
@@ -1342,9 +1342,9 @@ export default function MemberPage() {
                         type="button"
                         onClick={handlePrevQuest}
                         aria-label="Misi Sebelumnya"
-                        className="absolute left-3 z-40 w-10 h-10 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
+                        className="absolute left-2.5 z-40 w-8 h-8 rounded-lg bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
                       >
-                        <ChevronLeft size={20} />
+                        <ChevronLeft size={16} />
                       </button>
 
                       {/* Nav Button Right */}
@@ -1352,9 +1352,9 @@ export default function MemberPage() {
                         type="button"
                         onClick={handleNextQuest}
                         aria-label="Misi Selanjutnya"
-                        className="absolute right-3 z-40 w-10 h-10 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
+                        className="absolute right-2.5 z-40 w-8 h-8 rounded-lg bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
                       >
-                        <ChevronRight size={20} />
+                        <ChevronRight size={16} />
                       </button>
 
                       {/* 3D Track */}
@@ -1365,18 +1365,18 @@ export default function MemberPage() {
                             const isActive = offset === 0;
                             const IconComponent = quest.icon;
 
-                            // 3D placement logic matched to portal carousel
-                            const x = offset * 230;
-                            const rotateY = offset * -28;
-                            const scale = isActive ? 1.05 : 0.86;
+                            // Compact 3D placement logic
+                            const x = offset * 210;
+                            const rotateY = offset * -25;
+                            const scale = isActive ? 1.02 : 0.85;
                             const zIndex = isActive ? 30 : 10;
-                            const opacity = isActive ? 1 : 0.45;
+                            const opacity = isActive ? 1 : 0.4;
 
                             return (
                               <motion.div
                                 key={quest.id}
                                 onClick={() => setActiveQuestIndex(index)}
-                                className={`absolute w-[280px] sm:w-[320px] p-5 sm:p-6 rounded-3xl bg-gradient-to-b ${quest.theme.bgGradient} border ${isActive ? quest.theme.borderActive : quest.theme.border} cursor-pointer transition-colors duration-300 shadow-2xl flex flex-col justify-between select-none`}
+                                className={`absolute w-[260px] sm:w-[290px] p-3.5 sm:p-4 rounded-2xl bg-gradient-to-b ${quest.theme.bgGradient} border ${isActive ? quest.theme.borderActive : quest.theme.border} cursor-pointer transition-colors duration-300 shadow-xl flex flex-col justify-between select-none`}
                                 style={{
                                   zIndex,
                                   transformOrigin: "center center",
@@ -1395,39 +1395,39 @@ export default function MemberPage() {
                                 }}
                               >
                                 <div>
-                                  <div className="flex items-center justify-between gap-2 mb-3">
-                                    <div className={`w-10 h-10 rounded-2xl ${quest.theme.iconBg} border border-white/10 flex items-center justify-center ${quest.theme.iconText} shrink-0 shadow-inner`}>
-                                      <IconComponent size={20} />
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <div className={`w-8 h-8 rounded-xl ${quest.theme.iconBg} border border-white/10 flex items-center justify-center ${quest.theme.iconText} shrink-0 shadow-inner`}>
+                                      <IconComponent size={16} />
                                     </div>
-                                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${quest.theme.badgeBg} ${quest.theme.badgeText} border ${quest.theme.badgeBorder} tracking-wider`}>
+                                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${quest.theme.badgeBg} ${quest.theme.badgeText} border ${quest.theme.badgeBorder} tracking-wider`}>
                                       {quest.tag}
                                     </span>
                                   </div>
 
-                                  <h4 className="text-base sm:text-lg font-black text-white mb-1.5">
+                                  <h4 className="text-sm sm:text-base font-black text-white mb-0.5 truncate">
                                     {quest.title}
                                   </h4>
-                                  <p className="text-xs text-zinc-300 font-medium leading-relaxed">
+                                  <p className="text-xs text-zinc-300 font-medium leading-relaxed line-clamp-2">
                                     {quest.desc}
                                   </p>
                                 </div>
 
-                                <div className="mt-4 pt-3.5 border-t border-white/10 space-y-2.5">
+                                <div className="mt-2.5 pt-2 border-t border-white/10 space-y-1.5">
                                   <div className="flex items-center justify-between text-xs font-mono">
                                     <span className="text-zinc-400 font-medium">Progres</span>
                                     <span className={`${quest.theme.accent} font-bold`}>
                                       {quest.progressCurrent} / {quest.progressMax}
                                     </span>
                                   </div>
-                                  <div className="w-full h-2 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5">
+                                  <div className="w-full h-1.5 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5">
                                     <div
                                       className={`h-full rounded-full ${quest.theme.barColor} transition-all duration-500`}
                                       style={{ width: `${(quest.progressCurrent / quest.progressMax) * 100}%` }}
                                     />
                                   </div>
-                                  <div className="flex items-center justify-between pt-1">
-                                    <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-wider">Hadiah</span>
-                                    <span className={`text-xs font-mono font-black ${quest.theme.tagColor} ${quest.theme.badgeBg} px-2.5 py-0.5 rounded-md border ${quest.theme.badgeBorder}`}>
+                                  <div className="flex items-center justify-between pt-0.5">
+                                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Hadiah</span>
+                                    <span className={`text-xs font-mono font-black ${quest.theme.tagColor} ${quest.theme.badgeBg} px-2 py-0.5 rounded border ${quest.theme.badgeBorder}`}>
                                       +{quest.rewardExp} EXP
                                     </span>
                                   </div>
@@ -1440,14 +1440,14 @@ export default function MemberPage() {
                     </div>
 
                     {/* Dot Pagination Indicator */}
-                    <div className="flex items-center justify-center gap-2 pt-1">
+                    <div className="flex items-center justify-center gap-1.5 pt-0.5">
                       {DAILY_QUESTS.map((quest, idx) => (
                         <button
                           key={quest.id}
                           type="button"
                           onClick={() => setActiveQuestIndex(idx)}
                           className={`h-1.5 rounded-full transition-all duration-300 ${
-                            activeQuestIndex === idx ? "w-6 bg-nvidia-green" : "w-1.5 bg-zinc-700 hover:bg-zinc-500"
+                            activeQuestIndex === idx ? "w-5 bg-nvidia-green" : "w-1.5 bg-zinc-700 hover:bg-zinc-500"
                           }`}
                           aria-label={quest.title}
                         />
@@ -1458,17 +1458,17 @@ export default function MemberPage() {
 
                 {/* TAB 3: RIWAYAT BOOKING */}
                 {activeTab === "history" && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Clock size={20} />
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Clock size={16} />
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                          <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
                             Riwayat Pemesanan PC
                           </h3>
-                          <p className="text-xs text-zinc-300 font-medium">
+                          <p className="text-xs text-zinc-400 font-medium">
                             Daftar tiket dan status antrean bermain lu di GC-Net
                           </p>
                         </div>
@@ -1484,48 +1484,48 @@ export default function MemberPage() {
                     </div>
 
                     {bookings.length === 0 ? (
-                      <div className="py-16 text-center border border-dashed border-white/15 rounded-2xl">
-                        <Monitor className="mx-auto text-zinc-600 mb-3" size={36} />
-                        <p className="text-sm font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
-                        <p className="text-xs text-zinc-400 mt-1 mb-5">
+                      <div className="py-10 text-center border border-dashed border-white/15 rounded-xl">
+                        <Monitor className="mx-auto text-zinc-600 mb-2" size={30} />
+                        <p className="text-xs font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
+                        <p className="text-[11px] text-zinc-400 mt-0.5 mb-3">
                           Pesan PC favorit lu sekarang dan nikmati kecepatan gaming premium
                         </p>
                         <Link
                           href="/"
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
                         >
                           <span>Pilih PC Sekarang</span>
-                          <ArrowRight size={14} />
+                          <ArrowRight size={13} />
                         </Link>
                       </div>
                     ) : (
-                      <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
                         {bookings.map((b) => (
                           <div
                             key={b.id}
-                            className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-3 hover:border-zinc-600 transition"
+                            className="p-3 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-2.5 hover:border-zinc-600 transition"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-xs shrink-0">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-xs shrink-0">
                                 {b.pc_id}
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-black text-white">
+                                  <span className="text-xs sm:text-sm font-black text-white">
                                     {b.pcs?.name || b.pc_id}
                                   </span>
-                                  <span className="text-xs font-mono text-zinc-400 font-bold">
+                                  <span className="text-[10px] font-mono text-zinc-400 font-bold">
                                     {b.id}
                                   </span>
                                 </div>
-                                <span className="text-xs text-zinc-300 font-medium block mt-0.5">
+                                <span className="text-xs text-zinc-400 font-medium block mt-0.5">
                                   {b.pakets?.name || b.paket_id} • {b.pakets?.duration_hours ? `${b.pakets.duration_hours} Jam` : "Paket Standar"}
                                 </span>
                               </div>
                             </div>
 
                             <div className="text-right">
-                              <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border block ${
+                              <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border block ${
                                 b.status === "active"
                                   ? "bg-nvidia-green/15 text-nvidia-green border-nvidia-green/30"
                                   : b.status === "pending"
@@ -1542,7 +1542,7 @@ export default function MemberPage() {
                                   ? "Selesai"
                                   : "Dibatalkan"}
                               </span>
-                              <span className="text-xs text-zinc-400 font-mono mt-1 block">
+                              <span className="text-[10px] text-zinc-400 font-mono mt-0.5 block">
                                 {new Date(b.created_at).toLocaleDateString("id-ID", {
                                   day: "numeric",
                                   month: "short",
@@ -1560,40 +1560,40 @@ export default function MemberPage() {
 
                 {/* TAB 4: INFO AKUN & KEAMANAN */}
                 {activeTab === "profile" && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                        <ShieldCheck size={20} />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                        <ShieldCheck size={16} />
                       </div>
                       <div>
-                        <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                        <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
                           Informasi Akun Terdaftar
                         </h3>
-                        <p className="text-xs text-zinc-300 font-medium">
+                        <p className="text-xs text-zinc-400 font-medium">
                           Data identitas dan keamanan akun pemain
                         </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
-                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Email Terhubung</span>
-                        <span className="text-sm text-white font-bold break-all">{sessionUser.email}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
+                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Email Terhubung</span>
+                        <span className="text-xs sm:text-sm text-white font-bold break-all">{sessionUser.email}</span>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
-                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Nomor WhatsApp</span>
-                        <span className="text-sm text-white font-bold">{profile?.phone || "Belum diatur"}</span>
+                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
+                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Nomor WhatsApp</span>
+                        <span className="text-xs sm:text-sm text-white font-bold">{profile?.phone || "Belum diatur"}</span>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
-                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Kode Kartu Billing</span>
-                        <span className="text-zinc-200 font-mono text-sm font-bold">{memberCode}</span>
+                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
+                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Kode Kartu Billing</span>
+                        <span className="text-zinc-200 font-mono text-xs sm:text-sm font-bold">{memberCode}</span>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
-                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Waktu Pendaftaran</span>
-                        <span className="text-sm text-white font-bold">
+                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
+                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Waktu Pendaftaran</span>
+                        <span className="text-xs sm:text-sm text-white font-bold">
                           {profile?.created_at
                             ? new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
                             : "-"}
@@ -1601,14 +1601,14 @@ export default function MemberPage() {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
-                      <div className="flex items-center gap-3">
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-2.5">
+                      <div className="flex items-center gap-2.5">
                         <button
                           type="button"
                           onClick={openEditModal}
-                          className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition"
+                          className="px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition"
                         >
-                          <Pencil size={14} className="text-cyan-400 shrink-0" />
+                          <Pencil size={13} className="text-cyan-400 shrink-0" />
                           <span>Ubah Profil</span>
                         </button>
 
@@ -1620,9 +1620,9 @@ export default function MemberPage() {
                             setForgotSuccess(null);
                             setShowForgotModal(true);
                           }}
-                          className="text-xs sm:text-sm text-zinc-300 hover:text-nvidia-green font-bold flex items-center gap-2 transition"
+                          className="text-xs text-zinc-300 hover:text-nvidia-green font-bold flex items-center gap-1.5 transition"
                         >
-                          <Key size={15} />
+                          <Key size={14} />
                           <span>Ganti Password</span>
                         </button>
                       </div>
@@ -1631,9 +1631,9 @@ export default function MemberPage() {
                         type="button"
                         onClick={handleLogout}
                         disabled={actionLoading}
-                        className="px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition"
+                        className="px-3.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition"
                       >
-                        <LogOut size={14} />
+                        <LogOut size={13} />
                         <span>Keluar Akun</span>
                       </button>
                     </div>
