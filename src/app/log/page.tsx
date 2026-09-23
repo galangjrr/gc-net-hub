@@ -192,47 +192,6 @@ export default function ActivityLogPage() {
           </div>
         </div>
 
-        {/* METRIC CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-          <div className="p-4 rounded-2xl bg-surface-1 border border-hairline/60 space-y-1.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
-              Aksi Hari Ini
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-white tabular-nums tracking-tight">
-                {stats.todayCount}
-              </span>
-              <span className="text-xs text-zinc-400 font-medium">eksekusi tercatat</span>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-surface-1 border border-hairline/60 space-y-1.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
-              Operator Teraktif
-            </span>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green text-xs font-bold shrink-0">
-                <User size={13} />
-              </div>
-              <span className="text-lg font-bold text-white truncate">
-                {stats.topOperator}
-              </span>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-surface-1 border border-hairline/60 space-y-1.5">
-            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
-              Total Log Terarsip
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-white tabular-nums tracking-tight">
-                {stats.totalCount}
-              </span>
-              <span className="text-xs text-zinc-400 font-medium">entri sistem</span>
-            </div>
-          </div>
-        </div>
-
         {/* FILTER & SEARCH CONTROLS */}
         <div className="p-3.5 rounded-2xl bg-surface-1 border border-hairline/60 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2">
