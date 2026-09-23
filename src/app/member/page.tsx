@@ -76,7 +76,7 @@ function calculateTier(balance: number): TierConfig {
   if (safeBalance <= 50000) {
     return {
       name: "BRONZE",
-      title: "Rookie Warnet",
+      title: "Starter",
       badgeBg: "bg-amber-500/20",
       badgeText: "text-amber-300",
       badgeBorder: "border-amber-500/40",
@@ -95,7 +95,7 @@ function calculateTier(balance: number): TierConfig {
   if (safeBalance <= 150000) {
     return {
       name: "SILVER",
-      title: "Cyber Scout",
+      title: "Scout",
       badgeBg: "bg-slate-300/20",
       badgeText: "text-slate-100",
       badgeBorder: "border-slate-300/40",
@@ -114,7 +114,7 @@ function calculateTier(balance: number): TierConfig {
   if (safeBalance <= 350000) {
     return {
       name: "GOLD",
-      title: "Esports Striker",
+      title: "Striker",
       badgeBg: "bg-yellow-500/20",
       badgeText: "text-yellow-300",
       badgeBorder: "border-yellow-500/40",
@@ -123,7 +123,7 @@ function calculateTier(balance: number): TierConfig {
       nextTier: "PLATINUM",
       nextThreshold: 350000,
       perks: [
-        "Akses bilik VIP room",
+        "Akses PC VIP room",
         "Diskon lima persen fnb",
         "Badge striker di layar PC"
       ]
@@ -133,7 +133,7 @@ function calculateTier(balance: number): TierConfig {
   if (safeBalance <= 700000) {
     return {
       name: "PLATINUM",
-      title: "Warnet Veteran",
+      title: "Elite",
       badgeBg: "bg-cyan-500/20",
       badgeText: "text-cyan-300",
       badgeBorder: "border-cyan-500/40",
@@ -151,7 +151,7 @@ function calculateTier(balance: number): TierConfig {
 
   return {
     name: "DIAMOND",
-    title: "Sultan Cyber",
+    title: "Champion",
     badgeBg: "bg-emerald-500/20",
     badgeText: "text-emerald-300",
     badgeBorder: "border-emerald-500/40",
@@ -160,10 +160,10 @@ function calculateTier(balance: number): TierConfig {
     nextTier: null,
     nextThreshold: null,
     perks: [
-      "Akses bebas seluruh PC sultan",
+      "Akses bebas seluruh PC VIP",
       "Layanan prioritas kasir operator",
       "Diskon lima belas persen fnb",
-      "Badge sultan eksklusif"
+      "Badge champion eksklusif"
     ]
   };
 }
@@ -178,11 +178,11 @@ interface RankRoadmapItem {
 }
 
 const ALL_RANKS: RankRoadmapItem[] = [
-  { name: "BRONZE", title: "Rookie Warnet", threshold: 0, badgeBg: "bg-amber-500/15", badgeText: "text-amber-300", badgeBorder: "border-amber-500/30" },
-  { name: "SILVER", title: "Cyber Scout", threshold: 50000, badgeBg: "bg-slate-300/15", badgeText: "text-slate-200", badgeBorder: "border-slate-300/30" },
-  { name: "GOLD", title: "Esports Striker", threshold: 150000, badgeBg: "bg-yellow-500/15", badgeText: "text-yellow-300", badgeBorder: "border-yellow-500/30" },
-  { name: "PLATINUM", title: "Warnet Veteran", threshold: 350000, badgeBg: "bg-cyan-500/15", badgeText: "text-cyan-300", badgeBorder: "border-cyan-500/30" },
-  { name: "DIAMOND", title: "Sultan Cyber", threshold: 700000, badgeBg: "bg-emerald-500/15", badgeText: "text-emerald-300", badgeBorder: "border-emerald-500/30" },
+  { name: "BRONZE", title: "Starter", threshold: 0, badgeBg: "bg-amber-500/15", badgeText: "text-amber-300", badgeBorder: "border-amber-500/30" },
+  { name: "SILVER", title: "Scout", threshold: 50000, badgeBg: "bg-slate-300/15", badgeText: "text-slate-200", badgeBorder: "border-slate-300/30" },
+  { name: "GOLD", title: "Striker", threshold: 150000, badgeBg: "bg-yellow-500/15", badgeText: "text-yellow-300", badgeBorder: "border-yellow-500/30" },
+  { name: "PLATINUM", title: "Elite", threshold: 350000, badgeBg: "bg-cyan-500/15", badgeText: "text-cyan-300", badgeBorder: "border-cyan-500/30" },
+  { name: "DIAMOND", title: "Champion", threshold: 700000, badgeBg: "bg-emerald-500/15", badgeText: "text-emerald-300", badgeBorder: "border-emerald-500/30" },
 ];
 
 interface DailyQuestItem {
@@ -849,9 +849,9 @@ export default function MemberPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-300">
-                    <span className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse" />
-                    <span className="font-mono font-bold tracking-wider text-[11px]">ONLINE</span>
+                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} shadow-sm`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                    <span className="font-mono font-bold tracking-wider text-[11px] uppercase">{currentTier.name}</span>
                   </div>
                 </div>
 
@@ -862,15 +862,6 @@ export default function MemberPage() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
-                        {currentTier.name}
-                      </span>
-                      <span className="text-xs text-zinc-400 font-bold truncate">
-                        {currentTier.title}
-                      </span>
-                    </div>
-
                     <div className="flex items-center gap-2.5 flex-wrap">
                       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase truncate">
                         {profile?.username || sessionUser.email?.split("@")[0]}
@@ -881,9 +872,15 @@ export default function MemberPage() {
                       </span>
                     </div>
 
-                    <p className="text-xs text-zinc-400 font-medium truncate mt-0.5">
-                      {profile?.full_name || sessionUser.email}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1 truncate">
+                      <span className="text-xs text-zinc-300 font-bold">
+                        {currentTier.title}
+                      </span>
+                      <span className="text-zinc-600">•</span>
+                      <p className="text-xs text-zinc-400 font-medium truncate">
+                        {profile?.full_name || sessionUser.email}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -973,7 +970,7 @@ export default function MemberPage() {
                   className="w-full py-2.5 px-4 rounded-xl bg-nvidia-green hover:bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-sm hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <Gamepad2 size={16} />
-                  <span>Pesan Bilik PC Sekarang</span>
+                  <span>Booking PC Sekarang</span>
                   <ArrowRight size={14} />
                 </Link>
 
@@ -1066,10 +1063,10 @@ export default function MemberPage() {
                         </div>
                         <div>
                           <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
-                            Level Peringkat Gamer
+                            Pangkat Akun
                           </h3>
                           <p className="text-xs text-zinc-400 font-medium">
-                            Tingkatan peringkat akun berdasarkan total akumulasi saldo deposit
+                            Kumpulkan saldo deposit untuk naik pangkat dan buka prioritas PC
                           </p>
                         </div>
                       </div>
@@ -1333,7 +1330,7 @@ export default function MemberPage() {
                         <Monitor className="mx-auto text-zinc-600 mb-3" size={36} />
                         <p className="text-sm font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
                         <p className="text-xs text-zinc-400 mt-1 mb-5">
-                          Pesan bilik PC favorit lu sekarang dan nikmati kecepatan warnet
+                          Pesan PC favorit lu sekarang dan nikmati kecepatan gaming premium
                         </p>
                         <Link
                           href="/"
@@ -1757,7 +1754,7 @@ export default function MemberPage() {
                       Cara Top Up Saldo Kasir
                     </h3>
                     <p className="text-xs sm:text-sm text-zinc-300">
-                      Isi saldo deposit akun untuk memesan bilik PC warnet
+                      Isi saldo deposit akun untuk booking PC gaming
                     </p>
                   </div>
                 </div>
