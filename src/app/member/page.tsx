@@ -787,19 +787,11 @@ export default function MemberPage() {
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
             >
-              {/* Kilauan Pinggiran Outline Luar Hijau Murni */}
-              <div 
-                className="absolute inset-0 rounded-3xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-                style={{
-                  boxShadow: "0 0 0 1px rgba(118,185,0,0.6)",
-                }}
-              />
-
               {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan */}
               <div 
-                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-3xl overflow-hidden backdrop-blur-[1.5px] border-t border-l border-white/20"
+                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-3xl overflow-hidden backdrop-blur-[1.5px]"
                 style={{
-                  background: `radial-gradient(circle 350px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.09), rgba(200,200,200,0.03) 40%, transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%)`,
+                  background: `radial-gradient(circle 350px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.08), rgba(200,200,200,0.02) 40%, transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 40%)`,
                 }}
               />
 
@@ -888,10 +880,12 @@ export default function MemberPage() {
                     </button>
                   </div>
 
-                  {/* Nilai Saldo Hero */}
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-lg sm:text-xl font-black text-nvidia-green">Rp</span>
-                    <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                  {/* Nilai Saldo Hero Gold */}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs sm:text-sm font-black text-amber-400 font-mono tracking-wider">
+                      IDR
+                    </span>
+                    <span className="text-3xl sm:text-4xl font-black font-mono tracking-tight bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent drop-shadow-[0_2px_14px_rgba(251,191,36,0.35)]">
                       {currentBalance.toLocaleString("id-ID")}
                     </span>
                   </div>
