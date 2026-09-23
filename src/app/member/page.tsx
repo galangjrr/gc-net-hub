@@ -627,7 +627,7 @@ export default function MemberPage() {
                   Live Billing
                 </span>
               </div>
-              <p className="text-sm text-zinc-300 font-medium mt-0.5">Identitas esports dan integrasi saldo warnet</p>
+              <p className="text-sm text-zinc-300 font-medium mt-0.5">Akun member dan saldo deposit GC-Net</p>
             </div>
           </div>
           
@@ -662,8 +662,8 @@ export default function MemberPage() {
                         <div />
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase font-black">
-                      GC ESPORTS ID
+                    <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase font-bold">
+                      GC MEMBER ID
                     </span>
                   </div>
 
@@ -702,16 +702,13 @@ export default function MemberPage() {
                   </div>
                 </div>
 
-                {/* Saldo Deposit & Status Billing Terpadu (Seamless Wallet Ribbon) */}
-                <div className="rounded-2xl bg-zinc-900/60 border border-white/10 p-4 sm:p-5 space-y-3.5 backdrop-blur-sm">
+                {/* Saldo Deposit */}
+                <div className="rounded-2xl bg-zinc-900/60 border border-white/10 p-4 sm:p-5 backdrop-blur-sm">
                   {/* Baris Atas Saldo: Label & ID Member */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <CreditCard size={15} className="text-nvidia-green shrink-0" />
-                      <span className="text-[11px] uppercase text-zinc-400 font-black tracking-wider">
-                        Saldo Deposit Tersedia
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-[11px] uppercase text-zinc-400 font-bold tracking-wider">
+                      Saldo Deposit
+                    </span>
 
                     <button
                       type="button"
@@ -733,17 +730,6 @@ export default function MemberPage() {
                     <span className="text-lg sm:text-xl font-black text-nvidia-green">Rp</span>
                     <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
                       {currentBalance.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-
-                  {/* Status Integrasi Billing Live (Seamless Footer) */}
-                  <div className="flex items-center justify-between pt-2.5 border-t border-white/5 text-[11px] font-semibold text-zinc-400">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green" />
-                      <span>Koneksi Billing Warnet</span>
-                    </div>
-                    <span className="font-mono font-bold text-nvidia-green text-[10px] tracking-wider uppercase">
-                      {profile?.gc_user_id ? "Sesi Aktif di Komputer" : "Siap Bermain"}
                     </span>
                   </div>
                 </div>
@@ -933,16 +919,16 @@ export default function MemberPage() {
                         </div>
                         <div>
                           <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
-                            Misi Harian Pemain
+                            Misi Harian
                           </h3>
                           <p className="text-xs text-zinc-300 font-medium">
-                            Selesaikan tantangan warnet untuk menambah keaktifan dan EXP akun
+                            Selesaikan misi harian untuk mengumpulkan EXP akun
                           </p>
                         </div>
                       </div>
 
                       <span className="hidden sm:inline-flex text-[11px] font-mono font-bold text-zinc-400 px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/10">
-                        RESET TIAP 24 JAM
+                        RESET 24 JAM
                       </span>
                     </div>
 
@@ -961,16 +947,16 @@ export default function MemberPage() {
                           </div>
 
                           <h4 className="text-sm font-black text-white mb-1">
-                            Login Harian Portal
+                            Login Harian
                           </h4>
                           <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Masuk ke portal member dan aktifkan sesi bermain hari ini.
+                            Masuk ke akun member hari ini.
                           </p>
                         </div>
 
                         <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
                           <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="text-zinc-400 font-medium">Progres Misi</span>
+                            <span className="text-zinc-400 font-medium">Progres</span>
                             <span className="text-nvidia-green font-bold">1 / 1</span>
                           </div>
                           <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
@@ -985,7 +971,7 @@ export default function MemberPage() {
                         </div>
                       </div>
 
-                      {/* Quest 2: Amunisi Deposit (Tantangan Aktif) */}
+                      {/* Quest 2: Top Up Saldo */}
                       <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-950/15 via-zinc-900 to-zinc-950 border border-amber-500/25 flex flex-col justify-between hover:border-amber-500/50 transition shadow-sm">
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-3">
@@ -998,16 +984,16 @@ export default function MemberPage() {
                           </div>
 
                           <h4 className="text-sm font-black text-white mb-1">
-                            Amunisi Saldo Kasir
+                            Top Up Saldo
                           </h4>
                           <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Top up deposit minimal Rp 20.000 langsung di meja operator kasir.
+                            Top up deposit minimal Rp 20.000 di kasir.
                           </p>
                         </div>
 
                         <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
                           <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="text-zinc-400 font-medium">Progres Misi</span>
+                            <span className="text-zinc-400 font-medium">Progres</span>
                             <span className="text-amber-400 font-bold">0 / 1</span>
                           </div>
                           <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
@@ -1022,7 +1008,7 @@ export default function MemberPage() {
                         </div>
                       </div>
 
-                      {/* Quest 3: Sultan Midnight (Event Malam) */}
+                      {/* Quest 3: Sesi Begadang */}
                       <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-cyan-950/15 via-zinc-900 to-zinc-950 border border-cyan-500/25 flex flex-col justify-between hover:border-cyan-500/50 transition shadow-sm">
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-3">
@@ -1030,15 +1016,15 @@ export default function MemberPage() {
                               <Flame size={18} />
                             </div>
                             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 tracking-wider">
-                              Event Malam
+                              Paket Malam
                             </span>
                           </div>
 
                           <h4 className="text-sm font-black text-white mb-1">
-                            Sultan Begadang
+                            Sesi Begadang
                           </h4>
                           <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Pesan paket billing malam warnet mulai pukul 21.00 WIB ke atas.
+                            Pesan paket malam mulai pukul 21.00 WIB ke atas.
                           </p>
                         </div>
 
