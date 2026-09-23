@@ -782,24 +782,24 @@ export default function MemberPage() {
             
             {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER, DOMPET & AKSI CEPAT */}
             <div 
-              className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 hover:border-nvidia-green/70 p-6 sm:p-7 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_40px_rgba(118,185,0,0.25),inset_0_0_20px_rgba(118,185,0,0.06)] space-y-6 relative overflow-hidden group transition-all duration-500"
+              className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 hover:border-nvidia-green/80 p-6 sm:p-7 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_35px_rgba(118,185,0,0.35)] space-y-6 relative overflow-hidden group transition-all duration-300"
               style={{ perspective: "1000px" }}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
             >
-              {/* Kilauan Hijau Neon di Outline Luar Kartu (Dynamic Glowing Edge Spotlight) */}
+              {/* Kilauan Pinggiran Outline Luar Hijau Murni */}
               <div 
-                className="absolute -inset-[1px] rounded-3xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-[3px]"
+                className="absolute inset-0 rounded-3xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                 style={{
-                  background: `radial-gradient(420px circle at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(118,185,0,0.85), transparent 75%)`,
+                  boxShadow: "0 0 0 1px rgba(118,185,0,0.6)",
                 }}
               />
 
-              {/* Lapisan Kaca Tipis Depan (Frosted Glass Sheen with Specular Edge) */}
+              {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan */}
               <div 
-                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 rounded-3xl overflow-hidden backdrop-blur-[1px] bg-white/[0.02] border-t border-l border-white/30"
+                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-3xl overflow-hidden backdrop-blur-[1.5px] border-t border-l border-white/20"
                 style={{
-                  background: `radial-gradient(circle 380px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.12), transparent 60%), linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 45%)`,
+                  background: `radial-gradient(circle 350px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.09), rgba(200,200,200,0.03) 40%, transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%)`,
                 }}
               />
 
