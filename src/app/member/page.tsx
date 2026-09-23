@@ -1700,18 +1700,18 @@ export default function MemberPage() {
               <div className="relative rounded-[31px] bg-zinc-950/85 backdrop-blur-2xl grid grid-cols-1 lg:grid-cols-12 items-stretch divide-y lg:divide-y-0 lg:divide-x divide-white/10">
                 
                 {/* PANEL KIRI: SHOWCASE SISTEM PANGKAT & BENEFIT BISNIS MEMBER */}
-                <div className="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6 sm:space-y-8 bg-zinc-950/40">
-                  {/* Header Tagline & Badges */}
-                  <div className="space-y-3">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs font-black uppercase tracking-wider">
+                <div className="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-center space-y-6 sm:space-y-7 bg-zinc-950/40">
+                  {/* Header Ringkas & Padat */}
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs font-black uppercase tracking-wider">
                       <ShieldCheck size={14} className="shrink-0" />
-                      <span>Sistem Billing & Keanggotaan Member GC-Net</span>
+                      <span>Member GC-Net</span>
                     </div>
-                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-                      Akses Billing Member Cepat, Praktis & Terintegrasi
+                    <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white leading-tight">
+                      Portal Billing Member
                     </h2>
-                    <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-xl leading-relaxed">
-                      Sistem keanggotaan warnet GC-Net dengan tier level gamer terpadu. Akun memiliki masa aktif berkala dan potongan biaya pembuka sesi (startup fee) saat login workstation PC, dengan perpanjangan mudah saat top up di kasir.
+                    <p className="text-xs sm:text-sm text-zinc-400 font-medium max-w-lg leading-relaxed">
+                      Akses akun personal, akumulasi EXP sesi, dan kelola saldo workstation GC-Net.
                     </p>
                   </div>
 
@@ -1805,12 +1805,12 @@ export default function MemberPage() {
                   </div>
 
                   {/* Strip 5 Pangkat Member (Roadmap Tier Gamer) */}
-                  <div className="space-y-2.5 max-w-xl">
+                  <div className="space-y-2.5 max-w-lg">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">
                         Tingkatan Pangkat Gamer
                       </span>
-                      <span className="text-[11px] text-zinc-500 font-medium">Akumulasi EXP Sesi & Keaktifan Main</span>
+                      <span className="text-[11px] text-zinc-500 font-medium">Akumulasi EXP Sesi Main</span>
                     </div>
 
                     <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
@@ -1837,49 +1837,6 @@ export default function MemberPage() {
                           </div>
                         );
                       })}
-                    </div>
-                  </div>
-
-                  {/* 4 Feature Highlight Bento Grid (Fitur Nyata Bebas Janji Palsu) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
-                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-yellow-500/40 transition-colors flex items-start gap-3.5 group">
-                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-yellow-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <Zap size={18} />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Tarif Khusus Member</h4>
-                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Tarif billing per jam lebih hemat dan terjangkau dibanding biaya sewa tamu personal.</p>
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-cyan-500/40 transition-colors flex items-start gap-3.5 group">
-                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <Monitor size={18} />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Login Otomatis Workstation</h4>
-                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Buka kunci bilik PC langsung di layar client menggunakan username akun tanpa antre kasir.</p>
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
-                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <Clock size={18} />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Masa Aktif Akun</h4>
-                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Akun memiliki periode aktif 30 hari yang otomatis diperpanjang saat isi ulang saldo deposit.</p>
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-emerald-500/40 transition-colors flex items-start gap-3.5 group">
-                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <ShieldCheck size={18} />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Biaya Awal (Startup Fee)</h4>
-                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Dikenakan saldo minimal pembuka sesi Rp 2.000 saat login pertama kali di workstation PC.</p>
-                      </div>
                     </div>
                   </div>
                 </div>
