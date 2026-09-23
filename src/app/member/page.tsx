@@ -27,6 +27,7 @@ import {
   Award,
   Copy,
   Check,
+  ChevronLeft,
   ChevronRight,
   Monitor,
   Gift
@@ -167,6 +168,110 @@ function calculateTier(balance: number): TierConfig {
   };
 }
 
+interface DailyQuestItem {
+  id: string;
+  tag: string;
+  title: string;
+  desc: string;
+  icon: any;
+  status: "completed" | "in_progress";
+  progressCurrent: number;
+  progressMax: number;
+  rewardExp: number;
+  theme: {
+    accent: string;
+    bgGradient: string;
+    border: string;
+    borderActive: string;
+    glow: string;
+    badgeBg: string;
+    badgeText: string;
+    badgeBorder: string;
+    iconBg: string;
+    iconText: string;
+    barColor: string;
+    tagColor: string;
+  };
+}
+
+const DAILY_QUESTS: DailyQuestItem[] = [
+  {
+    id: "quest-1",
+    tag: "SELESAI",
+    title: "Login Harian",
+    desc: "Masuk ke akun member dan aktifkan sesi bermain hari ini.",
+    icon: CheckCircle2,
+    status: "completed",
+    progressCurrent: 1,
+    progressMax: 1,
+    rewardExp: 50,
+    theme: {
+      accent: "text-nvidia-green",
+      bgGradient: "from-emerald-950/40 via-zinc-900 to-zinc-950",
+      border: "border-emerald-500/30",
+      borderActive: "border-nvidia-green shadow-[0_0_25px_rgba(118,185,0,0.25)]",
+      glow: "bg-emerald-500/20",
+      badgeBg: "bg-nvidia-green/20",
+      badgeText: "text-nvidia-green",
+      badgeBorder: "border-nvidia-green/40",
+      iconBg: "bg-emerald-500/20",
+      iconText: "text-nvidia-green",
+      barColor: "bg-nvidia-green",
+      tagColor: "text-nvidia-green",
+    }
+  },
+  {
+    id: "quest-2",
+    tag: "TANTANGAN",
+    title: "Top Up Saldo",
+    desc: "Isi ulang saldo deposit minimal Rp 20.000 langsung di kasir.",
+    icon: Zap,
+    status: "in_progress",
+    progressCurrent: 0,
+    progressMax: 1,
+    rewardExp: 150,
+    theme: {
+      accent: "text-amber-400",
+      bgGradient: "from-amber-950/30 via-zinc-900 to-zinc-950",
+      border: "border-amber-500/30",
+      borderActive: "border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.25)]",
+      glow: "bg-amber-500/20",
+      badgeBg: "bg-amber-500/15",
+      badgeText: "text-amber-300",
+      badgeBorder: "border-amber-500/30",
+      iconBg: "bg-amber-500/15",
+      iconText: "text-amber-400",
+      barColor: "bg-amber-400",
+      tagColor: "text-amber-300",
+    }
+  },
+  {
+    id: "quest-3",
+    tag: "PAKET MALAM",
+    title: "Sesi Begadang",
+    desc: "Pesan paket billing malam warnet mulai pukul 21.00 WIB ke atas.",
+    icon: Flame,
+    status: "in_progress",
+    progressCurrent: 0,
+    progressMax: 1,
+    rewardExp: 200,
+    theme: {
+      accent: "text-cyan-400",
+      bgGradient: "from-cyan-950/30 via-zinc-900 to-zinc-950",
+      border: "border-cyan-500/30",
+      borderActive: "border-cyan-400 shadow-[0_0_25px_rgba(34,211,238,0.25)]",
+      glow: "bg-cyan-500/20",
+      badgeBg: "bg-cyan-500/15",
+      badgeText: "text-cyan-300",
+      badgeBorder: "border-cyan-500/30",
+      iconBg: "bg-cyan-500/15",
+      iconText: "text-cyan-400",
+      barColor: "bg-cyan-400",
+      tagColor: "text-cyan-300",
+    }
+  }
+];
+
 export default function MemberPage() {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -177,6 +282,35 @@ export default function MemberPage() {
 
   // Active Dashboard Tab
   const [activeTab, setActiveTab] = useState<"level" | "history" | "quests" | "profile">("level");
+
+  // 3D Quest Carousel Active Index
+  const [activeQuestIndex, setActiveQuestIndex] = useState(0);
+
+  const handlePrevQuest = () => {
+    setActiveQuestIndex((prev) => (prev > 0 ? prev - 1 : DAILY_QUESTS.length - 1));
+  };
+
+  const handleNextQuest = () => {
+    setActiveQuestIndex((prev) => (prev < DAILY_QUESTS.length - 1 ? prev + 1 : 0));
+  };
+
+  // 3D Card Interactive Tilt State
+  const [cardTilt, setCardTilt] = useState({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50 });
+
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const rotateX = -(y / (rect.height / 2)) * 6;
+    const rotateY = (x / (rect.width / 2)) * 6;
+    const glareX = ((e.clientX - rect.left) / rect.width) * 100;
+    const glareY = ((e.clientY - rect.top) / rect.height) * 100;
+    setCardTilt({ rotateX, rotateY, glareX, glareY });
+  };
+
+  const handleCardMouseLeave = () => {
+    setCardTilt({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50 });
+  };
 
   // Copy Member ID State
   const [copiedId, setCopiedId] = useState(false);
@@ -647,10 +781,28 @@ export default function MemberPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
             {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER, DOMPET & AKSI CEPAT */}
-            <div className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 flex flex-col justify-between shadow-xl space-y-6">
-              
-              {/* Bagian Atas Kartu */}
-              <div className="space-y-6">
+            <div 
+              className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 flex flex-col justify-between shadow-2xl space-y-6 relative overflow-hidden group transition-all duration-300"
+              style={{ perspective: "1000px" }}
+              onMouseMove={handleCardMouseMove}
+              onMouseLeave={handleCardMouseLeave}
+            >
+              {/* Dynamic Holographic Glare Overlay */}
+              <div 
+                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+                style={{
+                  background: `radial-gradient(circle 350px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.06), transparent 70%)`,
+                }}
+              />
+
+              {/* 3D Tilting Inner Card Wrapper */}
+              <div 
+                className="space-y-6 transition-transform duration-100 ease-out"
+                style={{
+                  transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
+                  transformStyle: "preserve-3d",
+                }}
+              >
                 {/* Header Kartu: Sim Chip & Status Online */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -932,118 +1084,128 @@ export default function MemberPage() {
                       </span>
                     </div>
 
-                    {/* Grid Quest Cards yang Menarik & Bergaya Gamifikasi */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                      {/* Quest 1: Check-in Harian (Selesai) */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-emerald-950/20 via-zinc-900 to-zinc-950 border border-emerald-500/30 flex flex-col justify-between hover:border-emerald-500/60 transition shadow-sm">
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-nvidia-green shrink-0">
-                              <CheckCircle2 size={18} />
-                            </div>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/40 tracking-wider">
-                              Selesai
-                            </span>
-                          </div>
+                    {/* 3D Quest Coverflow Carousel Stage */}
+                    <div className="relative w-full h-[320px] flex items-center justify-center overflow-hidden rounded-2xl bg-zinc-950/40 border border-white/5" style={{ perspective: "1000px" }}>
+                      {/* Dynamic Atmospheric Glow */}
+                      <div 
+                        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] ${DAILY_QUESTS[activeQuestIndex].theme.glow} blur-[90px] rounded-full pointer-events-none transition-colors duration-700`} 
+                      />
 
-                          <h4 className="text-sm font-black text-white mb-1">
-                            Login Harian
-                          </h4>
-                          <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Masuk ke akun member hari ini.
-                          </p>
-                        </div>
+                      {/* Nav Button Left */}
+                      <button
+                        type="button"
+                        onClick={handlePrevQuest}
+                        aria-label="Misi Sebelumnya"
+                        className="absolute left-3 z-40 w-10 h-10 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
 
-                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
-                          <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="text-zinc-400 font-medium">Progres</span>
-                            <span className="text-nvidia-green font-bold">1 / 1</span>
-                          </div>
-                          <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                            <div className="w-full h-full bg-nvidia-green rounded-full" />
-                          </div>
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-[11px] text-zinc-400">Hadiah</span>
-                            <span className="text-xs font-mono font-black text-nvidia-green bg-nvidia-green/10 px-2 py-0.5 rounded border border-nvidia-green/20">
-                              +50 EXP
-                            </span>
-                          </div>
-                        </div>
+                      {/* Nav Button Right */}
+                      <button
+                        type="button"
+                        onClick={handleNextQuest}
+                        aria-label="Misi Selanjutnya"
+                        className="absolute right-3 z-40 w-10 h-10 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+
+                      {/* 3D Track */}
+                      <div className="relative w-full h-full flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}>
+                        <AnimatePresence initial={false}>
+                          {DAILY_QUESTS.map((quest, index) => {
+                            const offset = index - activeQuestIndex;
+                            const isActive = offset === 0;
+                            const IconComponent = quest.icon;
+
+                            // 3D placement logic matched to portal carousel
+                            const x = offset * 230;
+                            const rotateY = offset * -28;
+                            const scale = isActive ? 1.05 : 0.86;
+                            const zIndex = isActive ? 30 : 10;
+                            const opacity = isActive ? 1 : 0.45;
+
+                            return (
+                              <motion.div
+                                key={quest.id}
+                                onClick={() => setActiveQuestIndex(index)}
+                                className={`absolute w-[280px] sm:w-[320px] p-5 sm:p-6 rounded-3xl bg-gradient-to-b ${quest.theme.bgGradient} border ${isActive ? quest.theme.borderActive : quest.theme.border} cursor-pointer transition-colors duration-300 shadow-2xl flex flex-col justify-between select-none`}
+                                style={{
+                                  zIndex,
+                                  transformOrigin: "center center",
+                                }}
+                                animate={{
+                                  x,
+                                  rotateY,
+                                  scale,
+                                  opacity,
+                                  rotateZ: isActive ? 0 : offset * -2,
+                                }}
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 260,
+                                  damping: 24,
+                                }}
+                              >
+                                <div>
+                                  <div className="flex items-center justify-between gap-2 mb-3">
+                                    <div className={`w-10 h-10 rounded-2xl ${quest.theme.iconBg} border border-white/10 flex items-center justify-center ${quest.theme.iconText} shrink-0 shadow-inner`}>
+                                      <IconComponent size={20} />
+                                    </div>
+                                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${quest.theme.badgeBg} ${quest.theme.badgeText} border ${quest.theme.badgeBorder} tracking-wider`}>
+                                      {quest.tag}
+                                    </span>
+                                  </div>
+
+                                  <h4 className="text-base sm:text-lg font-black text-white mb-1.5">
+                                    {quest.title}
+                                  </h4>
+                                  <p className="text-xs text-zinc-300 font-medium leading-relaxed">
+                                    {quest.desc}
+                                  </p>
+                                </div>
+
+                                <div className="mt-4 pt-3.5 border-t border-white/10 space-y-2.5">
+                                  <div className="flex items-center justify-between text-xs font-mono">
+                                    <span className="text-zinc-400 font-medium">Progres</span>
+                                    <span className={`${quest.theme.accent} font-bold`}>
+                                      {quest.progressCurrent} / {quest.progressMax}
+                                    </span>
+                                  </div>
+                                  <div className="w-full h-2 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5">
+                                    <div
+                                      className={`h-full rounded-full ${quest.theme.barColor} transition-all duration-500`}
+                                      style={{ width: `${(quest.progressCurrent / quest.progressMax) * 100}%` }}
+                                    />
+                                  </div>
+                                  <div className="flex items-center justify-between pt-1">
+                                    <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-wider">Hadiah</span>
+                                    <span className={`text-xs font-mono font-black ${quest.theme.tagColor} ${quest.theme.badgeBg} px-2.5 py-0.5 rounded-md border ${quest.theme.badgeBorder}`}>
+                                      +{quest.rewardExp} EXP
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </AnimatePresence>
                       </div>
+                    </div>
 
-                      {/* Quest 2: Top Up Saldo */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-950/15 via-zinc-900 to-zinc-950 border border-amber-500/25 flex flex-col justify-between hover:border-amber-500/50 transition shadow-sm">
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                              <Zap size={18} />
-                            </div>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 tracking-wider">
-                              Tantangan
-                            </span>
-                          </div>
-
-                          <h4 className="text-sm font-black text-white mb-1">
-                            Top Up Saldo
-                          </h4>
-                          <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Top up deposit minimal Rp 20.000 di kasir.
-                          </p>
-                        </div>
-
-                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
-                          <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="text-zinc-400 font-medium">Progres</span>
-                            <span className="text-amber-400 font-bold">0 / 1</span>
-                          </div>
-                          <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                            <div className="w-0 h-full bg-amber-400 rounded-full" />
-                          </div>
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-[11px] text-zinc-400">Hadiah</span>
-                            <span className="text-xs font-mono font-black text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                              +150 EXP
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Quest 3: Sesi Begadang */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-cyan-950/15 via-zinc-900 to-zinc-950 border border-cyan-500/25 flex flex-col justify-between hover:border-cyan-500/50 transition shadow-sm">
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
-                              <Flame size={18} />
-                            </div>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 tracking-wider">
-                              Paket Malam
-                            </span>
-                          </div>
-
-                          <h4 className="text-sm font-black text-white mb-1">
-                            Sesi Begadang
-                          </h4>
-                          <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Pesan paket malam mulai pukul 21.00 WIB ke atas.
-                          </p>
-                        </div>
-
-                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
-                          <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="text-zinc-400 font-medium">Progres Misi</span>
-                            <span className="text-cyan-400 font-bold">0 / 1</span>
-                          </div>
-                          <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                            <div className="w-0 h-full bg-cyan-400 rounded-full" />
-                          </div>
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-[11px] text-zinc-400">Hadiah</span>
-                            <span className="text-xs font-mono font-black text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                              +200 EXP
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                    {/* Dot Pagination Indicator */}
+                    <div className="flex items-center justify-center gap-2 pt-1">
+                      {DAILY_QUESTS.map((quest, idx) => (
+                        <button
+                          key={quest.id}
+                          type="button"
+                          onClick={() => setActiveQuestIndex(idx)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            activeQuestIndex === idx ? "w-6 bg-nvidia-green" : "w-1.5 bg-zinc-700 hover:bg-zinc-500"
+                          }`}
+                          aria-label={quest.title}
+                        />
+                      ))}
                     </div>
                   </div>
                 )}
