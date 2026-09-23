@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isAdminRequest, hashStaffPassword } from '@/lib/auth';
+import { isAdminRequest, isOwnerAuthorized, hashStaffPassword } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity-log';
 
@@ -16,6 +16,10 @@ export interface StaffAccount {
 export async function GET(req: Request) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!isOwnerAuthorized(req)) {
+    return NextResponse.json({ error: 'Akses khusus Pemilik. Masukkan Master Passkey.', needPasskey: true }, { status: 403 });
   }
 
   try {
@@ -56,6 +60,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!isOwnerAuthorized(req)) {
+    return NextResponse.json({ error: 'Akses khusus Pemilik. Masukkan Master Passkey.', needPasskey: true }, { status: 403 });
   }
 
   try {
@@ -126,6 +134,10 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!isOwnerAuthorized(req)) {
+    return NextResponse.json({ error: 'Akses khusus Pemilik. Masukkan Master Passkey.', needPasskey: true }, { status: 403 });
+  }
+
   try {
     const { id, password, role, fullName, active } = await req.json();
     if (!id) return NextResponse.json({ error: 'Account ID required' }, { status: 400 });
@@ -175,6 +187,10 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!isOwnerAuthorized(req)) {
+    return NextResponse.json({ error: 'Akses khusus Pemilik. Masukkan Master Passkey.', needPasskey: true }, { status: 403 });
   }
 
   try {

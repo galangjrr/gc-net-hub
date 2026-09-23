@@ -2,6 +2,7 @@ import crypto from "crypto";
 
 export const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+export const OWNER_PASSKEY = process.env.OWNER_PASSKEY;
 
 // Secret key untuk HMAC signing session token admin
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "gcnet-secure-admin-token-salt-1975";
@@ -92,4 +93,83 @@ export function getAdminSession(req: Request): AdminSession | null {
 export function hashStaffPassword(password: string): string {
   return crypto.createHmac("sha256", SESSION_SECRET).update(password.trim()).digest("hex");
 }
+
+/**
+ * Memverifikasi kecocokan Master Passkey Owner dengan crypto timingSafeEqual
+ */
+export function verifyOwnerPasskey(passkey: string): boolean {
+  const master = process.env.OWNER_PASSKEY || process.env.ADMIN_PASSWORD || "gcnetowner1975";
+  const cleanInput = (passkey || "").trim();
+  if (!cleanInput) return false;
+
+  const inputBuf = Buffer.from(cleanInput);
+  const masterBuf = Buffer.from(master.trim());
+  if (inputBuf.length !== masterBuf.length) return false;
+  return crypto.timingSafeEqual(inputBuf, masterBuf);
+}
+
+/**
+ * Membuat token otorisasi passkey owner bertanda tangan HMAC
+ */
+export function createOwnerPasskeyToken(maxAgeSeconds: number = 3600): string {
+  const payload = {
+    owner: true,
+    exp: Date.now() + maxAgeSeconds * 1000,
+  };
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = crypto.createHmac("sha256", SESSION_SECRET).update(encodedPayload).digest("base64url");
+  return `${encodedPayload}.${signature}`;
+}
+
+/**
+ * Memverifikasi keabsahan token passkey owner
+ */
+export function verifyOwnerPasskeyToken(token: string | null | undefined): boolean {
+  if (!token || typeof token !== "string" || !token.includes(".")) return false;
+  const [encodedPayload, signature] = token.split(".");
+  if (!encodedPayload || !signature) return false;
+
+  const expectedSignature = crypto.createHmac("sha256", SESSION_SECRET).update(encodedPayload).digest("base64url");
+  const sigBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+
+  if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
+    return false;
+  }
+
+  try {
+    const payload = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8"));
+    if (Date.now() > payload.exp) return false;
+    return payload.owner === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Memeriksa apakah request memiliki otorisasi level Owner / Super Admin
+ */
+export function isOwnerAuthorized(req: Request): boolean {
+  // Cek apakah sesi admin login sebagai super_admin atau owner
+  const session = getAdminSession(req);
+  if (session && (session.role === "super_admin" || session.role === "owner")) {
+    return true;
+  }
+
+  // Cek apakah ada cookie owner_passkey_token
+  const cookieHeader = req.headers.get("cookie") || "";
+  const match = cookieHeader.match(/owner_passkey_token=([^;]+)/);
+  if (match && verifyOwnerPasskeyToken(match[1])) {
+    return true;
+  }
+
+  // Cek apakah ada header x-owner-passkey
+  const passkeyHeader = req.headers.get("x-owner-passkey");
+  if (passkeyHeader && verifyOwnerPasskey(passkeyHeader)) {
+    return true;
+  }
+
+  return false;
+}
+
 

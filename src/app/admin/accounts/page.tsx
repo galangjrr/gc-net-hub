@@ -22,6 +22,12 @@ export default function AccountsManagementPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAcc, setSelectedAcc] = useState<Account | null>(null);
 
+  // Owner Master Passkey States
+  const [isOwnerUnlocked, setIsOwnerUnlocked] = useState(false);
+  const [passkeyInput, setPasskeyInput] = useState("");
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const [isVerifyingPasskey, setIsVerifyingPasskey] = useState(false);
+
   // Form states
   const [formUsername, setFormUsername] = useState("");
   const [formPassword, setFormPassword] = useState("");
@@ -34,12 +40,52 @@ export default function AccountsManagementPage() {
     try {
       setLoading(true);
       const res = await fetch("/api/accounts");
+      if (res.status === 403 || res.status === 401) {
+        setIsOwnerUnlocked(false);
+        setLoading(false);
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setAccounts(data);
+        setIsOwnerUnlocked(true);
       }
-    } catch (_) {}
+    } catch (_) {
+      setIsOwnerUnlocked(false);
+    }
     setLoading(false);
+  };
+
+  const handleVerifyPasskey = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setPasskeyError(null);
+    if (!passkeyInput.trim()) {
+      setPasskeyError("Master Passkey wajib diisi");
+      return;
+    }
+
+    setIsVerifyingPasskey(true);
+    try {
+      const res = await fetch("/api/auth/passkey", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passkey: passkeyInput.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setPasskeyError(data.error || "Master Passkey tidak cocok");
+        return;
+      }
+
+      setIsOwnerUnlocked(true);
+      setPasskeyInput("");
+      await loadAccounts();
+    } catch (err: any) {
+      setPasskeyError(err?.message || "Gagal memverifikasi passkey");
+    } finally {
+      setIsVerifyingPasskey(false);
+    }
   };
 
   useEffect(() => {
@@ -148,6 +194,104 @@ export default function AccountsManagementPage() {
     setErrorMsg("");
     setShowEditModal(true);
   };
+
+  if (loading) {
+    return (
+      <PinGuard>
+        <div className="min-h-screen bg-surface-dark flex items-center justify-center p-4">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-nvidia-green border-t-transparent animate-spin" />
+            <span className="text-xs text-zinc-400 font-medium">Memeriksa Hak Otoritas Pemilik...</span>
+          </div>
+        </div>
+      </PinGuard>
+    );
+  }
+
+  if (!isOwnerUnlocked) {
+    return (
+      <PinGuard>
+        <div className="min-h-screen bg-surface-dark text-white flex items-center justify-center p-4">
+          <div className="nvidia-card p-8 w-full max-w-md relative overflow-hidden space-y-6">
+            <div className="absolute -right-4 -top-4 opacity-5 pointer-events-none">
+              <Lock size={140} />
+            </div>
+            <div className="nvidia-corner" />
+
+            <div className="flex items-center gap-3.5 border-b border-hairline/60 pb-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                <Key size={24} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white uppercase tracking-tight">
+                  Brankas Akun Staf
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  Otoritas Tingkat Dua Pemilik GC-Net
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              Halaman ini mengelola hak akses seluruh staf kasir dan admin warnet. Masukkan Master Passkey Pemilik untuk membuka brankas.
+            </p>
+
+            {passkeyError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <Lock size={14} className="shrink-0" />
+                <span>{passkeyError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleVerifyPasskey} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+                  Master Passkey Pemilik
+                </label>
+                <input
+                  type="password"
+                  value={passkeyInput}
+                  onChange={(e) => setPasskeyInput(e.target.value)}
+                  placeholder="Masukkan passkey rahasia pemilik"
+                  className="w-full px-4 py-3 rounded-xl bg-black border border-hairline focus:border-nvidia-green text-white text-sm outline-none transition placeholder:text-zinc-600"
+                  autoFocus
+                  required
+                />
+                <span className="text-[10px] text-zinc-500 block">
+                  Diatur secara terisolasi pada variabel OWNER_PASSKEY di file env server.
+                </span>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between gap-3">
+                <Link
+                  href="/data-booking"
+                  className="px-4 py-2.5 rounded-xl border border-hairline text-zinc-400 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+                >
+                  <ArrowLeft size={14} />
+                  <span>Kembali</span>
+                </Link>
+
+                <button
+                  type="submit"
+                  disabled={isVerifyingPasskey || !passkeyInput.trim()}
+                  className="nvidia-button flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider disabled:opacity-50"
+                >
+                  {isVerifyingPasskey ? (
+                    <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                  ) : (
+                    <>
+                      <Key size={14} />
+                      <span>Buka Brankas</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </PinGuard>
+    );
+  }
 
   return (
     <PinGuard>
