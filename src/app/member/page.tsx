@@ -782,10 +782,20 @@ export default function MemberPage() {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {sessionUser && (
+              <button
+                type="button"
+                onClick={() => setShowTopupInfoModal(true)}
+                className="text-xs sm:text-sm font-bold text-zinc-200 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-white/15 transition flex items-center gap-2 uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm"
+              >
+                <CreditCard size={15} className="text-nvidia-green" />
+                <span>Isi Saldo</span>
+              </button>
+            )}
             <Link
               href="/"
-              className="text-sm font-black text-black bg-nvidia-green hover:bg-white transition flex items-center gap-2 uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md"
+              className="text-xs sm:text-sm font-black text-black bg-nvidia-green hover:bg-white transition flex items-center gap-2 uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md hover:scale-[1.01] active:scale-[0.99]"
             >
               <span>Booking PC</span>
               <ArrowRight size={16} />
@@ -827,13 +837,13 @@ export default function MemberPage() {
 
                 {/* 3D Tilting Inner Card Wrapper */}
                 <div 
-                  className="space-y-3.5 sm:space-y-4 transition-transform duration-100 ease-out relative z-30"
+                  className="space-y-5 sm:space-y-6 transition-transform duration-100 ease-out relative z-30 flex-1 flex flex-col justify-between"
                   style={{
                     transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
                     transformStyle: "preserve-3d",
                   }}
                 >
-                  {/* Header Kartu: Sim Chip & Status Online */}
+                  {/* Header Kartu: Sim Chip & Status Rank Badge */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                     <div className="w-9 h-7 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
@@ -960,38 +970,6 @@ export default function MemberPage() {
                       <span className="text-emerald-400 font-bold">Pangkat Tertinggi</span>
                     )}
                   </div>
-                </div>
-              </div>
-
-              {/* Aksi Cepat Terintegrasi (Proporsional & Ramping) */}
-              <div className="space-y-2.5 pt-2 relative z-30">
-                <Link
-                  href="/"
-                  className="w-full py-2.5 px-4 rounded-xl bg-nvidia-green hover:bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-sm hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  <Gamepad2 size={16} />
-                  <span>Booking PC Sekarang</span>
-                  <ArrowRight size={14} />
-                </Link>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowTopupInfoModal(true)}
-                    className="py-2 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition"
-                  >
-                    <CreditCard size={14} className="text-nvidia-green shrink-0" />
-                    <span>Isi Saldo Kasir</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={openEditModal}
-                    className="py-2 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition"
-                  >
-                    <Pencil size={14} className="text-cyan-400 shrink-0" />
-                    <span>Ubah Profil</span>
-                  </button>
                 </div>
               </div>
 
@@ -1444,19 +1422,30 @@ export default function MemberPage() {
                     </div>
 
                     <div className="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setForgotEmail(sessionUser.email || "");
-                          setForgotError(null);
-                          setForgotSuccess(null);
-                          setShowForgotModal(true);
-                        }}
-                        className="text-xs sm:text-sm text-nvidia-green hover:underline font-bold flex items-center gap-2"
-                      >
-                        <Key size={16} />
-                        <span>Ganti Password</span>
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={openEditModal}
+                          className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition"
+                        >
+                          <Pencil size={14} className="text-cyan-400 shrink-0" />
+                          <span>Ubah Profil</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForgotEmail(sessionUser.email || "");
+                            setForgotError(null);
+                            setForgotSuccess(null);
+                            setShowForgotModal(true);
+                          }}
+                          className="text-xs sm:text-sm text-zinc-300 hover:text-nvidia-green font-bold flex items-center gap-2 transition"
+                        >
+                          <Key size={15} />
+                          <span>Ganti Password</span>
+                        </button>
+                      </div>
 
                       <button
                         type="button"
