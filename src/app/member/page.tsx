@@ -841,11 +841,14 @@ export default function MemberPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase truncate">
                         {profile?.username || sessionUser.email?.split("@")[0]}
                       </h2>
-                      <CheckCircle2 size={20} className="text-nvidia-green shrink-0" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-xs font-bold tracking-wide shrink-0">
+                        <CheckCircle2 size={14} className="text-nvidia-green shrink-0" />
+                        <span>Verified</span>
+                      </span>
                     </div>
 
                     <p className="text-xs text-zinc-400 font-medium truncate mt-0.5">
@@ -1040,22 +1043,14 @@ export default function MemberPage() {
                       </div>
                     </div>
 
-                    {/* 2 Info Ringkas (Bukan 4 kotak redundan) */}
-                    <div className="grid grid-cols-2 gap-3 pt-2">
+                    {/* Ringkasan Booking Member */}
+                    <div className="pt-2">
                       <div className="p-4 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
                         <div className="flex items-center gap-2 text-zinc-400">
                           <Flame size={16} className="text-amber-400" />
-                          <span className="text-xs font-bold uppercase">Total Booking</span>
+                          <span className="text-xs font-bold uppercase">Total Booking Selesai</span>
                         </div>
                         <span className="text-sm font-black text-white font-mono">{bookings.length} Pesanan</span>
-                      </div>
-
-                      <div className="p-4 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <ShieldCheck size={16} className="text-emerald-400" />
-                          <span className="text-xs font-bold uppercase">Status Akun</span>
-                        </div>
-                        <span className="text-sm font-black text-emerald-400 uppercase">Resmi</span>
                       </div>
                     </div>
                   </div>
