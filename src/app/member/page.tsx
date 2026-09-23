@@ -30,10 +30,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Monitor,
-  Gift
+  Gift,
+  Headphones
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import FloatingChatMessenger from "@/components/chat/FloatingChatMessenger";
 
 interface MemberProfile {
   id: string;
@@ -353,6 +355,9 @@ export default function MemberPage() {
 
   // Topup Info Modal State
   const [showTopupInfoModal, setShowTopupInfoModal] = useState(false);
+
+  // Floating Chat State
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Forgot Password Modal State
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -759,6 +764,32 @@ export default function MemberPage() {
   // Virtual member code
   const memberCode = `GC-${(profile?.username || "PLAYER").toUpperCase().slice(0, 10)}`;
 
+  // Dynamic Calculation: PC Jagoan & Paket Andalan dari riwayat booking
+  const pcCounts: Record<string, number> = {};
+  const paketCounts: Record<string, number> = {};
+  bookings.forEach((b) => {
+    if (b.pcs?.name) pcCounts[b.pcs.name] = (pcCounts[b.pcs.name] || 0) + 1;
+    if (b.pakets?.name) paketCounts[b.pakets.name] = (paketCounts[b.pakets.name] || 0) + 1;
+  });
+
+  let favoritePc = "Belum Ada";
+  let maxPcCount = 0;
+  Object.entries(pcCounts).forEach(([name, count]) => {
+    if (count > maxPcCount) {
+      maxPcCount = count;
+      favoritePc = name;
+    }
+  });
+
+  let favoritePaket = "Belum Ada";
+  let maxPaketCount = 0;
+  Object.entries(paketCounts).forEach(([name, count]) => {
+    if (count > maxPaketCount) {
+      maxPaketCount = count;
+      favoritePaket = name;
+    }
+  });
+
   return (
     <div className="min-h-screen bg-black text-white selection:bg-nvidia-green selection:text-black py-8 px-4 sm:px-6 lg:px-10 relative">
       
@@ -807,13 +838,14 @@ export default function MemberPage() {
           /* ── LOGGED IN: UNIFIED 2-PANEL COHESIVE DASHBOARD ── */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER SHOWCASE */}
-            <div 
-              className="lg:col-span-5 relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.15)]"
-              style={{ perspective: "1000px" }}
-              onMouseMove={handleCardMouseMove}
-              onMouseLeave={handleCardMouseLeave}
-            >
+            {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER & WIDGET PREFERENSI */}
+            <div className="lg:col-span-5 space-y-4">
+              <div 
+                className="relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.15)]"
+                style={{ perspective: "1000px" }}
+                onMouseMove={handleCardMouseMove}
+                onMouseLeave={handleCardMouseLeave}
+              >
               {/* Static Base Border */}
               <div className="absolute inset-0 rounded-3xl bg-white/10 pointer-events-none" />
 
@@ -975,6 +1007,85 @@ export default function MemberPage() {
 
               </div>
             </div>
+
+            {/* WIDGET STATISTIK PREFERENSI & AKSES CHAT KASIR */}
+            <div className="rounded-2xl bg-zinc-950 border border-white/10 p-3.5 sm:p-4 space-y-2.5 shadow-lg">
+              <div className="flex items-center justify-between pb-0.5">
+                <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center gap-1.5">
+                  <Sparkles size={12} className="text-nvidia-green" />
+                  Preferensi & Layanan Member
+                </span>
+                <span className="text-[10px] font-mono text-zinc-500">
+                  10 Unit Aktif
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {/* PC Jagoan */}
+                <div className="p-2.5 rounded-xl bg-zinc-900/70 border border-white/5 space-y-1">
+                  <div className="flex items-center gap-1.5 text-zinc-400">
+                    <Monitor size={12} className="text-emerald-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">PC Jagoan</span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-black text-white truncate font-mono">
+                    {favoritePc}
+                  </div>
+                  <p className="text-[9px] text-zinc-500 truncate">Paling sering dipesan</p>
+                </div>
+
+                {/* Paket Andalan */}
+                <div className="p-2.5 rounded-xl bg-zinc-900/70 border border-white/5 space-y-1">
+                  <div className="flex items-center gap-1.5 text-zinc-400">
+                    <Clock size={12} className="text-amber-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Paket Andalan</span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-black text-white truncate">
+                    {favoritePaket}
+                  </div>
+                  <p className="text-[9px] text-zinc-500 truncate">Pilihan billing utama</p>
+                </div>
+              </div>
+
+              {/* Status Hak Loyalitas Sesuai Pangkat */}
+              <div className="p-2.5 rounded-xl bg-zinc-900/50 border border-white/5 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-zinc-800 border border-white/10 flex items-center justify-center text-nvidia-green shrink-0">
+                    <ShieldCheck size={13} />
+                  </div>
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold text-zinc-300 block truncate">
+                      Privilese {currentTier.name}: {currentTier.title}
+                    </span>
+                    <span className="text-[9px] text-zinc-500 block truncate">
+                      {currentTier.perks?.[0] || "Akses standard billing"}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-nvidia-green shrink-0">
+                  Aktif
+                </span>
+              </div>
+
+              {/* Tombol Pemicu Chat Kasir */}
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(true)}
+                className="w-full py-2.5 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800/90 border border-nvidia-green/30 hover:border-nvidia-green/60 text-white flex items-center justify-between transition group active:scale-98 shadow-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green" />
+                  </span>
+                  <Headphones size={14} className="text-nvidia-green group-hover:rotate-12 transition-transform duration-300" />
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Chat Operator Kasir
+                  </span>
+                </div>
+                <ArrowRight size={13} className="text-zinc-400 group-hover:text-nvidia-green group-hover:translate-x-0.5 transition-all" />
+              </button>
+            </div>
+          </div>
 
             {/* PANEL KANAN: SATU KESATUAN HUB AKTIVITAS, LEVEL & RIWAYAT */}
             <div className="lg:col-span-7 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 flex flex-col justify-between shadow-xl space-y-6">
@@ -2152,6 +2263,18 @@ export default function MemberPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* ── FLOATING CHAT MESSENGER (Facebook style dock on desktop, bottom sheet on mobile) ── */}
+        {sessionUser && (
+          <FloatingChatMessenger
+            currentUser={{
+              id: sessionUser.id,
+              name: profile?.username || sessionUser.email?.split("@")[0] || "Member"
+            }}
+            isOpen={isChatOpen}
+            onOpenChange={setIsChatOpen}
+          />
+        )}
       </div>
     </div>
   );
