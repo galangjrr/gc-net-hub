@@ -298,7 +298,7 @@ export default function MemberPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // Active Dashboard Tab
-  const [activeTab, setActiveTab] = useState<"level" | "history" | "quests" | "profile">("level");
+  const [activeTab, setActiveTab] = useState<"level" | "history" | "quests" | "profile">("quests");
 
   // 3D Quest Carousel Active Index
   const [activeQuestIndex, setActiveQuestIndex] = useState(0);
@@ -983,17 +983,6 @@ export default function MemberPage() {
               <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 overflow-x-auto">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("level")}
-                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
-                    activeTab === "level"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Pangkat & Benefit
-                </button>
-                <button
-                  type="button"
                   onClick={() => setActiveTab("quests")}
                   className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
                     activeTab === "quests"
@@ -1002,6 +991,17 @@ export default function MemberPage() {
                   }`}
                 >
                   Misi Warnet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("level")}
+                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
+                    activeTab === "level"
+                      ? "bg-nvidia-green text-black shadow-md"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Pangkat & Benefit
                 </button>
                 <button
                   type="button"
