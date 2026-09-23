@@ -299,8 +299,24 @@ export default function MemberPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Active Dashboard Tab
+  // Active Dashboard Tab & 3D Transition Direction
   const [activeTab, setActiveTab] = useState<"level" | "history" | "quests" | "profile">("quests");
+  const [tabDirection, setTabDirection] = useState<number>(1);
+
+  const DASHBOARD_TABS = [
+    { id: "quests", label: "Misi Warnet" },
+    { id: "level", label: "Pangkat & Benefit" },
+    { id: "history", label: "Riwayat Booking" },
+    { id: "profile", label: "Info Akun" },
+  ] as const;
+
+  const handleTabChange = (newTab: "level" | "history" | "quests" | "profile") => {
+    if (newTab === activeTab) return;
+    const currentIndex = DASHBOARD_TABS.findIndex((t) => t.id === activeTab);
+    const newIndex = DASHBOARD_TABS.findIndex((t) => t.id === newTab);
+    setTabDirection(newIndex > currentIndex ? 1 : -1);
+    setActiveTab(newTab);
+  };
 
   // 3D Quest Carousel Active Index
   const [activeQuestIndex, setActiveQuestIndex] = useState(0);
@@ -791,13 +807,13 @@ export default function MemberPage() {
   });
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-nvidia-green selection:text-black py-8 px-4 sm:px-6 lg:px-10 relative">
+    <div className="min-h-screen bg-black text-white selection:bg-nvidia-green selection:text-black py-8 px-4 sm:px-6 lg:px-10 relative flex flex-col">
       
       {/* Container Lebar Nyaman untuk Monitor Standar maupun Ultrawide 21:9 */}
-      <div className="w-full max-w-7xl mx-auto space-y-6">
+      <div className="w-full max-w-7xl mx-auto space-y-6 flex-1 flex flex-col">
         
         {/* Navigation Breadcrumb & Header */}
-        <header className="flex items-center justify-between pb-5 border-b border-white/10 flex-wrap gap-4">
+        <header className="flex items-center justify-between pb-5 border-b border-white/10 flex-wrap gap-4 shrink-0">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0 shadow-sm">
               <Gamepad2 size={26} />
@@ -836,10 +852,10 @@ export default function MemberPage() {
 
         {sessionUser ? (
           /* ── LOGGED IN: 2-TIER COHESIVE DASHBOARD ── */
-          <div className="space-y-6">
+          <div className="space-y-6 flex-1 flex flex-col">
             
             {/* ── TINGKAT 1: PANGGUNG KOKPIT GAMER (EQUAL HEIGHT BALANCED SPLIT) ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch shrink-0">
               
               {/* PANEL KIRI: KARTU MEMBER VIP 3D (5 KOLOM) */}
               <div 
@@ -1165,24 +1181,19 @@ export default function MemberPage() {
 
           </div>
 
-          {/* ── TINGKAT 2: PANGGUNG TAB HUB AKTIVITAS LEBAR PENUH (RINGKAS & RAMPING) ── */}
-          <div className="rounded-3xl bg-zinc-950 border border-white/15 p-4 sm:p-5 shadow-xl space-y-4">
+          {/* ── TINGKAT 2: PANGGUNG TAB HUB AKTIVITAS LEBAR PENUH (FUL KE BAWAH & 3D GESER) ── */}
+          <div className="rounded-3xl bg-zinc-950 border border-white/15 p-5 sm:p-6 shadow-xl flex-1 flex flex-col justify-between min-h-[460px] sm:min-h-[520px]">
             
             {/* Header Tab Terintegrasi dengan Animasi Sliding Pill */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-white/10 overflow-x-auto relative">
-              {[
-                { id: "quests", label: "Misi Warnet" },
-                { id: "level", label: "Pangkat & Benefit" },
-                { id: "history", label: "Riwayat Booking" },
-                { id: "profile", label: "Info Akun" },
-              ].map((tab) => {
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-white/10 overflow-x-auto relative shrink-0">
+              {DASHBOARD_TABS.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                    className={`relative flex-1 py-2 px-3 text-xs font-black uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap z-10 ${
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`relative flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap z-10 cursor-pointer ${
                       isActive ? "text-black" : "text-zinc-400 hover:text-white"
                     }`}
                   >
@@ -1199,28 +1210,75 @@ export default function MemberPage() {
               })}
             </div>
 
-            {/* Konten Tab dengan Animasi Crossfade */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="flex-1 flex flex-col justify-between"
-              >
+            {/* Konten Tab dengan Animasi Geser 3D Berperspektif */}
+            <div className="flex-1 flex flex-col relative overflow-hidden mt-4" style={{ perspective: "1200px" }}>
+              <AnimatePresence mode="wait" custom={tabDirection}>
+                <motion.div
+                  key={activeTab}
+                  custom={tabDirection}
+                  variants={{
+                    enter: (dir: number) => ({
+                      x: dir > 0 ? "40%" : "-40%",
+                      rotateY: dir > 0 ? 25 : -25,
+                      opacity: 0,
+                      scale: 0.94,
+                      filter: "blur(2px)",
+                    }),
+                    center: {
+                      x: 0,
+                      rotateY: 0,
+                      opacity: 1,
+                      scale: 1,
+                      filter: "blur(0px)",
+                      transition: {
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 28,
+                        mass: 0.7,
+                      },
+                    },
+                    exit: (dir: number) => ({
+                      x: dir > 0 ? "-40%" : "40%",
+                      rotateY: dir > 0 ? -25 : 25,
+                      opacity: 0,
+                      scale: 0.94,
+                      filter: "blur(2px)",
+                      transition: {
+                        duration: 0.2,
+                        ease: "easeInOut",
+                      },
+                    }),
+                  }}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  style={{ transformStyle: "preserve-3d" }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={(_, info) => {
+                    const threshold = 50;
+                    const currentIndex = DASHBOARD_TABS.findIndex((t) => t.id === activeTab);
+                    if (info.offset.x < -threshold && currentIndex < DASHBOARD_TABS.length - 1) {
+                      handleTabChange(DASHBOARD_TABS[currentIndex + 1].id);
+                    } else if (info.offset.x > threshold && currentIndex > 0) {
+                      handleTabChange(DASHBOARD_TABS[currentIndex - 1].id);
+                    }
+                  }}
+                  className="flex-1 flex flex-col justify-between w-full select-none"
+                >
                 
                 {/* TAB 1: PANGKAT & BENEFIT */}
                 {activeTab === "level" && (
-                  <div className="space-y-3">
+                  <div className="flex-1 flex flex-col justify-between space-y-4">
                     {/* Header Pangkat Tanpa Kata Tier */}
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0 shadow-sm">
-                          <Trophy size={16} />
+                        <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0 shadow-sm">
+                          <Trophy size={18} />
                         </div>
                         <div>
-                          <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
+                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
                             Pangkat Akun
                           </h3>
                           <p className="text-xs text-zinc-400 font-medium">
@@ -1229,56 +1287,56 @@ export default function MemberPage() {
                         </div>
                       </div>
 
-                      <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
+                      <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
                         {currentTier.name}
                       </span>
                     </div>
 
-                    {/* Tangga Pangkat Gamer: Compact & Seamless */}
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">
+                    {/* Tangga Pangkat Gamer: Seamless & Spacious */}
+                    <div className="space-y-2 flex-1 flex flex-col justify-center">
+                      <span className="text-xs uppercase font-bold text-zinc-400 tracking-wider block">
                         Daftar Tingkatan Pangkat
                       </span>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {ALL_RANKS.map((rank, idx) => {
                           const isCurrent = currentTier.name === rank.name;
                           const isUnlocked = currentBalance >= rank.threshold;
                           return (
                             <div 
                               key={idx}
-                              className={`p-2 px-3 rounded-lg border transition flex items-center justify-between gap-2.5 ${
+                              className={`p-3 px-4 rounded-xl border transition flex items-center justify-between gap-3 ${
                                 isCurrent
-                                  ? "bg-zinc-900 border-nvidia-green/50 shadow-[0_0_15px_rgba(118,185,0,0.12)]"
+                                  ? "bg-zinc-900 border-nvidia-green/50 shadow-[0_0_20px_rgba(118,185,0,0.14)]"
                                   : isUnlocked
                                   ? "bg-zinc-950/60 border-white/10 hover:border-white/20"
                                   : "bg-zinc-950/30 border-white/5 opacity-55"
                               }`}
                             >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${rank.badgeBg} ${rank.badgeText} ${rank.badgeBorder} tracking-wider shrink-0`}>
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded border ${rank.badgeBg} ${rank.badgeText} ${rank.badgeBorder} tracking-wider shrink-0`}>
                                   {rank.name}
                                 </span>
-                                <span className="text-xs font-bold text-white truncate">
+                                <span className="text-xs sm:text-sm font-bold text-white truncate">
                                   {rank.title}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-[10px] sm:text-xs font-mono text-zinc-400">
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="text-xs sm:text-sm font-mono text-zinc-400">
                                   {rank.threshold === 0 ? "Akun Baru" : `IDR ${rank.threshold.toLocaleString("id-ID")}`}
                                 </span>
                                 {isCurrent ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nvidia-green/15 text-nvidia-green text-[9px] font-bold border border-nvidia-green/30">
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-nvidia-green/15 text-nvidia-green text-[10px] font-bold border border-nvidia-green/30">
                                     <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green animate-pulse" />
                                     <span>Aktif</span>
                                   </span>
                                 ) : isUnlocked ? (
                                   <span className="text-emerald-400 text-xs flex items-center gap-1 font-bold">
-                                    <Check size={12} />
-                                    <span className="text-[9px] hidden sm:inline">Terbuka</span>
+                                    <Check size={13} />
+                                    <span className="text-[10px] hidden sm:inline">Terbuka</span>
                                   </span>
                                 ) : (
-                                  <span className="text-zinc-500 text-[9px] font-bold uppercase">
+                                  <span className="text-zinc-500 text-[10px] font-bold uppercase">
                                     Terkunci
                                   </span>
                                 )}
@@ -1289,19 +1347,19 @@ export default function MemberPage() {
                       </div>
                     </div>
 
-                    {/* Ringkasan Booking Member: Compact & Seamless */}
-                    <div className="flex items-center justify-between p-2.5 px-3 rounded-lg bg-zinc-900/60 border border-white/10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                          <Flame size={13} />
+                    {/* Ringkasan Booking Member: Seamless */}
+                    <div className="flex items-center justify-between p-3.5 px-4 rounded-xl bg-zinc-900/60 border border-white/10">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                          <Flame size={15} />
                         </div>
-                        <span className="text-[11px] font-bold uppercase text-zinc-300 tracking-wider">
+                        <span className="text-xs font-bold uppercase text-zinc-300 tracking-wider">
                           Total Booking Selesai
                         </span>
                       </div>
-                      <div className="flex items-baseline gap-1 font-mono">
-                        <span className="text-sm sm:text-base font-black text-white">{bookings.length}</span>
-                        <span className="text-[10px] text-zinc-400 font-medium">Pesanan</span>
+                      <div className="flex items-baseline gap-1.5 font-mono">
+                        <span className="text-base sm:text-lg font-black text-white">{bookings.length}</span>
+                        <span className="text-xs text-zinc-400 font-medium">Pesanan</span>
                       </div>
                     </div>
                   </div>
@@ -1309,32 +1367,32 @@ export default function MemberPage() {
 
                 {/* TAB 2: MISI WARNET */}
                 {activeTab === "quests" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Gift size={16} />
+                  <div className="flex-1 flex flex-col justify-between space-y-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Gift size={18} />
                         </div>
                         <div>
-                          <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
+                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
                             Misi Harian
                           </h3>
-                          <p className="text-xs text-zinc-400 font-medium">
+                          <p className="text-xs text-zinc-300 font-medium">
                             Selesaikan misi harian untuk mengumpulkan EXP akun
                           </p>
                         </div>
                       </div>
 
-                      <span className="hidden sm:inline-flex text-[10px] font-mono font-bold text-zinc-400 px-2 py-0.5 rounded-md bg-zinc-900 border border-white/10">
+                      <span className="hidden sm:inline-flex text-[11px] font-mono font-bold text-zinc-400 px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/10">
                         RESET 24 JAM
                       </span>
                     </div>
 
-                    {/* 3D Quest Coverflow Carousel Stage: Compact Height */}
-                    <div className="relative w-full h-[220px] flex items-center justify-center overflow-hidden rounded-2xl bg-zinc-950/40 border border-white/5" style={{ perspective: "1000px" }}>
+                    {/* 3D Quest Coverflow Carousel Stage: Fulin Ke Bawah */}
+                    <div className="relative w-full flex-1 min-h-[290px] sm:min-h-[330px] flex items-center justify-center overflow-hidden rounded-2xl bg-zinc-950/40 border border-white/5" style={{ perspective: "1000px" }}>
                       {/* Dynamic Atmospheric Glow */}
                       <div 
-                        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] ${DAILY_QUESTS[activeQuestIndex].theme.glow} blur-[70px] rounded-full pointer-events-none transition-colors duration-700`} 
+                        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] ${DAILY_QUESTS[activeQuestIndex].theme.glow} blur-[90px] rounded-full pointer-events-none transition-colors duration-700`} 
                       />
 
                       {/* Nav Button Left */}
@@ -1342,9 +1400,9 @@ export default function MemberPage() {
                         type="button"
                         onClick={handlePrevQuest}
                         aria-label="Misi Sebelumnya"
-                        className="absolute left-2.5 z-40 w-8 h-8 rounded-lg bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
+                        className="absolute left-3 z-40 w-10 h-10 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
                       >
-                        <ChevronLeft size={16} />
+                        <ChevronLeft size={20} />
                       </button>
 
                       {/* Nav Button Right */}
@@ -1352,9 +1410,9 @@ export default function MemberPage() {
                         type="button"
                         onClick={handleNextQuest}
                         aria-label="Misi Selanjutnya"
-                        className="absolute right-2.5 z-40 w-8 h-8 rounded-lg bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
+                        className="absolute right-3 z-40 w-10 h-10 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/15 text-white flex items-center justify-center transition shadow-lg active:scale-95"
                       >
-                        <ChevronRight size={16} />
+                        <ChevronRight size={20} />
                       </button>
 
                       {/* 3D Track */}
@@ -1365,18 +1423,18 @@ export default function MemberPage() {
                             const isActive = offset === 0;
                             const IconComponent = quest.icon;
 
-                            // Compact 3D placement logic
-                            const x = offset * 210;
-                            const rotateY = offset * -25;
-                            const scale = isActive ? 1.02 : 0.85;
+                            // 3D placement logic
+                            const x = offset * 230;
+                            const rotateY = offset * -28;
+                            const scale = isActive ? 1.05 : 0.86;
                             const zIndex = isActive ? 30 : 10;
-                            const opacity = isActive ? 1 : 0.4;
+                            const opacity = isActive ? 1 : 0.45;
 
                             return (
                               <motion.div
                                 key={quest.id}
                                 onClick={() => setActiveQuestIndex(index)}
-                                className={`absolute w-[260px] sm:w-[290px] p-3.5 sm:p-4 rounded-2xl bg-gradient-to-b ${quest.theme.bgGradient} border ${isActive ? quest.theme.borderActive : quest.theme.border} cursor-pointer transition-colors duration-300 shadow-xl flex flex-col justify-between select-none`}
+                                className={`absolute w-[280px] sm:w-[320px] p-5 sm:p-6 rounded-3xl bg-gradient-to-b ${quest.theme.bgGradient} border ${isActive ? quest.theme.borderActive : quest.theme.border} cursor-pointer transition-colors duration-300 shadow-2xl flex flex-col justify-between select-none`}
                                 style={{
                                   zIndex,
                                   transformOrigin: "center center",
@@ -1395,39 +1453,39 @@ export default function MemberPage() {
                                 }}
                               >
                                 <div>
-                                  <div className="flex items-center justify-between gap-2 mb-2">
-                                    <div className={`w-8 h-8 rounded-xl ${quest.theme.iconBg} border border-white/10 flex items-center justify-center ${quest.theme.iconText} shrink-0 shadow-inner`}>
-                                      <IconComponent size={16} />
+                                  <div className="flex items-center justify-between gap-2 mb-3">
+                                    <div className={`w-10 h-10 rounded-2xl ${quest.theme.iconBg} border border-white/10 flex items-center justify-center ${quest.theme.iconText} shrink-0 shadow-inner`}>
+                                      <IconComponent size={20} />
                                     </div>
-                                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${quest.theme.badgeBg} ${quest.theme.badgeText} border ${quest.theme.badgeBorder} tracking-wider`}>
+                                    <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${quest.theme.badgeBg} ${quest.theme.badgeText} border ${quest.theme.badgeBorder} tracking-wider`}>
                                       {quest.tag}
                                     </span>
                                   </div>
 
-                                  <h4 className="text-sm sm:text-base font-black text-white mb-0.5 truncate">
+                                  <h4 className="text-base sm:text-lg font-black text-white mb-1.5">
                                     {quest.title}
                                   </h4>
-                                  <p className="text-xs text-zinc-300 font-medium leading-relaxed line-clamp-2">
+                                  <p className="text-xs text-zinc-300 font-medium leading-relaxed">
                                     {quest.desc}
                                   </p>
                                 </div>
 
-                                <div className="mt-2.5 pt-2 border-t border-white/10 space-y-1.5">
+                                <div className="mt-4 pt-3.5 border-t border-white/10 space-y-2.5">
                                   <div className="flex items-center justify-between text-xs font-mono">
                                     <span className="text-zinc-400 font-medium">Progres</span>
                                     <span className={`${quest.theme.accent} font-bold`}>
                                       {quest.progressCurrent} / {quest.progressMax}
                                     </span>
                                   </div>
-                                  <div className="w-full h-1.5 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5">
+                                  <div className="w-full h-2 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5">
                                     <div
                                       className={`h-full rounded-full ${quest.theme.barColor} transition-all duration-500`}
                                       style={{ width: `${(quest.progressCurrent / quest.progressMax) * 100}%` }}
                                     />
                                   </div>
-                                  <div className="flex items-center justify-between pt-0.5">
-                                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Hadiah</span>
-                                    <span className={`text-xs font-mono font-black ${quest.theme.tagColor} ${quest.theme.badgeBg} px-2 py-0.5 rounded border ${quest.theme.badgeBorder}`}>
+                                  <div className="flex items-center justify-between pt-1">
+                                    <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-wider">Hadiah</span>
+                                    <span className={`text-xs font-mono font-black ${quest.theme.tagColor} ${quest.theme.badgeBg} px-2.5 py-0.5 rounded-md border ${quest.theme.badgeBorder}`}>
                                       +{quest.rewardExp} EXP
                                     </span>
                                   </div>
@@ -1438,37 +1496,22 @@ export default function MemberPage() {
                         </AnimatePresence>
                       </div>
                     </div>
-
-                    {/* Dot Pagination Indicator */}
-                    <div className="flex items-center justify-center gap-1.5 pt-0.5">
-                      {DAILY_QUESTS.map((quest, idx) => (
-                        <button
-                          key={quest.id}
-                          type="button"
-                          onClick={() => setActiveQuestIndex(idx)}
-                          className={`h-1.5 rounded-full transition-all duration-300 ${
-                            activeQuestIndex === idx ? "w-5 bg-nvidia-green" : "w-1.5 bg-zinc-700 hover:bg-zinc-500"
-                          }`}
-                          aria-label={quest.title}
-                        />
-                      ))}
-                    </div>
                   </div>
                 )}
 
                 {/* TAB 3: RIWAYAT BOOKING */}
                 {activeTab === "history" && (
-                  <div className="space-y-3">
+                  <div className="flex-1 flex flex-col justify-between space-y-4">
                     <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Clock size={16} />
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Clock size={18} />
                         </div>
                         <div>
-                          <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
+                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
                             Riwayat Pemesanan PC
                           </h3>
-                          <p className="text-xs text-zinc-400 font-medium">
+                          <p className="text-xs text-zinc-300 font-medium">
                             Daftar tiket dan status antrean bermain lu di GC-Net
                           </p>
                         </div>
@@ -1484,48 +1527,48 @@ export default function MemberPage() {
                     </div>
 
                     {bookings.length === 0 ? (
-                      <div className="py-10 text-center border border-dashed border-white/15 rounded-xl">
-                        <Monitor className="mx-auto text-zinc-600 mb-2" size={30} />
-                        <p className="text-xs font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
-                        <p className="text-[11px] text-zinc-400 mt-0.5 mb-3">
+                      <div className="py-16 text-center border border-dashed border-white/15 rounded-2xl flex-1 flex flex-col items-center justify-center">
+                        <Monitor className="mx-auto text-zinc-600 mb-3" size={36} />
+                        <p className="text-sm font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
+                        <p className="text-xs text-zinc-400 mt-1 mb-4">
                           Pesan PC favorit lu sekarang dan nikmati kecepatan gaming premium
                         </p>
                         <Link
                           href="/"
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
                         >
                           <span>Pilih PC Sekarang</span>
-                          <ArrowRight size={13} />
+                          <ArrowRight size={14} />
                         </Link>
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                      <div className="space-y-3 flex-1 max-h-[380px] overflow-y-auto pr-1">
                         {bookings.map((b) => (
                           <div
                             key={b.id}
-                            className="p-3 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-2.5 hover:border-zinc-600 transition"
+                            className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-3 hover:border-zinc-600 transition"
                           >
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-xs shrink-0">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-xs shrink-0">
                                 {b.pc_id}
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs sm:text-sm font-black text-white">
+                                  <span className="text-sm font-black text-white">
                                     {b.pcs?.name || b.pc_id}
                                   </span>
-                                  <span className="text-[10px] font-mono text-zinc-400 font-bold">
+                                  <span className="text-xs font-mono text-zinc-400 font-bold">
                                     {b.id}
                                   </span>
                                 </div>
-                                <span className="text-xs text-zinc-400 font-medium block mt-0.5">
+                                <span className="text-xs text-zinc-300 font-medium block mt-0.5">
                                   {b.pakets?.name || b.paket_id} • {b.pakets?.duration_hours ? `${b.pakets.duration_hours} Jam` : "Paket Standar"}
                                 </span>
                               </div>
                             </div>
 
                             <div className="text-right">
-                              <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border block ${
+                              <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border block ${
                                 b.status === "active"
                                   ? "bg-nvidia-green/15 text-nvidia-green border-nvidia-green/30"
                                   : b.status === "pending"
@@ -1542,7 +1585,7 @@ export default function MemberPage() {
                                   ? "Selesai"
                                   : "Dibatalkan"}
                               </span>
-                              <span className="text-[10px] text-zinc-400 font-mono mt-0.5 block">
+                              <span className="text-xs text-zinc-400 font-mono mt-1 block">
                                 {new Date(b.created_at).toLocaleDateString("id-ID", {
                                   day: "numeric",
                                   month: "short",
@@ -1560,40 +1603,40 @@ export default function MemberPage() {
 
                 {/* TAB 4: INFO AKUN & KEAMANAN */}
                 {activeTab === "profile" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2.5 mb-1">
-                      <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                        <ShieldCheck size={16} />
+                  <div className="flex-1 flex flex-col justify-between space-y-4">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                        <ShieldCheck size={18} />
                       </div>
                       <div>
-                        <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wide">
+                        <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
                           Informasi Akun Terdaftar
                         </h3>
-                        <p className="text-xs text-zinc-400 font-medium">
+                        <p className="text-xs text-zinc-300 font-medium">
                           Data identitas dan keamanan akun pemain
                         </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
-                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Email Terhubung</span>
-                        <span className="text-xs sm:text-sm text-white font-bold break-all">{sessionUser.email}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1 flex-1 content-center">
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Email Terhubung</span>
+                        <span className="text-sm text-white font-bold break-all">{sessionUser.email}</span>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
-                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Nomor WhatsApp</span>
-                        <span className="text-xs sm:text-sm text-white font-bold">{profile?.phone || "Belum diatur"}</span>
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Nomor WhatsApp</span>
+                        <span className="text-sm text-white font-bold">{profile?.phone || "Belum diatur"}</span>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
-                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Kode Kartu Billing</span>
-                        <span className="text-zinc-200 font-mono text-xs sm:text-sm font-bold">{memberCode}</span>
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Kode Kartu Billing</span>
+                        <span className="text-zinc-200 font-mono text-sm font-bold">{memberCode}</span>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-zinc-900 border border-white/10">
-                        <span className="text-[10px] text-zinc-400 uppercase font-black block mb-0.5">Waktu Pendaftaran</span>
-                        <span className="text-xs sm:text-sm text-white font-bold">
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Waktu Pendaftaran</span>
+                        <span className="text-sm text-white font-bold">
                           {profile?.created_at
                             ? new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
                             : "-"}
@@ -1601,14 +1644,14 @@ export default function MemberPage() {
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-2.5">
-                      <div className="flex items-center gap-2.5">
+                    <div className="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex items-center gap-3">
                         <button
                           type="button"
                           onClick={openEditModal}
-                          className="px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition"
+                          className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition"
                         >
-                          <Pencil size={13} className="text-cyan-400 shrink-0" />
+                          <Pencil size={14} className="text-cyan-400 shrink-0" />
                           <span>Ubah Profil</span>
                         </button>
 
@@ -1620,9 +1663,9 @@ export default function MemberPage() {
                             setForgotSuccess(null);
                             setShowForgotModal(true);
                           }}
-                          className="text-xs text-zinc-300 hover:text-nvidia-green font-bold flex items-center gap-1.5 transition"
+                          className="text-xs sm:text-sm text-zinc-300 hover:text-nvidia-green font-bold flex items-center gap-2 transition"
                         >
-                          <Key size={14} />
+                          <Key size={15} />
                           <span>Ganti Password</span>
                         </button>
                       </div>
@@ -1631,9 +1674,9 @@ export default function MemberPage() {
                         type="button"
                         onClick={handleLogout}
                         disabled={actionLoading}
-                        className="px-3.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition"
+                        className="px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition"
                       >
-                        <LogOut size={13} />
+                        <LogOut size={14} />
                         <span>Keluar Akun</span>
                       </button>
                     </div>
@@ -1642,10 +1685,11 @@ export default function MemberPage() {
 
                 </motion.div>
               </AnimatePresence>
-
             </div>
 
           </div>
+
+        </div>
         ) : (
           /* ── NOT LOGGED IN: AUTH FORM (LOGIN / REGISTER) ── */
           <div className="max-w-lg mx-auto">
