@@ -1694,114 +1694,171 @@ export default function MemberPage() {
           <div className="flex-1 flex flex-col justify-center py-4 lg:py-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
-              {/* PANEL KIRI: VALUE PROPOSITION & PREVIEW KARTU MEMBER VIP */}
-              <div className="lg:col-span-7 space-y-6 sm:space-y-8">
+              {/* PANEL KIRI: SHOWCASE SISTEM PANGKAT & BENEFIT BISNIS MEMBER */}
+              <div className="lg:col-span-7 space-y-6 sm:space-y-7">
                 {/* Header Tagline & Badges */}
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs font-black uppercase tracking-wider">
                     <ShieldCheck size={14} className="shrink-0" />
-                    <span>Member Resmi Warnet GC-Net</span>
+                    <span>Sistem Level & Privilese Member GC-Net</span>
                   </div>
                   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-                    Main Lebih Murah, Sisa Waktu Tak Pernah Hangus
+                    Main Makin Sering, Pangkat Naik, Privilese Makin Mewah
                   </h2>
                   <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-xl leading-relaxed">
-                    Masuk ke akun member untuk pantau sisa billing, top up deposit langsung, dan nikmati tarif khusus warnet di seluruh workstation PC GC-Net.
+                    Sistem keanggotaan warnet GC-Net dengan lima tingkatan pangkat. Nikmati diskon FnB kasir hingga 15 persen, akses prioritas bilik PC VIP, dan sisa billing yang tersimpan aman di cloud.
                   </p>
                 </div>
 
-                {/* Cyber Member Card Visual Preview */}
-                <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-nvidia-green/40 via-white/10 to-transparent max-w-lg shadow-[0_15px_35px_-10px_rgba(0,0,0,0.8),0_0_25px_rgba(118,185,0,0.12)]">
-                  <div className="relative rounded-[23px] bg-zinc-950/90 backdrop-blur-md p-6 overflow-hidden">
+                {/* Kartu Member VIP Preview (Sesuai Desain Asli Dashboard Member) */}
+                <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-yellow-500/40 via-nvidia-green/20 to-transparent max-w-lg shadow-[0_15px_35px_-10px_rgba(0,0,0,0.8),0_0_25px_rgba(234,179,8,0.12)]">
+                  <div className="relative rounded-[23px] bg-zinc-950/95 backdrop-blur-md p-5 sm:p-6 overflow-hidden space-y-4">
                     {/* Background Tech Watermark */}
                     <div className="absolute -right-6 -bottom-6 text-white/[0.03] pointer-events-none select-none">
                       <Gamepad2 size={160} />
                     </div>
 
-                    <div className="relative z-10 flex items-center justify-between mb-5">
+                    {/* Header Kartu: Sim Chip Emas & Badge Pangkat Gold Striker */}
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-7 rounded bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
                           <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
-                            <div className="border-b border-amber-950/30" />
-                            <div className="border-b border-l border-amber-950/30" />
+                            <div className="border-r border-b border-amber-950/40" />
+                            <div className="border-b border-amber-950/40" />
+                            <div className="border-r border-amber-950/40" />
                             <div />
-                            <div className="border-l border-amber-950/30" />
                           </div>
                         </div>
-                        <div>
-                          <div className="text-[10px] uppercase font-black tracking-widest text-zinc-500">Tier Keanggotaan</div>
-                          <div className="text-xs font-black uppercase tracking-wider text-nvidia-green flex items-center gap-1.5">
-                            <Zap size={12} />
-                            <span>Cyber Member Pass</span>
-                          </div>
-                        </div>
+                        <span className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-bold">
+                          GC MEMBER ID
+                        </span>
                       </div>
 
-                      <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900 border border-white/10 text-[11px] font-bold text-zinc-300">
-                        <span className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse" />
-                        <span>Cloud Synced</span>
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full border bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+                        <span className="font-mono font-bold tracking-wider text-xs uppercase">GOLD</span>
                       </div>
                     </div>
 
-                    <div className="relative z-10 space-y-1 mb-5">
-                      <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Akses Global Workstation</div>
-                      <div className="text-lg sm:text-xl font-black tracking-wider text-white font-mono">
-                        GC-NET • VIP IDENTITY
+                    {/* Identitas Player Preview */}
+                    <div className="flex items-center gap-3.5 pt-1">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-xl shrink-0 shadow-md">
+                        G
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase truncate">
+                            PRO_GAMER_GC
+                          </h3>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-[11px] font-bold shrink-0">
+                            <CheckCircle2 size={12} />
+                            <span>Verified</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs">
+                          <span className="text-yellow-400 font-bold">Striker</span>
+                          <span className="text-zinc-600">•</span>
+                          <span className="text-zinc-400">Akses PC VIP & Diskon 5% FnB</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/10 text-xs">
-                      <div>
-                        <span className="text-[10px] text-zinc-500 block uppercase font-bold">Tarif Spesial</span>
-                        <span className="text-white font-black">Hemat hingga 30%</span>
+                    {/* Mini HUD Saldo & Progress Rank */}
+                    <div className="rounded-2xl bg-zinc-900/80 border border-white/10 p-3.5 sm:p-4 space-y-2.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-zinc-400 font-bold uppercase tracking-wider text-[11px]">Simulasi Saldo</span>
+                        <span className="font-mono font-bold text-zinc-300 text-[11px]">ID: GC-7749-VIP</span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-zinc-500 block uppercase font-bold">Proteksi Saldo</span>
-                        <span className="text-nvidia-green font-black">Aktif 24 Jam Nonstop</span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-xl sm:text-2xl font-black text-amber-300 font-mono">Rp 250.000</span>
+                        <span className="text-[11px] text-zinc-400 font-medium">Rank Striker Aktif</span>
+                      </div>
+
+                      <div className="space-y-1 pt-1">
+                        <div className="flex justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                          <span>Menuju Rank Platinum</span>
+                          <span className="text-nvidia-green font-mono">71%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
+                          <div className="h-full bg-gradient-to-r from-yellow-500 to-nvidia-green rounded-full w-[71%]" />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* 4 Feature Highlight Bento Grid */}
+                {/* Strip 5 Pangkat Member (Roadmap Bisnis Nyata GC-Net) */}
+                <div className="space-y-2.5 max-w-xl">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">
+                      Tingkatan Pangkat Member
+                    </span>
+                    <span className="text-[11px] text-zinc-500 font-medium">Akumulasi Saldo & Jam Main</span>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                    {ALL_RANKS.map((rank, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-2 sm:p-2.5 rounded-xl border text-center transition ${
+                          rank.name === "GOLD"
+                            ? "bg-zinc-900 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.15)] ring-1 ring-yellow-500/30"
+                            : "bg-zinc-950/60 border-white/10"
+                        }`}
+                      >
+                        <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${rank.badgeText}`}>
+                          {rank.name}
+                        </div>
+                        <div className="text-[10px] sm:text-xs font-bold text-white mt-0.5 truncate">
+                          {rank.title}
+                        </div>
+                        <div className="text-[9px] font-mono text-zinc-400 mt-1 truncate">
+                          {rank.threshold === 0 ? "Baru" : `${rank.threshold / 1000}k`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4 Feature Highlight Bento Grid (Privilese Bisnis Nyata) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
-                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Zap size={18} />
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-yellow-500/40 transition-colors flex items-start gap-3.5 group">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-yellow-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Gift size={18} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Tarif Member Khusus</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Tarif billing per jam lebih hemat dibanding tarif umum personal.</p>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Diskon FnB Kasir</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Potongan harga makanan dan minuman hingga 15 persen otomatis saat order di kasir.</p>
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-cyan-500/40 transition-colors flex items-start gap-3.5 group">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Monitor size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Akses Bilik PC VIP</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Hak istimewa bermain di bilik PC VIP Room tanpa biaya surcharge tambahan.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
                     <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Clock size={18} />
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase tracking-wider text-white">Sisa Menit Tersimpan</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Logout kapan saja, sisa waktu dan deposit tetap utuh tersimpan di cloud.</p>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Logout kapan saja, sisa billing tidak pernah hangus dan tersimpan di cloud.</p>
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Monitor size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Auto Unlock PC</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Login langsung di layar client PC mana saja menggunakan username akun.</p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-emerald-500/40 transition-colors flex items-start gap-3.5 group">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Trophy size={18} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Turnamen & Event</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Prioritas pendaftaran turnamen esports warnet dan reward rank member.</p>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Bebas Antre Kasir</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Notifikasi WhatsApp booking bilik, prioritas antrean, dan free drink per sesi.</p>
                     </div>
                   </div>
                 </div>
