@@ -31,7 +31,9 @@ import {
   ChevronRight,
   Monitor,
   Gift,
-  Headphones
+  Headphones,
+  LogIn,
+  UserPlus
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -1691,247 +1693,389 @@ export default function MemberPage() {
 
         </div>
         ) : (
-          /* ── NOT LOGGED IN: AUTH FORM (LOGIN / REGISTER) ── */
-          <div className="max-w-lg mx-auto">
-            <div className="p-8 sm:p-10 rounded-3xl bg-zinc-950 border border-white/15 shadow-2xl relative">
-              {/* Tab Selector */}
-              <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 mb-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode("login");
-                    setErrorMessage(null);
-                    setSuccessMessage(null);
-                  }}
-                  className={`py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-all ${
-                    authMode === "login"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Masuk Akun
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode("register");
-                    setErrorMessage(null);
-                    setSuccessMessage(null);
-                  }}
-                  className={`py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-all ${
-                    authMode === "register"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Daftar Baru
-                </button>
-              </div>
-
-              {/* Feedback Alerts */}
-              {errorMessage && (
-                <div className="mb-5 p-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs sm:text-sm flex items-center gap-2.5">
-                  <AlertCircle size={18} className="shrink-0" />
-                  <span>{errorMessage}</span>
+          /* ── NOT LOGGED IN: SPLIT CYBER SHOWCASE & AUTH TERMINAL ── */
+          <div className="flex-1 flex flex-col justify-center py-4 lg:py-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              
+              {/* PANEL KIRI: VALUE PROPOSITION & PREVIEW KARTU MEMBER VIP */}
+              <div className="lg:col-span-7 space-y-6 sm:space-y-8">
+                {/* Header Tagline & Badges */}
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs font-black uppercase tracking-wider">
+                    <ShieldCheck size={14} className="shrink-0" />
+                    <span>Member Resmi Warnet GC-Net</span>
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
+                    Main Lebih Murah, Sisa Waktu Tak Pernah Hangus
+                  </h2>
+                  <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-xl leading-relaxed">
+                    Masuk ke akun member untuk pantau sisa billing, top up deposit langsung, dan nikmati tarif khusus warnet di seluruh workstation PC GC-Net.
+                  </p>
                 </div>
-              )}
-              {successMessage && (
-                <div className="mb-5 p-4 rounded-xl bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-xs sm:text-sm flex items-center gap-2.5">
-                  <CheckCircle2 size={18} className="shrink-0" />
-                  <span>{successMessage}</span>
-                </div>
-              )}
 
-              {/* Form Content */}
-              <form onSubmit={authMode === "login" ? handleLogin : handleRegister} className="space-y-4 text-xs sm:text-sm">
-                {authMode === "register" && (
-                  <>
-                    <div>
-                      <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                        Username Billing (IGN)
-                      </label>
-                      <div className="relative">
-                        <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                        <input
-                          type="text"
-                          required
-                          placeholder="contoh: pro_gamer123"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green transition font-medium"
-                        />
+                {/* Cyber Member Card Visual Preview */}
+                <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-nvidia-green/40 via-white/10 to-transparent max-w-lg shadow-[0_15px_35px_-10px_rgba(0,0,0,0.8),0_0_25px_rgba(118,185,0,0.12)]">
+                  <div className="relative rounded-[23px] bg-zinc-950/90 backdrop-blur-md p-6 overflow-hidden">
+                    {/* Background Tech Watermark */}
+                    <div className="absolute -right-6 -bottom-6 text-white/[0.03] pointer-events-none select-none">
+                      <Gamepad2 size={160} />
+                    </div>
+
+                    <div className="relative z-10 flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-7 rounded bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
+                          <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
+                            <div className="border-b border-amber-950/30" />
+                            <div className="border-b border-l border-amber-950/30" />
+                            <div />
+                            <div className="border-l border-amber-950/30" />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase font-black tracking-widest text-zinc-500">Tier Keanggotaan</div>
+                          <div className="text-xs font-black uppercase tracking-wider text-nvidia-green flex items-center gap-1.5">
+                            <Zap size={12} />
+                            <span>Cyber Member Pass</span>
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-xs text-zinc-400 block mt-1">
-                        Huruf, angka, atau underscore 3 sampai 20 karakter. Digunakan saat login di PC.
-                      </span>
-                    </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                        Nama Lengkap
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Nama asli atau panggilan"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green transition font-medium"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                        Nomor WhatsApp
-                      </label>
-                      <div className="relative">
-                        <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                        <input
-                          type="tel"
-                          placeholder="0812xxxxxxxx"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green transition font-medium"
-                        />
+                      <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900 border border-white/10 text-[11px] font-bold text-zinc-300">
+                        <span className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse" />
+                        <span>Cloud Synced</span>
                       </div>
                     </div>
-                  </>
-                )}
 
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Alamat Email
-                  </label>
-                  <div className="relative">
-                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      type="email"
-                      required
-                      placeholder="nama@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green transition font-medium"
-                    />
+                    <div className="relative z-10 space-y-1 mb-5">
+                      <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Akses Global Workstation</div>
+                      <div className="text-lg sm:text-xl font-black tracking-wider text-white font-mono">
+                        GC-NET • VIP IDENTITY
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 flex items-center justify-between pt-4 border-t border-white/10 text-xs">
+                      <div>
+                        <span className="text-[10px] text-zinc-500 block uppercase font-bold">Tarif Spesial</span>
+                        <span className="text-white font-black">Hemat hingga 30%</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-zinc-500 block uppercase font-bold">Proteksi Saldo</span>
+                        <span className="text-nvidia-green font-black">Aktif 24 Jam Nonstop</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
-                      Password Akun
-                    </label>
-                    {authMode === "login" && (
+                {/* 4 Feature Highlight Bento Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Zap size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Tarif Member Khusus</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Tarif billing per jam lebih hemat dibanding tarif umum personal.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Clock size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Sisa Menit Tersimpan</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Logout kapan saja, sisa waktu dan deposit tetap utuh tersimpan di cloud.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Monitor size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Auto Unlock PC</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Login langsung di layar client PC mana saja menggunakan username akun.</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
+                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Trophy size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Turnamen & Event</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Prioritas pendaftaran turnamen esports warnet dan reward rank member.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* PANEL KANAN: AUTH TERMINAL */}
+              <div className="lg:col-span-5 w-full max-w-md mx-auto lg:max-w-none">
+                <div className="relative group">
+                  {/* Subtle Background Glow Accent */}
+                  <div className="absolute -inset-1 bg-gradient-to-r from-nvidia-green/20 via-nvidia-green/5 to-transparent rounded-[32px] blur-xl opacity-60 group-hover:opacity-100 transition duration-700 pointer-events-none" />
+
+                  <div className="relative rounded-3xl bg-zinc-950/90 backdrop-blur-xl border border-white/15 p-6 sm:p-8 shadow-2xl space-y-6">
+                    {/* Header Terminal Card */}
+                    <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                      <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 shadow-sm">
+                        {authMode === "login" ? <LogIn size={20} /> : <UserPlus size={20} />}
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+                          {authMode === "login" ? "Masuk Portal Member" : "Registrasi Member"}
+                        </h3>
+                        <p className="text-xs text-zinc-400 font-medium">
+                          {authMode === "login" ? "Gunakan email atau username terdaftar lu" : "Aktivasi akun untuk billing workstation warnet"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tab Selector */}
+                    <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-zinc-900/90 border border-white/10">
                       <button
                         type="button"
                         onClick={() => {
-                          setForgotEmail(email);
-                          setForgotError(null);
-                          setForgotSuccess(null);
-                          setShowForgotModal(true);
+                          setAuthMode("login");
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
                         }}
-                        className="text-xs text-nvidia-green hover:underline font-bold"
+                        className={`py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 ${
+                          authMode === "login"
+                            ? "bg-nvidia-green text-black font-black shadow-md"
+                            : "text-zinc-400 hover:text-white"
+                        }`}
                       >
-                        Lupa Password?
+                        <LogIn size={15} />
+                        <span>Masuk Akun</span>
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode("register");
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
+                        }}
+                        className={`py-2.5 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 ${
+                          authMode === "register"
+                            ? "bg-nvidia-green text-black font-black shadow-md"
+                            : "text-zinc-400 hover:text-white"
+                        }`}
+                      >
+                        <UserPlus size={15} />
+                        <span>Daftar Baru</span>
+                      </button>
+                    </div>
+
+                    {/* Feedback Alerts */}
+                    {errorMessage && (
+                      <div className="p-4 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs sm:text-sm flex items-center gap-2.5">
+                        <AlertCircle size={18} className="shrink-0" />
+                        <span>{errorMessage}</span>
+                      </div>
                     )}
-                  </div>
-                  <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      placeholder="Minimal 6 karakter"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green transition font-medium"
-                    />
+                    {successMessage && (
+                      <div className="p-4 rounded-xl bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-xs sm:text-sm flex items-center gap-2.5">
+                        <CheckCircle2 size={18} className="shrink-0" />
+                        <span>{successMessage}</span>
+                      </div>
+                    )}
+
+                    {/* Form Content */}
+                    <form onSubmit={authMode === "login" ? handleLogin : handleRegister} className="space-y-4 text-xs sm:text-sm">
+                      {authMode === "register" && (
+                        <>
+                          <div>
+                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                              Username Billing (IGN)
+                            </label>
+                            <div className="relative">
+                              <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                              <input
+                                type="text"
+                                required
+                                placeholder="contoh: pro_gamer123"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                              />
+                            </div>
+                            <span className="text-[11px] text-zinc-400 block mt-1">
+                              Huruf, angka, atau underscore 3 sampai 20 karakter untuk login PC.
+                            </span>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                              Nama Lengkap
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Nama asli atau nama panggilan"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                              Nomor WhatsApp
+                            </label>
+                            <div className="relative">
+                              <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                              <input
+                                type="tel"
+                                placeholder="0812xxxxxxxx"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                          Alamat Email
+                        </label>
+                        <div className="relative">
+                          <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                          <input
+                            type="email"
+                            required
+                            placeholder="nama@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                            Password Akun
+                          </label>
+                          {authMode === "login" && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setForgotEmail(email);
+                                setForgotError(null);
+                                setForgotSuccess(null);
+                                setShowForgotModal(true);
+                              }}
+                              className="text-xs text-nvidia-green hover:underline font-bold"
+                            >
+                              Lupa Password?
+                            </button>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            placeholder="Minimal 6 karakter"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full pl-10 pr-10 py-3 rounded-xl bg-zinc-900/90 border border-white/10 text-white placeholder:text-zinc-500 focus:outline-none focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 transition font-medium"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={actionLoading}
+                        className="w-full mt-4 py-3.5 px-4 rounded-xl bg-nvidia-green text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition shadow-[0_4px_20px_rgba(118,185,0,0.3)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.3)] active:scale-[0.99] disabled:opacity-50"
+                      >
+                        {actionLoading ? (
+                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                        ) : authMode === "login" ? (
+                          <>
+                            <span>Masuk ke Akun</span>
+                            <ArrowRight size={16} />
+                          </>
+                        ) : (
+                          <>
+                            <span>Daftar Sekarang</span>
+                            <Sparkles size={16} />
+                          </>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="relative flex items-center justify-center my-5">
+                      <div className="border-t border-white/10 w-full" />
+                      <span className="bg-zinc-950 px-3 text-[11px] font-bold tracking-widest text-zinc-400 uppercase shrink-0">
+                        Atau Lanjut Instan
+                      </span>
+                      <div className="border-t border-white/10 w-full" />
+                    </div>
+
+                    {/* Google 1-Click Login Button */}
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading || actionLoading}
+                      className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition shadow-md active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {googleLoading ? (
+                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                          <path
+                            fill="#4285F4"
+                            d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                          />
+                          <path
+                            fill="#34A853"
+                            d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                          />
+                          <path
+                            fill="#FBBC05"
+                            d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                          />
+                          <path
+                            fill="#EA4335"
+                            d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                          />
+                        </svg>
+                      )}
+                      <span>{googleLoading ? "Menghubungkan Google..." : "Lanjut dengan Google"}</span>
                     </button>
+
+                    <div className="pt-4 border-t border-white/10 text-center">
+                      <p className="text-xs sm:text-sm text-zinc-300 font-medium">
+                        {authMode === "login" ? "Belum punya akun member?" : "Sudah punya akun?"}{" "}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAuthMode(authMode === "login" ? "register" : "login");
+                            setErrorMessage(null);
+                            setSuccessMessage(null);
+                          }}
+                          className="text-nvidia-green font-black hover:underline ml-1"
+                        >
+                          {authMode === "login" ? "Daftar di sini" : "Login di sini"}
+                        </button>
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="w-full mt-3 py-3.5 px-4 rounded-xl bg-nvidia-green text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition shadow-md active:scale-[0.99]"
-                >
-                  {actionLoading ? (
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  ) : authMode === "login" ? (
-                    <>
-                      <span>Masuk ke Akun</span>
-                      <ArrowRight size={16} />
-                    </>
-                  ) : (
-                    <>
-                      <span>Daftar Sekarang</span>
-                      <Sparkles size={16} />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Divider */}
-              <div className="relative flex items-center justify-center my-6">
-                <div className="border-t border-white/10 w-full"></div>
-                <span className="bg-zinc-950 px-3 text-xs font-bold tracking-widest text-zinc-400 uppercase shrink-0">
-                  Atau Lebih Cepat
-                </span>
-                <div className="border-t border-white/10 w-full"></div>
               </div>
 
-              {/* Google 1-Click Login Button */}
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={googleLoading || actionLoading}
-                className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-zinc-100 text-black font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition shadow-md active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                {googleLoading ? (
-                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                    />
-                  </svg>
-                )}
-                <span>{googleLoading ? "Menghubungkan Google..." : "Lanjut dengan Google"}</span>
-              </button>
-
-              <div className="mt-6 pt-5 border-t border-white/10 text-center">
-                <p className="text-xs sm:text-sm text-zinc-300 font-medium">
-                  {authMode === "login" ? "Belum punya akun member?" : "Sudah punya akun?"}{" "}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode(authMode === "login" ? "register" : "login");
-                      setErrorMessage(null);
-                      setSuccessMessage(null);
-                    }}
-                    className="text-nvidia-green font-black hover:underline ml-1"
-                  >
-                    {authMode === "login" ? "Daftar di sini" : "Login di sini"}
-                  </button>
-                </p>
-              </div>
             </div>
           </div>
         )}
