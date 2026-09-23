@@ -176,7 +176,7 @@ export default function MemberPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // Active Dashboard Tab
-  const [activeTab, setActiveTab] = useState<"overview" | "history" | "profile">("overview");
+  const [activeTab, setActiveTab] = useState<"level" | "history" | "quests" | "profile">("level");
 
   // Copy Member ID State
   const [copiedId, setCopiedId] = useState(false);
@@ -612,10 +612,10 @@ export default function MemberPage() {
     <div className="min-h-screen bg-black text-white selection:bg-nvidia-green selection:text-black py-8 px-4 sm:px-6 lg:px-10 relative">
       
       {/* Container Lebar Nyaman untuk Monitor Standar maupun Ultrawide 21:9 */}
-      <div className="w-full max-w-7xl mx-auto space-y-8">
+      <div className="w-full max-w-7xl mx-auto space-y-6">
         
         {/* Navigation Breadcrumb & Header */}
-        <header className="flex items-center justify-between pb-6 border-b border-white/10 flex-wrap gap-4">
+        <header className="flex items-center justify-between pb-5 border-b border-white/10 flex-wrap gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0 shadow-sm">
               <Gamepad2 size={26} />
@@ -643,162 +643,214 @@ export default function MemberPage() {
         </header>
 
         {sessionUser ? (
-          /* ── LOGGED IN: GAMIFIED MEMBER DASHBOARD ── */
-          <div className="space-y-8">
+          /* ── LOGGED IN: UNIFIED 2-PANEL COHESIVE DASHBOARD ── */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
-            {/* Top Grid: Player Card & Main Esports Level Hub */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-stretch">
+            {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER, DOMPET & AKSI CEPAT */}
+            <div className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 flex flex-col justify-between shadow-xl space-y-6">
               
-              {/* Left Column: Digital Esports License Card */}
-              <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
-                <div className="rounded-3xl bg-zinc-950 border border-white/15 p-5 sm:p-7 lg:p-8 relative flex-1 flex flex-col justify-between shadow-lg">
-                  
-                  {/* Card Header: Chip & Live Connection */}
-                  <div className="flex items-center justify-between mb-5 sm:mb-6">
-                    <div className="flex items-center gap-2.5 sm:gap-3">
-                      {/* Sim Chip Icon Simulation */}
-                      <div className="w-9 sm:w-10 h-7 sm:h-8 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-inner">
-                        <div className="w-full h-full border border-amber-950/40 rounded-[3px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
-                          <div className="border-r border-b border-amber-950/40" />
-                          <div className="border-b border-amber-950/40" />
-                          <div className="border-r border-amber-950/40" />
-                          <div />
-                        </div>
+              {/* Bagian Atas Kartu */}
+              <div className="space-y-6">
+                {/* Header Kartu: Sim Chip & Status Online */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-8 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-inner">
+                      <div className="w-full h-full border border-amber-950/40 rounded-[3px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
+                        <div className="border-r border-b border-amber-950/40" />
+                        <div className="border-b border-amber-950/40" />
+                        <div className="border-r border-amber-950/40" />
+                        <div />
                       </div>
-                      <span className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-black">
-                        GC ESPORTS ID
-                      </span>
                     </div>
-
-                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-200">
-                      <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-nvidia-green animate-pulse" />
-                      <span className="font-mono font-bold tracking-wider">ONLINE</span>
-                    </div>
-                  </div>
-
-                  {/* Player IGN & Name */}
-                  <div className="mb-5 sm:mb-6">
-                    <div className="flex items-center gap-2 sm:gap-2.5 mb-1.5 sm:mb-2">
-                      <span className={`text-xs font-black uppercase px-2.5 sm:px-3 py-1 rounded-md border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
-                        {currentTier.name}
-                      </span>
-                      <span className="text-xs sm:text-sm text-zinc-300 font-bold">
-                        {currentTier.title}
-                      </span>
-                    </div>
-
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase break-all">
-                      {profile?.username || sessionUser.email?.split("@")[0]}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-zinc-300 mt-1 font-medium truncate">
-                      {profile?.full_name || sessionUser.email}
-                    </p>
-                  </div>
-
-                  {/* Balance Display & Member ID Pill */}
-                  <div className="pt-5 sm:pt-6 border-t border-white/10 flex items-end justify-between gap-3 sm:gap-4">
-                    <div>
-                      <span className="text-xs uppercase text-zinc-400 font-black tracking-wider block mb-1">
-                        Saldo Deposit Warnet
-                      </span>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-black text-nvidia-green tracking-tight font-mono">
-                        Rp {currentBalance.toLocaleString("id-ID")}
-                      </div>
-                      <span className="text-xs text-zinc-400 font-medium block mt-0.5 sm:mt-1">
-                        Plafon maksimal satu juta rupiah
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleCopyMemberId(memberCode)}
-                      title="Salin ID Member"
-                      className="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white transition flex items-center gap-1.5 sm:gap-2 shrink-0 active:scale-95 shadow-sm"
-                    >
-                      <span className="font-mono font-black text-xs sm:text-sm text-white">{memberCode}</span>
-                      {copiedId ? (
-                        <Check size={14} className="text-nvidia-green" />
-                      ) : (
-                        <Copy size={14} className="text-zinc-400" />
-                      )}
-                    </button>
-                  </div>
-
-                  {/* Status Billing Ready Banner */}
-                  <div className="mt-5 sm:mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm font-bold text-zinc-300">
-                    <span className="flex items-center gap-2">
-                      <Monitor size={16} className="text-nvidia-green shrink-0" />
-                      <span>{profile?.gc_user_id ? "Sesi Aktif di Billing" : "Siap Dipakai Booking"}</span>
+                    <span className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-black">
+                      GC ESPORTS ID
                     </span>
-                    <span className="text-nvidia-green font-mono">AKTIF</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-200">
+                    <span className="w-2.5 h-2.5 rounded-full bg-nvidia-green animate-pulse" />
+                    <span className="font-mono font-bold tracking-wider">ONLINE</span>
                   </div>
                 </div>
 
-                {/* Quick Action Buttons */}
+                {/* Nickname & Identitas Akun */}
+                <div>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <span className={`text-xs font-black uppercase px-3 py-1 rounded-md border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
+                      {currentTier.name}
+                    </span>
+                    <span className="text-xs sm:text-sm text-zinc-300 font-bold">
+                      {currentTier.title}
+                    </span>
+                  </div>
+
+                  <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase break-all">
+                    {profile?.username || sessionUser.email?.split("@")[0]}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-zinc-300 mt-1 font-medium truncate">
+                    {profile?.full_name || sessionUser.email}
+                  </p>
+                </div>
+
+                {/* Saldo Deposit & Tombol Salin ID */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900/90 border border-white/10 flex items-end justify-between gap-3">
+                  <div>
+                    <span className="text-xs uppercase text-zinc-400 font-black tracking-wider block mb-1">
+                      Saldo Deposit
+                    </span>
+                    <div className="text-2xl sm:text-3xl font-black text-nvidia-green tracking-tight font-mono">
+                      Rp {currentBalance.toLocaleString("id-ID")}
+                    </div>
+                    <span className="text-xs text-zinc-400 font-medium block mt-1">
+                      Plafon maksimal Rp 1.000.000
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleCopyMemberId(memberCode)}
+                    title="Salin ID Member"
+                    className="px-3 py-2 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white transition flex items-center gap-2 shrink-0 active:scale-95 shadow-sm"
+                  >
+                    <span className="font-mono font-black text-xs text-white">{memberCode}</span>
+                    {copiedId ? (
+                      <Check size={14} className="text-nvidia-green" />
+                    ) : (
+                      <Copy size={14} className="text-zinc-400" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Status Billing Ready */}
+                <div className="px-4 py-3 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between text-xs sm:text-sm font-bold text-zinc-300">
+                  <span className="flex items-center gap-2">
+                    <Monitor size={16} className="text-nvidia-green shrink-0" />
+                    <span>{profile?.gc_user_id ? "Sesi Aktif di Komputer" : "Siap Dipakai Booking PC"}</span>
+                  </span>
+                  <span className="text-nvidia-green font-mono text-xs font-black">TERHUBUNG</span>
+                </div>
+              </div>
+
+              {/* Aksi Terintegrasi di Bawah Kartu (Menyatu Utuh) */}
+              <div className="space-y-3 pt-4 border-t border-white/10">
+                <Link
+                  href="/"
+                  className="w-full py-3.5 px-4 rounded-xl bg-nvidia-green hover:bg-white text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md"
+                >
+                  <Gamepad2 size={18} />
+                  <span>Pesan PC Sekarang</span>
+                  <ArrowRight size={16} />
+                </Link>
+
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setShowTopupInfoModal(true)}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-white/15 text-left transition group"
+                    className="py-3 px-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
                   >
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <CreditCard size={18} className="text-nvidia-green group-hover:scale-105 transition-transform" />
-                      <ChevronRight size={14} className="text-zinc-400" />
-                    </div>
-                    <span className="text-xs sm:text-sm font-black text-white block">Top Up di Kasir</span>
-                    <span className="text-xs text-zinc-400 block mt-0.5">Panduan isi deposit</span>
+                    <CreditCard size={16} className="text-nvidia-green shrink-0" />
+                    <span>Isi Saldo</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={openEditModal}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-white/15 text-left transition group"
+                    className="py-3 px-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
                   >
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <Pencil size={18} className="text-cyan-400 group-hover:scale-105 transition-transform" />
-                      <ChevronRight size={14} className="text-zinc-400" />
-                    </div>
-                    <span className="text-xs sm:text-sm font-black text-white block">Ubah Profil</span>
-                    <span className="text-xs text-zinc-400 block mt-0.5">Edit IGN dan WA</span>
+                    <Pencil size={16} className="text-cyan-400 shrink-0" />
+                    <span>Ubah Profil</span>
                   </button>
                 </div>
               </div>
 
-              {/* Right Column: Gamified Progression Hub (Satu-Satunya Pusat Progres EXP) */}
-              <div className="lg:col-span-7 flex flex-col justify-between space-y-4 sm:space-y-6">
+            </div>
+
+            {/* PANEL KANAN: SATU KESATUAN HUB AKTIVITAS, LEVEL & RIWAYAT */}
+            <div className="lg:col-span-7 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 flex flex-col justify-between shadow-xl space-y-6">
+              
+              {/* Header Tab Terintegrasi */}
+              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("level")}
+                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
+                    activeTab === "level"
+                      ? "bg-nvidia-green text-black shadow-md"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Pangkat & Benefit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("history")}
+                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
+                    activeTab === "history"
+                      ? "bg-nvidia-green text-black shadow-md"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Riwayat Booking
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("quests")}
+                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
+                    activeTab === "quests"
+                      ? "bg-nvidia-green text-black shadow-md"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Misi Warnet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("profile")}
+                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
+                    activeTab === "profile"
+                      ? "bg-nvidia-green text-black shadow-md"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Info Akun
+                </button>
+              </div>
+
+              {/* Konten Tab yang Terisi Penuh */}
+              <div className="flex-1 flex flex-col justify-between">
                 
-                {/* Level / Tier Progression Card */}
-                <div className="p-5 sm:p-7 lg:p-8 rounded-3xl bg-zinc-950 border border-white/15 flex-1 flex flex-col justify-between shadow-lg">
-                  <div>
-                    <div className="flex items-center justify-between mb-5 sm:mb-6 flex-wrap gap-3">
+                {/* TAB 1: PANGKAT & BENEFIT */}
+                {activeTab === "level" && (
+                  <div className="space-y-6">
+                    {/* Header Pangkat */}
+                    <div className="flex items-center justify-between flex-wrap gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Trophy size={22} />
+                        <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Trophy size={24} />
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg lg:text-xl font-black uppercase text-white tracking-wide">
+                          <h3 className="text-lg sm:text-xl font-black uppercase text-white tracking-wide">
                             Level Peringkat Gamer
                           </h3>
                           <p className="text-xs sm:text-sm text-zinc-300 font-medium">
-                            Tingkatkan akumulasi saldo untuk membuka benefit eksklusif
+                            Akumulasi saldo deposit membuka benefit dan prioritas bilik
                           </p>
                         </div>
                       </div>
 
-                      <span className={`text-xs sm:text-sm font-black uppercase px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
+                      <span className={`text-xs sm:text-sm font-black uppercase px-4 py-1.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
                         Tier {currentTier.name}
                       </span>
                     </div>
 
-                    {/* Progress Bar HUD Utama */}
-                    <div className="space-y-2.5 sm:space-y-3 mb-5 sm:mb-6">
-                      <div className="flex items-center justify-between text-xs sm:text-sm lg:text-base">
+                    {/* Progress Bar HUD */}
+                    <div className="p-5 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-3">
+                      <div className="flex items-center justify-between text-xs sm:text-sm">
                         <span className="text-zinc-200 font-bold">Progres Menuju Rank Berikutnya</span>
                         <span className="font-mono font-black text-white text-sm sm:text-base">{progressPercent}%</span>
                       </div>
 
-                      {/* Clean Sharp Progress Track */}
-                      <div className="w-full h-3 sm:h-4 rounded-full bg-zinc-900 border border-white/15 p-0.5 overflow-hidden">
+                      <div className="w-full h-3.5 rounded-full bg-black border border-white/15 p-0.5 overflow-hidden">
                         <div 
                           className="h-full rounded-full bg-gradient-to-r from-nvidia-green to-cyan-400 transition-all duration-500"
                           style={{ width: `${progressPercent}%` }}
@@ -816,259 +868,111 @@ export default function MemberPage() {
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Tier Perks Badges */}
-                  <div className="pt-5 sm:pt-6 border-t border-white/10">
-                    <span className="text-xs uppercase font-black text-zinc-400 tracking-wider block mb-2.5 sm:mb-3">
-                      Privilese Pangkat {currentTier.name}
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                      {currentTier.perks.map((perk, idx) => (
-                        <div key={idx} className="p-3 sm:p-3.5 rounded-xl bg-zinc-900 border border-white/10 flex items-center gap-2 text-xs sm:text-sm">
-                          <Check size={15} className="text-nvidia-green shrink-0" />
-                          <span className="text-zinc-200 font-bold leading-snug">{perk}</span>
+                    {/* Daftar Keuntungan Pangkat */}
+                    <div>
+                      <span className="text-xs uppercase font-black text-zinc-400 tracking-wider block mb-3">
+                        Privilese Pangkat {currentTier.name} Lu
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {currentTier.perks.map((perk, idx) => (
+                          <div key={idx} className="p-3.5 rounded-xl bg-zinc-900 border border-white/10 flex items-center gap-2.5 text-xs sm:text-sm">
+                            <Check size={16} className="text-nvidia-green shrink-0" />
+                            <span className="text-zinc-200 font-bold leading-snug">{perk}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 2 Info Ringkas (Bukan 4 kotak redundan) */}
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className="p-4 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-zinc-400">
+                          <Flame size={16} className="text-amber-400" />
+                          <span className="text-xs font-bold uppercase">Total Booking</span>
                         </div>
-                      ))}
+                        <span className="text-sm font-black text-white font-mono">{bookings.length} Pesanan</span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-zinc-400">
+                          <ShieldCheck size={16} className="text-emerald-400" />
+                          <span className="text-xs font-bold uppercase">Status Akun</span>
+                        </div>
+                        <span className="text-sm font-black text-emerald-400 uppercase">Resmi</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* 4 Gamified Quick Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
-                      <Zap size={15} className="text-nvidia-green" />
-                      <span className="text-xs font-bold uppercase tracking-wider">Status PC</span>
-                    </div>
-                    <span className="text-xs sm:text-sm lg:text-base font-black text-white uppercase block">
-                      {profile?.gc_user_id ? "Sesi Aktif" : "Standby"}
-                    </span>
-                  </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
-                      <Flame size={15} className="text-amber-400" />
-                      <span className="text-xs font-bold uppercase tracking-wider">Total Booking</span>
-                    </div>
-                    <span className="text-xs sm:text-sm lg:text-base font-black text-white font-mono block">
-                      {bookings.length} Pesanan
-                    </span>
-                  </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
-                      <Award size={15} className="text-cyan-400" />
-                      <span className="text-xs font-bold uppercase tracking-wider">Pangkat</span>
-                    </div>
-                    <span className="text-xs sm:text-sm lg:text-base font-black text-white uppercase block truncate">
-                      {currentTier.name}
-                    </span>
-                  </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
-                      <ShieldCheck size={15} className="text-emerald-400" />
-                      <span className="text-xs font-bold uppercase tracking-wider">Verifikasi</span>
-                    </div>
-                    <span className="text-xs sm:text-sm lg:text-base font-black text-emerald-400 uppercase block">
-                      Akun Resmi
-                    </span>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            {/* Segmented Tab Navigation for Quick Details */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zinc-950 border border-white/15 max-w-lg">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("overview")}
-                  className={`flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-all ${
-                    activeTab === "overview"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Misi Warnet
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("history")}
-                  className={`flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-all ${
-                    activeTab === "history"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Riwayat Booking
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("profile")}
-                  className={`flex-1 py-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-all ${
-                    activeTab === "profile"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Info Akun
-                </button>
-              </div>
-
-              {/* Tab 1: Gamified Quests & Perks */}
-              {activeTab === "overview" && (
-                <div className="space-y-6">
-                  <div className="p-7 sm:p-8 rounded-3xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                {/* TAB 2: RIWAYAT BOOKING */}
+                {activeTab === "history" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Gift size={24} />
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Clock size={20} />
                         </div>
                         <div>
-                          <h3 className="text-lg sm:text-xl font-black uppercase text-white tracking-wide">
-                            Misi Harian Pemain
+                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                            Riwayat Pemesanan PC
                           </h3>
-                          <p className="text-sm text-zinc-300 font-medium">
-                            Selesaikan misi warnet untuk menambah keaktifan akun lu
+                          <p className="text-xs text-zinc-300 font-medium">
+                            Daftar tiket dan status antrean bermain lu di GC-Net
                           </p>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                      {/* Quest 1 */}
-                      <div className="p-5 rounded-2xl bg-zinc-900 border border-nvidia-green/40 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <span className="text-sm sm:text-base font-black text-white">Check-in Harian</span>
-                            <span className="text-xs font-bold uppercase px-2.5 py-1 rounded bg-nvidia-green/20 text-nvidia-green">
-                              Selesai
-                            </span>
-                          </div>
-                          <p className="text-xs sm:text-sm text-zinc-300 font-medium leading-relaxed">
-                            Buka portal member dan masuk akun aktif hari ini di sistem.
-                          </p>
-                        </div>
-                        <div className="mt-4 flex items-center gap-2 text-xs sm:text-sm text-nvidia-green font-mono font-bold">
-                          <Check size={14} />
-                          <span>50 EXP Diperoleh</span>
-                        </div>
-                      </div>
-
-                      {/* Quest 2 */}
-                      <div className="p-5 rounded-2xl bg-zinc-900 border border-white/10 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <span className="text-sm sm:text-base font-black text-white">Amunisi Deposit</span>
-                            <span className="text-xs font-bold uppercase px-2.5 py-1 rounded bg-zinc-800 text-zinc-300">
-                              Tantangan
-                            </span>
-                          </div>
-                          <p className="text-xs sm:text-sm text-zinc-300 font-medium leading-relaxed">
-                            Top up saldo minimal Rp 20.000 langsung di kasir warnet.
-                          </p>
-                        </div>
-                        <div className="mt-4 flex items-center gap-2 text-xs sm:text-sm text-zinc-300 font-mono font-bold">
-                          <Zap size={14} className="text-amber-400" />
-                          <span>150 EXP Hadiah</span>
-                        </div>
-                      </div>
-
-                      {/* Quest 3 */}
-                      <div className="p-5 rounded-2xl bg-zinc-900 border border-white/10 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <span className="text-sm sm:text-base font-black text-white">Sultan Midnight</span>
-                            <span className="text-xs font-bold uppercase px-2.5 py-1 rounded bg-zinc-800 text-zinc-300">
-                              Event Malam
-                            </span>
-                          </div>
-                          <p className="text-xs sm:text-sm text-zinc-300 font-medium leading-relaxed">
-                            Pesan paket malam begadang di atas jam 21.00 WIB.
-                          </p>
-                        </div>
-                        <div className="mt-4 flex items-center gap-2 text-xs sm:text-sm text-zinc-300 font-mono font-bold">
-                          <Flame size={14} className="text-cyan-400" />
-                          <span>200 EXP Hadiah</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 2: Riwayat Booking */}
-              {activeTab === "history" && (
-                <div className="p-7 sm:p-8 rounded-3xl bg-zinc-950 border border-white/15">
-                  <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                        <Clock size={24} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg sm:text-xl font-black uppercase text-white tracking-wide">
-                          Riwayat Pemesanan PC
-                        </h3>
-                        <p className="text-sm text-zinc-300 font-medium">
-                          Catatan tiket dan antrean bermain lu di GC-Net
-                        </p>
-                      </div>
-                    </div>
-
-                    <Link
-                      href="/"
-                      className="text-sm font-bold text-nvidia-green hover:underline flex items-center gap-1.5"
-                    >
-                      <span>Booking PC Baru</span>
-                      <ArrowRight size={14} />
-                    </Link>
-                  </div>
-
-                  {bookings.length === 0 ? (
-                    <div className="py-16 text-center border border-dashed border-white/15 rounded-3xl">
-                      <Monitor className="mx-auto text-zinc-600 mb-3" size={40} />
-                      <p className="text-sm font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
-                      <p className="text-xs sm:text-sm text-zinc-400 mt-1 mb-5">
-                        Pesan bilik PC favorit lu sekarang dan nikmati kecepatan warnet
-                      </p>
                       <Link
                         href="/"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nvidia-green text-black font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-white transition"
+                        className="text-xs font-bold text-nvidia-green hover:underline flex items-center gap-1.5"
                       >
-                        <span>Pilih PC Sekarang</span>
+                        <span>Pesan PC Baru</span>
                         <ArrowRight size={14} />
                       </Link>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {bookings.map((b) => (
-                        <div
-                          key={b.id}
-                          className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-4 hover:border-zinc-600 transition"
+
+                    {bookings.length === 0 ? (
+                      <div className="py-16 text-center border border-dashed border-white/15 rounded-2xl">
+                        <Monitor className="mx-auto text-zinc-600 mb-3" size={36} />
+                        <p className="text-sm font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
+                        <p className="text-xs text-zinc-400 mt-1 mb-5">
+                          Pesan bilik PC favorit lu sekarang dan nikmati kecepatan warnet
+                        </p>
+                        <Link
+                          href="/"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
                         >
-                          <div className="flex items-center gap-3.5">
-                            <div className="w-12 h-12 rounded-xl bg-zinc-950 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-sm shrink-0">
-                              {b.pc_id}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-sm sm:text-base font-black text-white">
-                                  {b.pcs?.name || b.pc_id}
-                                </span>
-                                <span className="text-xs font-mono text-zinc-400 font-bold">
-                                  {b.id}
+                          <span>Pilih PC Sekarang</span>
+                          <ArrowRight size={14} />
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                        {bookings.map((b) => (
+                          <div
+                            key={b.id}
+                            className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-3 hover:border-zinc-600 transition"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-xs shrink-0">
+                                {b.pc_id}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-black text-white">
+                                    {b.pcs?.name || b.pc_id}
+                                  </span>
+                                  <span className="text-xs font-mono text-zinc-400 font-bold">
+                                    {b.id}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-zinc-300 font-medium block mt-0.5">
+                                  {b.pakets?.name || b.paket_id} • {b.pakets?.duration_hours ? `${b.pakets.duration_hours} Jam` : "Paket Standar"}
                                 </span>
                               </div>
-                              <span className="text-xs sm:text-sm text-zinc-300 font-medium block mt-0.5">
-                                {b.pakets?.name || b.paket_id} • {b.pakets?.duration_hours ? `${b.pakets.duration_hours} Jam` : "Paket Standar"}
-                              </span>
                             </div>
-                          </div>
 
-                          <div className="flex items-center gap-3">
                             <div className="text-right">
                               <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border block ${
                                 b.status === "active"
@@ -1097,94 +1001,160 @@ export default function MemberPage() {
                               </span>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              {/* Tab 3: Akun & Keamanan */}
-              {activeTab === "profile" && (
-                <div className="p-7 sm:p-8 rounded-3xl bg-zinc-950 border border-white/15 space-y-6">
-                  <div className="flex items-center justify-between flex-wrap gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                        <ShieldCheck size={24} />
+                {/* TAB 3: MISI WARNET */}
+                {activeTab === "quests" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                        <Gift size={20} />
                       </div>
                       <div>
-                        <h3 className="text-lg sm:text-xl font-black uppercase text-white tracking-wide">
+                        <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                          Misi Harian Pemain
+                        </h3>
+                        <p className="text-xs text-zinc-300 font-medium">
+                          Selesaikan tantangan warnet untuk menambah keaktifan akun lu
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-nvidia-green/40 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <span className="text-sm font-black text-white">Check-in Harian</span>
+                            <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-nvidia-green/20 text-nvidia-green">
+                              Selesai
+                            </span>
+                          </div>
+                          <p className="text-xs text-zinc-300 font-medium leading-relaxed">
+                            Masuk ke portal member dan akun aktif hari ini.
+                          </p>
+                        </div>
+                        <div className="mt-4 flex items-center gap-1.5 text-xs text-nvidia-green font-mono font-bold">
+                          <Check size={14} />
+                          <span>50 EXP Diperoleh</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <span className="text-sm font-black text-white">Amunisi Deposit</span>
+                            <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                              Tantangan
+                            </span>
+                          </div>
+                          <p className="text-xs text-zinc-300 font-medium leading-relaxed">
+                            Top up saldo minimal Rp 20.000 di kasir warnet.
+                          </p>
+                        </div>
+                        <div className="mt-4 flex items-center gap-1.5 text-xs text-zinc-300 font-mono font-bold">
+                          <Zap size={14} className="text-amber-400" />
+                          <span>150 EXP Hadiah</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <span className="text-sm font-black text-white">Sultan Midnight</span>
+                            <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                              Event
+                            </span>
+                          </div>
+                          <p className="text-xs text-zinc-300 font-medium leading-relaxed">
+                            Pesan paket begadang malam di atas jam 21.00 WIB.
+                          </p>
+                        </div>
+                        <div className="mt-4 flex items-center gap-1.5 text-xs text-zinc-300 font-mono font-bold">
+                          <Flame size={14} className="text-cyan-400" />
+                          <span>200 EXP Hadiah</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 4: INFO AKUN & KEAMANAN */}
+                {activeTab === "profile" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                        <ShieldCheck size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
                           Informasi Akun Terdaftar
                         </h3>
-                        <p className="text-sm text-zinc-300 font-medium">
+                        <p className="text-xs text-zinc-300 font-medium">
                           Data identitas dan keamanan akun pemain
                         </p>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={openEditModal}
-                      className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-xs sm:text-sm font-bold text-white transition flex items-center gap-2"
-                    >
-                      <Pencil size={14} className="text-nvidia-green" />
-                      <span>Ubah Data Diri</span>
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Email Terhubung</span>
+                        <span className="text-sm text-white font-bold break-all">{sessionUser.email}</span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Nomor WhatsApp</span>
+                        <span className="text-sm text-white font-bold">{profile?.phone || "Belum diatur"}</span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Kode Kartu Billing</span>
+                        <span className="text-zinc-200 font-mono text-sm font-bold">{memberCode}</span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10">
+                        <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Waktu Pendaftaran</span>
+                        <span className="text-sm text-white font-bold">
+                          {profile?.created_at
+                            ? new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+                            : "-"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgotEmail(sessionUser.email || "");
+                          setForgotError(null);
+                          setForgotSuccess(null);
+                          setShowForgotModal(true);
+                        }}
+                        className="text-xs sm:text-sm text-nvidia-green hover:underline font-bold flex items-center gap-2"
+                      >
+                        <Key size={16} />
+                        <span>Ganti Password</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        disabled={actionLoading}
+                        className="px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition"
+                      >
+                        <LogOut size={14} />
+                        <span>Keluar Akun</span>
+                      </button>
+                    </div>
                   </div>
+                )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-white/10">
-                      <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Email Terhubung</span>
-                      <span className="text-sm sm:text-base text-white font-bold break-all">{sessionUser.email}</span>
-                    </div>
+              </div>
 
-                    <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-white/10">
-                      <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Nomor WhatsApp</span>
-                      <span className="text-sm sm:text-base text-white font-bold">{profile?.phone || "Belum diatur"}</span>
-                    </div>
-
-                    <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-white/10">
-                      <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Kode Kartu Billing</span>
-                      <span className="text-zinc-200 font-mono text-sm sm:text-base font-bold">{memberCode}</span>
-                    </div>
-
-                    <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-white/10">
-                      <span className="text-xs text-zinc-400 uppercase font-black block mb-1">Waktu Pendaftaran</span>
-                      <span className="text-sm sm:text-base text-white font-bold">
-                        {profile?.created_at
-                          ? new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-                          : "-"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-white/10 flex items-center justify-between flex-wrap gap-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setForgotEmail(sessionUser.email || "");
-                        setForgotError(null);
-                        setForgotSuccess(null);
-                        setShowForgotModal(true);
-                      }}
-                      className="text-xs sm:text-sm text-nvidia-green hover:underline font-bold flex items-center gap-2"
-                    >
-                      <Key size={16} />
-                      <span>Ganti atau Reset Password</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      disabled={actionLoading}
-                      className="px-5 py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 transition"
-                    >
-                      <LogOut size={16} />
-                      <span>Keluar Akun</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
           </div>
