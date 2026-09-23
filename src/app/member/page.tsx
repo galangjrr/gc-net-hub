@@ -20,7 +20,16 @@ import {
   EyeOff,
   Pencil,
   X,
-  Key
+  Key,
+  Trophy,
+  Zap,
+  Flame,
+  Award,
+  QrCode,
+  Check,
+  ChevronRight,
+  Monitor,
+  Gift
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -36,13 +45,145 @@ interface MemberProfile {
   created_at: string;
 }
 
+interface MemberBooking {
+  id: string;
+  pc_id: string;
+  paket_id: string;
+  player_name: string;
+  status: string;
+  created_at: string;
+  pcs?: { name: string; type: string };
+  pakets?: { name: string; price: number; duration_hours: number };
+}
+
+interface TierConfig {
+  name: string;
+  title: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+  cardGlow: string;
+  min: number;
+  max: number;
+  nextTier: string | null;
+  nextThreshold: number | null;
+  perks: string[];
+}
+
+function calculateTier(balance: number): TierConfig {
+  const safeBalance = Math.max(0, balance || 0);
+
+  if (safeBalance <= 50000) {
+    return {
+      name: "BRONZE",
+      title: "Rookie Warnet",
+      badgeBg: "bg-amber-500/10",
+      badgeText: "text-amber-400",
+      badgeBorder: "border-amber-500/30",
+      cardGlow: "shadow-[0_0_25px_rgba(245,158,11,0.15)]",
+      min: 0,
+      max: 50000,
+      nextTier: "SILVER",
+      nextThreshold: 50000,
+      perks: [
+        "Akses standard billing",
+        "Booking PC online",
+        "Simpan sisa durasi main"
+      ]
+    };
+  }
+
+  if (safeBalance <= 150000) {
+    return {
+      name: "SILVER",
+      title: "Cyber Scout",
+      badgeBg: "bg-slate-300/10",
+      badgeText: "text-slate-300",
+      badgeBorder: "border-slate-300/30",
+      cardGlow: "shadow-[0_0_25px_rgba(203,213,225,0.15)]",
+      min: 50000,
+      max: 150000,
+      nextTier: "GOLD",
+      nextThreshold: 150000,
+      perks: [
+        "Bebas antrean kasir",
+        "Notifikasi WhatsApp giliran",
+        "Prioritas PC standard"
+      ]
+    };
+  }
+
+  if (safeBalance <= 350000) {
+    return {
+      name: "GOLD",
+      title: "Esports Striker",
+      badgeBg: "bg-yellow-500/10",
+      badgeText: "text-yellow-400",
+      badgeBorder: "border-yellow-500/30",
+      cardGlow: "shadow-[0_0_25px_rgba(234,179,8,0.2)]",
+      min: 150000,
+      max: 350000,
+      nextTier: "PLATINUM",
+      nextThreshold: 350000,
+      perks: [
+        "Akses bilik VIP room",
+        "Diskon lima persen fnb",
+        "Badge striker di layar PC"
+      ]
+    };
+  }
+
+  if (safeBalance <= 700000) {
+    return {
+      name: "PLATINUM",
+      title: "Warnet Veteran",
+      badgeBg: "bg-cyan-500/10",
+      badgeText: "text-cyan-400",
+      badgeBorder: "border-cyan-500/30",
+      cardGlow: "shadow-[0_0_30px_rgba(6,182,212,0.22)]",
+      min: 350000,
+      max: 700000,
+      nextTier: "DIAMOND",
+      nextThreshold: 700000,
+      perks: [
+        "Prioritas penuh VIP booking",
+        "Diskon sepuluh persen fnb",
+        "Minuman sachet gratis tiap sesi"
+      ]
+    };
+  }
+
+  return {
+    name: "DIAMOND",
+    title: "Sultan Cyber",
+    badgeBg: "bg-emerald-500/10",
+    badgeText: "text-emerald-400",
+    badgeBorder: "border-emerald-500/30",
+    cardGlow: "shadow-[0_0_35px_rgba(16,185,129,0.25)]",
+    min: 700000,
+    max: 1000000,
+    nextTier: null,
+    nextThreshold: null,
+    perks: [
+      "Akses bebas seluruh PC sultan",
+      "Layanan prioritas kasir operator",
+      "Diskon lima belas persen fnb",
+      "Badge sultan eksklusif"
+    ]
+  };
+}
+
 export default function MemberPage() {
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
+  const [bookings, setBookings] = useState<MemberBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  
+
+  // Active Dashboard Tab
+  const [activeTab, setActiveTab] = useState<"overview" | "history" | "profile">("overview");
+
   // Auth Form States
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
@@ -54,6 +195,12 @@ export default function MemberPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Barcode Member Modal State
+  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+
+  // Topup Info Modal State
+  const [showTopupInfoModal, setShowTopupInfoModal] = useState(false);
+
   // Forgot Password Modal State
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
@@ -61,7 +208,7 @@ export default function MemberPage() {
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
   const [forgotError, setForgotError] = useState<string | null>(null);
 
-  // Password Recovery Mode State (saat tautan reset diklik member)
+  // Password Recovery Mode State
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [newRecoveryPassword, setNewRecoveryPassword] = useState("");
   const [confirmRecoveryPassword, setConfirmRecoveryPassword] = useState("");
@@ -69,6 +216,15 @@ export default function MemberPage() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
   const [recoverySuccess, setRecoverySuccess] = useState<string | null>(null);
+
+  // Profile Setup / Edit Modal States
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [modalUsername, setModalUsername] = useState("");
+  const [modalFullName, setModalFullName] = useState("");
+  const [modalPhone, setModalPhone] = useState("");
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
 
   const handleGoogleLogin = async () => {
     setErrorMessage(null);
@@ -98,7 +254,6 @@ export default function MemberPage() {
     async function initSession() {
       setLoading(true);
 
-      // Cek apakah url mengandung recovery token
       if (typeof window !== "undefined") {
         const hash = window.location.hash;
         if (hash && hash.includes("type=recovery")) {
@@ -127,20 +282,12 @@ export default function MemberPage() {
       } else {
         setSessionUser(null);
         setProfile(null);
+        setBookings([]);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // Profile Setup / Edit Modal States
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [modalUsername, setModalUsername] = useState("");
-  const [modalFullName, setModalFullName] = useState("");
-  const [modalPhone, setModalPhone] = useState("");
-  const [modalError, setModalError] = useState<string | null>(null);
-  const [modalLoading, setModalLoading] = useState(false);
-  const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -148,7 +295,8 @@ export default function MemberPage() {
       const data = await res.json();
       if (res.ok && data.member) {
         setProfile(data.member);
-        // Jika nomor WhatsApp / HP belum diatur atau baru pertama kali login Google, tanyakan data diri
+        fetchBookings(data.member.id, data.member.username);
+
         if (!data.member.phone || data.member.phone.trim() === "") {
           setModalUsername(data.member.username || "");
           setModalFullName(data.member.full_name || "");
@@ -156,6 +304,16 @@ export default function MemberPage() {
           setIsFirstTimeSetup(true);
           setShowProfileModal(true);
         }
+      }
+    } catch (_) {}
+  };
+
+  const fetchBookings = async (memberId: string, username: string) => {
+    try {
+      const res = await fetch(`/api/member/bookings?member_id=${memberId}&player_name=${encodeURIComponent(username)}`);
+      const data = await res.json();
+      if (res.ok && data.bookings) {
+        setBookings(data.bookings);
       }
     } catch (_) {}
   };
@@ -192,7 +350,7 @@ export default function MemberPage() {
       }
 
       if (!cleanPhone) {
-        setModalError("Nomor WhatsApp wajib diisi agar OP warnet bisa mengonfirmasi giliran booking");
+        setModalError("Nomor WhatsApp wajib diisi agar operator warnet bisa mengonfirmasi giliran booking");
         setModalLoading(false);
         return;
       }
@@ -265,7 +423,7 @@ export default function MemberPage() {
       if (data?.user) {
         setSessionUser(data.user);
         await fetchProfile(data.user.id);
-        setSuccessMessage("Login berhasil! Selamat datang kembali.");
+        setSuccessMessage("Login berhasil. Selamat datang kembali.");
       }
     } catch (err: any) {
       setErrorMessage(err?.message || "Terjadi kesalahan jaringan");
@@ -294,19 +452,12 @@ export default function MemberPage() {
       }
 
       if (!/^[a-zA-Z0-9_]{3,20}$/.test(cleanUsername)) {
-        setErrorMessage("Username hanya boleh huruf, angka, dan underscore (3-20 karakter)");
+        setErrorMessage("Username hanya boleh huruf, angka, dan garis bawah 3 sampai 20 karakter");
         setActionLoading(false);
         return;
       }
 
-      if (cleanPassword.length < 6) {
-        setErrorMessage("Password minimal 6 karakter");
-        setActionLoading(false);
-        return;
-      }
-
-      // Register via Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: cleanPassword,
         options: {
@@ -314,36 +465,42 @@ export default function MemberPage() {
             username: cleanUsername,
             full_name: cleanFullName,
             phone: cleanPhone,
-          },
-        },
+          }
+        }
       });
 
-      if (error) {
-        setErrorMessage(error.message || "Pendaftaran gagal. Coba lagi bentar ya.");
+      if (signUpError) {
+        setErrorMessage(signUpError.message || "Gagal melakukan pendaftaran akun");
         setActionLoading(false);
         return;
       }
 
-      if (data?.user) {
-        // Backup sync profile to members table
-        await fetch("/api/member/profile", {
+      if (signUpData.user) {
+        const profileRes = await fetch("/api/member/profile", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: data.user.id,
+            id: signUpData.user.id,
             email: cleanEmail,
             username: cleanUsername,
-            full_name: cleanFullName,
             phone: cleanPhone,
+            full_name: cleanFullName,
           }),
         });
 
-        setSessionUser(data.user);
-        await fetchProfile(data.user.id);
-        setSuccessMessage("Pendaftaran akun member berhasil!");
+        const profileData = await profileRes.json();
+        if (!profileRes.ok) {
+          setErrorMessage(profileData.error || "Gagal inisialisasi profil");
+          setActionLoading(false);
+          return;
+        }
+
+        setSessionUser(signUpData.user);
+        setProfile(profileData.member);
+        setSuccessMessage("Pendaftaran berhasil. Akun member aktif.");
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || "Terjadi kesalahan saat pendaftaran");
+      setErrorMessage(err?.message || "Terjadi kesalahan pendaftaran");
     } finally {
       setActionLoading(false);
     }
@@ -354,6 +511,7 @@ export default function MemberPage() {
     await supabase.auth.signOut();
     setSessionUser(null);
     setProfile(null);
+    setBookings([]);
     setActionLoading(false);
   };
 
@@ -361,9 +519,10 @@ export default function MemberPage() {
     e.preventDefault();
     setForgotError(null);
     setForgotSuccess(null);
+
     const cleanEmail = forgotEmail.trim().toLowerCase();
     if (!cleanEmail) {
-      setForgotError("Alamat email wajib diisi");
+      setForgotError("Masukkan alamat email terdaftar");
       return;
     }
 
@@ -372,10 +531,14 @@ export default function MemberPage() {
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
         redirectTo: `${window.location.origin}/member`,
       });
-      if (error) throw error;
-      setForgotSuccess("Tautan pemulihan kata sandi telah dikirim ke email lu. Silakan periksa kotak masuk atau spam.");
+
+      if (error) {
+        setForgotError(error.message || "Gagal mengirim email reset password");
+      } else {
+        setForgotSuccess("Tautan pemulihan kata sandi telah dikirim ke email. Cek folder inbox atau spam.");
+      }
     } catch (err: any) {
-      setForgotError(err?.message || "Gagal mengirim tautan pemulihan kata sandi");
+      setForgotError(err?.message || "Terjadi kesalahan koneksi");
     } finally {
       setIsSendingForgot(false);
     }
@@ -420,175 +583,617 @@ export default function MemberPage() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 rounded-full border-2 border-nvidia-green border-t-transparent animate-spin" />
-          <span className="text-xs text-zinc-400 uppercase tracking-widest font-bold">Memuat Akun...</span>
+          <span className="text-xs text-zinc-400 uppercase tracking-widest font-bold">Memuat Akun</span>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-black text-white selection:bg-nvidia-green selection:text-black py-12 px-4 sm:px-6 relative overflow-hidden">
-      {/* Background Ambience */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-nvidia-green/[0.04] rounded-full blur-[140px] pointer-events-none" />
+  // Tier info calculation
+  const currentBalance = profile?.balance || 0;
+  const currentTier = calculateTier(currentBalance);
+  
+  // Progress calculations
+  let progressPercent = 100;
+  let remainingToNext = 0;
+  if (currentTier.nextThreshold) {
+    const range = currentTier.nextThreshold - currentTier.min;
+    const gained = currentBalance - currentTier.min;
+    progressPercent = Math.min(100, Math.max(5, Math.round((gained / range) * 100)));
+    remainingToNext = Math.max(0, currentTier.nextThreshold - currentBalance);
+  }
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        {/* Navigation Breadcrumb / Header */}
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-hairline">
+  // Virtual member code
+  const memberCode = `GC-${(profile?.username || "PLAYER").toUpperCase().slice(0, 10)}`;
+
+  return (
+    <div className="min-h-screen bg-black text-white selection:bg-nvidia-green selection:text-black py-8 px-4 sm:px-6 relative overflow-hidden">
+      {/* Background Ambience HUD */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-nvidia-green/[0.03] rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-1/3 -right-40 w-96 h-96 bg-cyan-500/[0.02] rounded-full blur-[140px] pointer-events-none" />
+
+      <div className="max-w-5xl mx-auto relative z-10">
+        {/* Navigation Breadcrumb & Header */}
+        <header className="flex items-center justify-between mb-6 pb-4 border-b border-hairline flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center">
-              <Gamepad2 className="text-nvidia-green" size={20} />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-nvidia-green/20 to-black border border-nvidia-green/40 flex items-center justify-center shadow-[0_0_15px_rgba(118,185,0,0.2)]">
+              <Gamepad2 className="text-nvidia-green" size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tight uppercase">Portal Member GC-Net</h1>
-              <p className="text-[11px] text-zinc-400">Akun pemain resmi warnet & integrasi billing</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-black tracking-tight uppercase text-white">Portal Member GC-Net</h1>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-nvidia-green/10 text-nvidia-green border border-nvidia-green/20 tracking-wider">
+                  Live Billing
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Esports identity & integrasi saldo warnet</p>
             </div>
           </div>
-          <Link
-            href="/"
-            className="text-xs font-bold text-zinc-400 hover:text-white transition flex items-center gap-1.5 uppercase tracking-wider px-3 py-1.5 rounded bg-white/[0.03] border border-hairline"
-          >
-            ← Booking PC
-          </Link>
-        </div>
+          
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="text-xs font-bold text-black bg-nvidia-green hover:bg-white transition flex items-center gap-2 uppercase tracking-wider px-4 py-2 rounded-xl shadow-[0_0_15px_rgba(118,185,0,0.25)]"
+            >
+              <span>Booking PC</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+        </header>
 
         {sessionUser ? (
-          /* ── LOGGED IN: MEMBER DASHBOARD ── */
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            {/* Kartu Member Digital */}
-            <div className="md:col-span-1 space-y-4">
-              <div className="relative rounded-2xl bg-gradient-to-br from-zinc-900 via-black to-zinc-950 border border-nvidia-green/40 p-6 shadow-[0_0_30px_rgba(118,185,0,0.15)] overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-nvidia-green/10 rounded-full blur-2xl pointer-events-none" />
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-nvidia-green bg-nvidia-green/10 px-2 py-0.5 rounded border border-nvidia-green/20">
-                    GC MEMBER
-                  </span>
-                  <Sparkles size={16} className="text-nvidia-green animate-pulse" />
-                </div>
+          /* ── LOGGED IN: GAMIFIED MEMBER DASHBOARD ── */
+          <div className="space-y-6">
+            {/* Top Grid: Player Card & Quick HUD Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              {/* Left Column: Digital Esports License Card */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className={`relative rounded-3xl bg-gradient-to-br from-[#12161f] via-[#090b10] to-[#0d1017] border border-white/10 p-6 ${currentTier.cardGlow} overflow-hidden`}>
+                  {/* Subtle Top Mesh Glow */}
+                  <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-bl from-nvidia-green/10 via-cyan-500/5 to-transparent rounded-full blur-2xl pointer-events-none" />
 
-                <div className="mb-6">
-                  <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider block">Nickname Akun</span>
-                  <span className="text-2xl font-black text-white tracking-tight block">
-                    {profile?.username || sessionUser.email?.split("@")[0]}
-                  </span>
-                  <span className="text-xs text-zinc-400 block mt-0.5">
-                    {profile?.full_name || sessionUser.email}
-                  </span>
-                </div>
-
-                <div className="pt-4 border-t border-hairline flex items-center justify-between text-xs">
-                  <div>
-                    <span className="text-[9px] uppercase text-zinc-400 font-bold block">Saldo Deposit</span>
-                    <span className="text-lg font-black text-nvidia-green">
-                      Rp {(profile?.balance || 0).toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9px] uppercase text-zinc-400 font-bold block">Status Billing</span>
-                    <span className="text-[11px] font-bold text-white uppercase">
-                      {profile?.gc_user_id ? "Terhubung PC" : "Siap Booking"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="p-4 rounded-xl bg-zinc-950 border border-hairline space-y-2.5">
-                <Link
-                  href="/"
-                  className="w-full py-2.5 px-4 rounded-lg bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white transition shadow-[0_0_15px_rgba(118,185,0,0.3)]"
-                >
-                  <span>Mulai Booking PC</span>
-                  <ArrowRight size={14} />
-                </Link>
-
-                <button
-                  onClick={handleLogout}
-                  disabled={actionLoading}
-                  className="w-full py-2 px-4 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition"
-                >
-                  <LogOut size={14} />
-                  <span>Keluar Akun</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Detail Akun & Riwayat */}
-            <div className="md:col-span-2 space-y-4">
-              <div className="p-6 rounded-2xl bg-zinc-950 border border-hairline">
-                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <ShieldCheck size={16} className="text-nvidia-green" />
-                    Informasi Akun Terdaftar
-                  </h3>
-                  <button
-                    onClick={openEditModal}
-                    className="px-3 py-1.5 rounded-lg bg-[#181a20] hover:bg-[#232630] border border-hairline text-xs font-bold text-zinc-300 hover:text-white uppercase tracking-wider flex items-center gap-1.5 transition"
-                  >
-                    <Pencil size={13} className="text-nvidia-green" />
-                    <span>Ubah Data Diri</span>
-                  </button>
-                </div>
-
-                {!profile?.phone && (
-                  <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2.5 text-amber-300">
-                      <AlertCircle size={16} className="shrink-0" />
-                      <span>Nomor WhatsApp belum diatur. Lengkapi agar OP bisa mengonfirmasi antrean.</span>
+                  {/* Card Header: Chip, Identity Type, Live Connection */}
+                  <div className="flex items-center justify-between mb-5 relative z-10">
+                    <div className="flex items-center gap-2.5">
+                      {/* Sim Chip Icon Simulation */}
+                      <div className="w-9 h-7 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 shadow-inner flex items-center justify-center">
+                        <div className="w-full h-full border border-amber-900/40 rounded-[3px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
+                          <div className="border-r border-b border-amber-900/40" />
+                          <div className="border-b border-amber-900/40" />
+                          <div className="border-r border-amber-900/40" />
+                          <div />
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase font-bold">
+                        GC ESPORTS ID
+                      </span>
                     </div>
+
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 border border-hairline text-[10px] text-zinc-300">
+                      <span className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse" />
+                      <span className="font-mono font-bold tracking-wider">ONLINE</span>
+                    </div>
+                  </div>
+
+                  {/* Player IGN & Tier Badge */}
+                  <div className="mb-6 relative z-10">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
+                        {currentTier.name}
+                      </span>
+                      <span className="text-xs text-zinc-400 font-medium">
+                        {currentTier.title}
+                      </span>
+                    </div>
+
+                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase break-all">
+                      {profile?.username || sessionUser.email?.split("@")[0]}
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-0.5 truncate">
+                      {profile?.full_name || sessionUser.email}
+                    </p>
+                  </div>
+
+                  {/* Balance Display & Barcode Quick Trigger */}
+                  <div className="pt-4 border-t border-white/10 relative z-10 flex items-end justify-between gap-4">
+                    <div>
+                      <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider block mb-0.5">
+                        Saldo Deposit Warnet
+                      </span>
+                      <div className="text-xl sm:text-2xl font-black text-nvidia-green tracking-tight font-mono">
+                        Rp {currentBalance.toLocaleString("id-ID")}
+                      </div>
+                      <span className="text-[10px] text-zinc-500 font-medium block mt-0.5">
+                        Maksimal plafon satu juta rupiah
+                      </span>
+                    </div>
+
                     <button
-                      onClick={openEditModal}
-                      className="px-2.5 py-1 rounded bg-amber-500 text-black font-bold uppercase text-[10px] tracking-wider shrink-0 hover:bg-white transition"
+                      type="button"
+                      onClick={() => setShowBarcodeModal(true)}
+                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-hairline text-zinc-200 hover:text-white transition flex flex-col items-center gap-1 shrink-0 group active:scale-95"
                     >
-                      Atur Sekarang
+                      <QrCode size={18} className="text-nvidia-green group-hover:scale-110 transition-transform" />
+                      <span className="text-[9px] font-bold uppercase tracking-wider">Barcode ID</span>
                     </button>
                   </div>
-                )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3 rounded-lg bg-black/50 border border-hairline">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold block mb-1">Email Terhubung</span>
-                    <span className="text-white font-medium break-all">{sessionUser.email}</span>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-black/50 border border-hairline">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold block mb-1">Nomor WhatsApp / HP</span>
-                    <span className="text-white font-medium">{profile?.phone || "Belum diatur"}</span>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-black/50 border border-hairline">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold block mb-1">ID Sistem Billing (GC)</span>
-                    <span className="text-zinc-400 font-mono text-[11px]">{profile?.gc_user_id || "Sinkronisasi otomatis saat sesi aktif"}</span>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-black/50 border border-hairline">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold block mb-1">Waktu Bergabung</span>
-                    <span className="text-white font-medium">
-                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}
+                  {/* Visual Barcode Pattern */}
+                  <div 
+                    onClick={() => setShowBarcodeModal(true)}
+                    className="mt-4 pt-3 border-t border-hairline/60 flex items-center justify-between cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <div className="w-1 h-5 bg-white" />
+                      <div className="w-2 h-5 bg-white" />
+                      <div className="w-0.5 h-5 bg-white" />
+                      <div className="w-1.5 h-5 bg-white" />
+                      <div className="w-1 h-5 bg-white" />
+                      <div className="w-0.5 h-5 bg-white" />
+                      <div className="w-2 h-5 bg-white" />
+                      <div className="w-1 h-5 bg-white" />
+                      <div className="w-0.5 h-5 bg-white" />
+                      <div className="w-1.5 h-5 bg-white" />
+                      <div className="w-2 h-5 bg-white" />
+                    </div>
+                    <span className="text-[10px] font-mono tracking-widest text-zinc-400 group-hover:text-white transition-colors">
+                      {memberCode}
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Banner Info Keamanan */}
-              <div className="p-4 rounded-xl bg-nvidia-green/[0.04] border border-nvidia-green/20 flex items-start gap-3">
-                <ShieldCheck size={18} className="text-nvidia-green shrink-0 mt-0.5" />
-                <div className="text-xs text-zinc-300 leading-relaxed">
-                  <span className="font-bold text-white block mb-0.5">Akun Lu Terverifikasi</span>
-                  Saat melakukan pemesanan di halaman booking, username lu otomatis terkunci sebagai identitas pemain di PC tujuan.
+                {/* Quick Action Buttons */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowTopupInfoModal(true)}
+                    className="p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-hairline text-left transition group"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <CreditCard size={16} className="text-nvidia-green group-hover:scale-110 transition-transform" />
+                      <ChevronRight size={14} className="text-zinc-500" />
+                    </div>
+                    <span className="text-xs font-bold text-white block">Top Up di Kasir</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">Panduan isi saldo deposit</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={openEditModal}
+                    className="p-3 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-hairline text-left transition group"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <Pencil size={16} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+                      <ChevronRight size={14} className="text-zinc-500" />
+                    </div>
+                    <span className="text-xs font-bold text-white block">Ubah Profil</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">Edit IGN dan WhatsApp</span>
+                  </button>
                 </div>
               </div>
+
+              {/* Right Column: Gamified HUD Overview & Level Progress */}
+              <div className="lg:col-span-7 space-y-4">
+                
+                {/* Level / Tier Progression Progress Card */}
+                <div className="p-6 rounded-3xl bg-zinc-950 border border-hairline relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-nvidia-green/10 border border-nvidia-green/20 flex items-center justify-center text-nvidia-green">
+                        <Trophy size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black uppercase text-white tracking-wide">
+                          Level Peringkat Gamer
+                        </h3>
+                        <p className="text-[11px] text-zinc-400">
+                          Tingkatkan akumulasi saldo untuk membuka benefit eksklusif
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className={`text-[11px] font-black uppercase px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
+                      Tier {currentTier.name}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar HUD */}
+                  <div className="space-y-2 mb-5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-zinc-400 font-bold">Progres Menuju Rank Berikutnya</span>
+                      <span className="font-mono font-bold text-white">{progressPercent}%</span>
+                    </div>
+
+                    <div className="w-full h-3 rounded-full bg-zinc-900 border border-hairline p-0.5 overflow-hidden">
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-nvidia-green to-cyan-400 shadow-[0_0_12px_rgba(118,185,0,0.5)] transition-all duration-500"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                      <span>Rp {currentBalance.toLocaleString("id-ID")}</span>
+                      {currentTier.nextTier ? (
+                        <span>
+                          Isi Rp {remainingToNext.toLocaleString("id-ID")} lagi menuju {currentTier.nextTier}
+                        </span>
+                      ) : (
+                        <span className="text-emerald-400 font-bold">Pangkat Tertinggi Tercapai</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tier Perks Badges */}
+                  <div className="pt-4 border-t border-hairline">
+                    <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block mb-2.5">
+                      Privilese Tier {currentTier.name} Lu
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {currentTier.perks.map((perk, idx) => (
+                        <div key={idx} className="p-2.5 rounded-xl bg-black/50 border border-hairline flex items-center gap-2 text-xs">
+                          <Check size={14} className="text-nvidia-green shrink-0" />
+                          <span className="text-zinc-300 font-medium leading-tight">{perk}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4 Gamified Quick Stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-zinc-950 border border-hairline">
+                    <div className="flex items-center gap-1.5 text-zinc-400 mb-1">
+                      <Zap size={14} className="text-nvidia-green" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Status PC</span>
+                    </div>
+                    <span className="text-xs font-black text-white uppercase block">
+                      {profile?.gc_user_id ? "Sesi Aktif" : "Standby"}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-zinc-950 border border-hairline">
+                    <div className="flex items-center gap-1.5 text-zinc-400 mb-1">
+                      <Flame size={14} className="text-amber-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Total Booking</span>
+                    </div>
+                    <span className="text-xs font-black text-white font-mono block">
+                      {bookings.length} Pesanan
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-zinc-950 border border-hairline">
+                    <div className="flex items-center gap-1.5 text-zinc-400 mb-1">
+                      <Award size={14} className="text-cyan-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Pangkat</span>
+                    </div>
+                    <span className="text-xs font-black text-white uppercase block truncate">
+                      {currentTier.name}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-zinc-950 border border-hairline">
+                    <div className="flex items-center gap-1.5 text-zinc-400 mb-1">
+                      <ShieldCheck size={14} className="text-emerald-400" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Verifikasi</span>
+                    </div>
+                    <span className="text-xs font-black text-emerald-400 uppercase block">
+                      Akun Resmi
+                    </span>
+                  </div>
+                </div>
+
+              </div>
             </div>
-          </motion.div>
+
+            {/* Segmented Tab Navigation for Quick Details */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zinc-950 border border-hairline max-w-md">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("overview")}
+                  className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
+                    activeTab === "overview"
+                      ? "bg-nvidia-green text-black shadow-[0_0_12px_rgba(118,185,0,0.3)]"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Misi Warnet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("history")}
+                  className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
+                    activeTab === "history"
+                      ? "bg-nvidia-green text-black shadow-[0_0_12px_rgba(118,185,0,0.3)]"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Riwayat Booking
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("profile")}
+                  className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
+                    activeTab === "profile"
+                      ? "bg-nvidia-green text-black shadow-[0_0_12px_rgba(118,185,0,0.3)]"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Info Akun
+                </button>
+              </div>
+
+              {/* Tab 1: Gamified Quests & Perks */}
+              {activeTab === "overview" && (
+                <div className="space-y-4">
+                  <div className="p-6 rounded-3xl bg-zinc-950 border border-hairline">
+                    <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green">
+                          <Gift size={16} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-black uppercase text-white tracking-wide">
+                            Misi Harian Pemain
+                          </h3>
+                          <p className="text-[11px] text-zinc-400">
+                            Selesaikan misi warnet untuk menambah keaktifan akun lu
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {/* Quest 1 */}
+                      <div className="p-4 rounded-2xl bg-black/60 border border-nvidia-green/30 relative overflow-hidden">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <span className="text-xs font-bold text-white">Check-in Harian</span>
+                          <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-nvidia-green/20 text-nvidia-green">
+                            Selesai
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          Buka portal member dan masuk akun aktif hari ini di sistem.
+                        </p>
+                        <div className="mt-3 flex items-center gap-1.5 text-[10px] text-nvidia-green font-mono font-bold">
+                          <Check size={12} />
+                          <span>50 EXP Diperoleh</span>
+                        </div>
+                      </div>
+
+                      {/* Quest 2 */}
+                      <div className="p-4 rounded-2xl bg-black/60 border border-hairline relative overflow-hidden">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <span className="text-xs font-bold text-white">Amunisi Deposit</span>
+                          <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                            Tantangan
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          Top up saldo minimal Rp 20.000 langsung di kasir warnet.
+                        </p>
+                        <div className="mt-3 flex items-center gap-1.5 text-[10px] text-zinc-400 font-mono font-bold">
+                          <Zap size={12} className="text-amber-400" />
+                          <span>150 EXP Hadiah</span>
+                        </div>
+                      </div>
+
+                      {/* Quest 3 */}
+                      <div className="p-4 rounded-2xl bg-black/60 border border-hairline relative overflow-hidden">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <span className="text-xs font-bold text-white">Sultan Midnight</span>
+                          <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                            Event Malam
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 leading-relaxed">
+                          Pesan paket malam begadang di atas jam 21.00 WIB.
+                        </p>
+                        <div className="mt-3 flex items-center gap-1.5 text-[10px] text-zinc-400 font-mono font-bold">
+                          <Flame size={12} className="text-cyan-400" />
+                          <span>200 EXP Hadiah</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 2: Riwayat Booking */}
+              {activeTab === "history" && (
+                <div className="p-6 rounded-3xl bg-zinc-950 border border-hairline">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green">
+                        <Clock size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black uppercase text-white tracking-wide">
+                          Riwayat Pemesanan PC
+                        </h3>
+                        <p className="text-[11px] text-zinc-400">
+                          Catatan tiket dan antrean bermain lu di GC-Net
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link
+                      href="/"
+                      className="text-xs font-bold text-nvidia-green hover:underline flex items-center gap-1"
+                    >
+                      <span>Booking Baru</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                  </div>
+
+                  {bookings.length === 0 ? (
+                    <div className="py-12 text-center border border-dashed border-hairline rounded-2xl">
+                      <Monitor className="mx-auto text-zinc-600 mb-2" size={32} />
+                      <p className="text-xs text-zinc-400 font-bold uppercase">Belum ada riwayat booking</p>
+                      <p className="text-[11px] text-zinc-500 mt-1 mb-4">
+                        Pesan bilik PC favorit lu sekarang dan nikmati kecepatan warnet
+                      </p>
+                      <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
+                      >
+                        <span>Pilih PC Sekarang</span>
+                        <ArrowRight size={13} />
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {bookings.map((b) => (
+                        <div
+                          key={b.id}
+                          className="p-3.5 rounded-2xl bg-black/60 border border-hairline flex items-center justify-between flex-wrap gap-3 hover:border-zinc-700 transition"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-hairline flex items-center justify-center text-white font-mono font-bold text-xs">
+                              {b.pc_id}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-white">
+                                  {b.pcs?.name || b.pc_id}
+                                </span>
+                                <span className="text-[10px] font-mono text-zinc-500">
+                                  {b.id}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-zinc-400 block mt-0.5">
+                                {b.pakets?.name || b.paket_id} • {b.pakets?.duration_hours ? `${b.pakets.duration_hours} Jam` : "Paket Standar"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border block ${
+                                b.status === "active"
+                                  ? "bg-nvidia-green/10 text-nvidia-green border-nvidia-green/30"
+                                  : b.status === "pending"
+                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                  : b.status === "completed"
+                                  ? "bg-zinc-800 text-zinc-300 border-zinc-700"
+                                  : "bg-red-500/10 text-red-400 border-red-500/30"
+                              }`}>
+                                {b.status === "active"
+                                  ? "Sesi Berjalan"
+                                  : b.status === "pending"
+                                  ? "Menunggu OP"
+                                  : b.status === "completed"
+                                  ? "Selesai"
+                                  : "Dibatalkan"}
+                              </span>
+                              <span className="text-[10px] text-zinc-500 font-mono mt-1 block">
+                                {new Date(b.created_at).toLocaleDateString("id-ID", {
+                                  day: "numeric",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3: Akun & Keamanan */}
+              {activeTab === "profile" && (
+                <div className="p-6 rounded-3xl bg-zinc-950 border border-hairline space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green">
+                        <ShieldCheck size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black uppercase text-white tracking-wide">
+                          Informasi Akun Terdaftar
+                        </h3>
+                        <p className="text-[11px] text-zinc-400">
+                          Data identitas dan keamanan akun pemain
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={openEditModal}
+                      className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-hairline text-xs font-bold text-white transition flex items-center gap-1.5"
+                    >
+                      <Pencil size={13} className="text-nvidia-green" />
+                      <span>Ubah Data Diri</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2">
+                    <div className="p-3.5 rounded-2xl bg-black/50 border border-hairline">
+                      <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Email Terhubung</span>
+                      <span className="text-white font-medium break-all">{sessionUser.email}</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-black/50 border border-hairline">
+                      <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Nomor WhatsApp</span>
+                      <span className="text-white font-medium">{profile?.phone || "Belum diatur"}</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-black/50 border border-hairline">
+                      <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Kode Kartu Billing</span>
+                      <span className="text-zinc-300 font-mono text-[11px]">{memberCode}</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-black/50 border border-hairline">
+                      <span className="text-[10px] text-zinc-500 uppercase font-bold block mb-1">Waktu Pendaftaran</span>
+                      <span className="text-white font-medium">
+                        {profile?.created_at
+                          ? new Date(profile.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+                          : "-"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-hairline flex items-center justify-between flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotEmail(sessionUser.email || "");
+                        setForgotError(null);
+                        setForgotSuccess(null);
+                        setShowForgotModal(true);
+                      }}
+                      className="text-xs text-nvidia-green hover:underline font-bold flex items-center gap-1.5"
+                    >
+                      <Key size={14} />
+                      <span>Ganti atau Reset Password</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      disabled={actionLoading}
+                      className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition"
+                    >
+                      <LogOut size={14} />
+                      <span>Keluar Akun</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
         ) : (
           /* ── NOT LOGGED IN: AUTH FORM (LOGIN / REGISTER) ── */
           <div className="max-w-md mx-auto">
-            <div className="p-6 sm:p-8 rounded-2xl bg-zinc-950 border border-hairline shadow-2xl relative">
+            <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-hairline shadow-2xl relative">
               {/* Tab Selector */}
-              <div className="grid grid-cols-2 p-1 rounded-xl bg-black border border-hairline mb-6">
+              <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-black border border-hairline mb-6">
                 <button
                   type="button"
                   onClick={() => {
@@ -596,7 +1201,7 @@ export default function MemberPage() {
                     setErrorMessage(null);
                     setSuccessMessage(null);
                   }}
-                  className={`py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                  className={`py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
                     authMode === "login"
                       ? "bg-nvidia-green text-black shadow-[0_0_12px_rgba(118,185,0,0.3)]"
                       : "text-zinc-400 hover:text-white"
@@ -611,7 +1216,7 @@ export default function MemberPage() {
                     setErrorMessage(null);
                     setSuccessMessage(null);
                   }}
-                  className={`py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                  className={`py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all ${
                     authMode === "register"
                       ? "bg-nvidia-green text-black shadow-[0_0_12px_rgba(118,185,0,0.3)]"
                       : "text-zinc-400 hover:text-white"
@@ -623,13 +1228,13 @@ export default function MemberPage() {
 
               {/* Feedback Alerts */}
               {errorMessage && (
-                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle size={15} className="shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
               )}
               {successMessage && (
-                <div className="mb-4 p-3 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
+                <div className="mb-4 p-3 rounded-xl bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
                   <CheckCircle2 size={15} className="shrink-0" />
                   <span>{successMessage}</span>
                 </div>
@@ -641,7 +1246,7 @@ export default function MemberPage() {
                   <>
                     <div>
                       <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                        Username Billing (Nickname)
+                        Username Billing (IGN)
                       </label>
                       <div className="relative">
                         <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
@@ -651,30 +1256,30 @@ export default function MemberPage() {
                           placeholder="contoh: pro_gamer123"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
                         />
                       </div>
                       <span className="text-[10px] text-zinc-400 block mt-1">
-                        Huruf, angka, atau underscore (3-20 karakter). Digunakan saat login di PC.
+                        Huruf, angka, atau underscore 3 sampai 20 karakter. Digunakan saat login di PC.
                       </span>
                     </div>
 
                     <div>
                       <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                        Nama Lengkap (Opsional)
+                        Nama Lengkap
                       </label>
                       <input
                         type="text"
                         placeholder="Nama asli atau panggilan"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-lg bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
+                        className="w-full px-3 py-2.5 rounded-xl bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
                       />
                     </div>
 
                     <div>
                       <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                        Nomor WhatsApp / HP
+                        Nomor WhatsApp
                       </label>
                       <div className="relative">
                         <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
@@ -683,7 +1288,7 @@ export default function MemberPage() {
                           placeholder="0812xxxxxxxx"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
                         />
                       </div>
                     </div>
@@ -702,7 +1307,7 @@ export default function MemberPage() {
                       placeholder="nama@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
                     />
                   </div>
                 </div>
@@ -735,7 +1340,7 @@ export default function MemberPage() {
                       placeholder="Minimal 6 karakter"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-9 py-2.5 rounded-lg bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-black border border-hairline text-white placeholder:text-zinc-600 focus:outline-none focus:border-nvidia-green transition"
                     />
                     <button
                       type="button"
@@ -768,7 +1373,7 @@ export default function MemberPage() {
                 </button>
               </form>
 
-              {/* Elegant Divider */}
+              {/* Divider */}
               <div className="relative flex items-center justify-center my-5">
                 <div className="border-t border-hairline w-full"></div>
                 <span className="bg-zinc-950 px-3 text-[10px] font-bold tracking-widest text-zinc-400 uppercase shrink-0">
@@ -829,7 +1434,178 @@ export default function MemberPage() {
           </div>
         )}
 
-        {/* ── MODAL ONBOARDING / UBAH DATA DIRI ── */}
+        {/* ── MODAL FULLSCREEN BARCODE KASIR (QUICK SCAN DI WARNET) ── */}
+        <AnimatePresence>
+          {showBarcodeModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-zinc-950 border border-nvidia-green/40 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[0_0_50px_rgba(118,185,0,0.2)] text-center relative overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowBarcodeModal(false)}
+                  className="absolute top-5 right-5 p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/10 transition"
+                >
+                  <X size={18} />
+                </button>
+
+                <span className="text-[10px] font-mono tracking-widest text-nvidia-green uppercase font-bold block mb-1">
+                  KARTU IDENTITAS KASIR
+                </span>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">
+                  {profile?.username || "MEMBER"}
+                </h3>
+                <p className="text-xs text-zinc-400 mb-6">
+                  Tunjukkan barcode ini ke operator saat top up saldo tunai di kasir
+                </p>
+
+                {/* High Contrast Barcode Box */}
+                <div className="p-6 rounded-2xl bg-white text-black shadow-xl space-y-4">
+                  {/* Clean SVG Simulated Barcode */}
+                  <div className="flex items-center justify-center gap-1 h-24 overflow-hidden px-2">
+                    {[3, 1, 4, 1, 2, 5, 2, 4, 1, 3, 2, 1, 4, 2, 5, 1, 3, 2, 4, 1, 2].map((w, i) => (
+                      <div
+                        key={i}
+                        className="bg-black h-full"
+                        style={{ width: `${w * 3}px` }}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="pt-2 border-t border-zinc-200">
+                    <span className="font-mono font-black text-sm tracking-widest text-black block">
+                      {memberCode}
+                    </span>
+                    <span className="text-[10px] font-bold text-zinc-600 block mt-0.5">
+                      {profile?.phone || profile?.email}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
+                    Rank {currentTier.name}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-nvidia-green">
+                    Rp {currentBalance.toLocaleString("id-ID")}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowBarcodeModal(false)}
+                  className="w-full mt-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition"
+                >
+                  Tutup Tampilan
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── MODAL PANDUAN TOP UP KASIR ── */}
+        <AnimatePresence>
+          {showTopupInfoModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-zinc-950 border border-hairline rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative"
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowTopupInfoModal(false)}
+                  className="absolute top-5 right-5 p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/10 transition"
+                >
+                  <X size={18} />
+                </button>
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0">
+                    <CreditCard size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white uppercase tracking-tight">
+                      Cara Top Up Saldo Kasir
+                    </h3>
+                    <p className="text-xs text-zinc-400">
+                      Isi saldo deposit akun untuk memesan bilik PC warnet
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-xs text-zinc-300 mb-6">
+                  <div className="p-3.5 rounded-2xl bg-black/50 border border-hairline flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-nvidia-green/20 text-nvidia-green font-bold flex items-center justify-center shrink-0 text-xs">
+                      1
+                    </div>
+                    <div>
+                      <span className="font-bold text-white block mb-0.5">Kunjungi Meja Operator</span>
+                      Datangi kasir warnet dan sebutkan nickname akun ({profile?.username || "nama"}) atau tunjukkan barcode kartu member.
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-black/50 border border-hairline flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-nvidia-green/20 text-nvidia-green font-bold flex items-center justify-center shrink-0 text-xs">
+                      2
+                    </div>
+                    <div>
+                      <span className="font-bold text-white block mb-0.5">Pilih Nominal Pengisian</span>
+                      Minimal top up Rp 5.000 dan maksimal saldo akun dibatasi Rp 1.000.000 demi keamanan.
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-black/50 border border-hairline flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-nvidia-green/20 text-nvidia-green font-bold flex items-center justify-center shrink-0 text-xs">
+                      3
+                    </div>
+                    <div>
+                      <span className="font-bold text-white block mb-0.5">Saldo Masuk Seketika</span>
+                      Operator akan memproses pembayaran tunai atau QRIS, dan saldo langsung bertambah di portal member ini.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowTopupInfoModal(false);
+                      setShowBarcodeModal(true);
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.25)] flex items-center justify-center gap-1.5"
+                  >
+                    <QrCode size={14} />
+                    <span>Buka Barcode ID</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowTopupInfoModal(false)}
+                    className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition"
+                  >
+                    Mengerti
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── MODAL UBAH DATA DIRI ── */}
         <AnimatePresence>
           {showProfileModal && (
             <motion.div
@@ -842,7 +1618,7 @@ export default function MemberPage() {
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                className="bg-zinc-950 border border-hairline rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative overflow-hidden"
+                className="bg-zinc-950 border border-hairline rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative overflow-hidden"
               >
                 <div className="absolute -top-12 -right-12 w-36 h-36 bg-nvidia-green/15 blur-3xl rounded-full pointer-events-none" />
 
@@ -871,7 +1647,7 @@ export default function MemberPage() {
                 </div>
 
                 {modalError && (
-                  <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                  <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                     <AlertCircle size={15} className="shrink-0" />
                     <span>{modalError}</span>
                   </div>
@@ -889,13 +1665,13 @@ export default function MemberPage() {
                         value={modalUsername}
                         onChange={(e) => setModalUsername(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
                         placeholder="contoh: mindzevo, alucard_pro"
-                        className="w-full bg-black/60 border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-lg text-xs font-bold text-white outline-none transition placeholder:text-zinc-500"
+                        className="w-full bg-black/60 border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-xl text-xs font-bold text-white outline-none transition placeholder:text-zinc-500"
                         maxLength={20}
                         required
                       />
                     </div>
                     <span className="text-[10px] text-zinc-400 block mt-1">
-                      Hanya huruf kecil, angka, dan garis bawah (3-20 karakter). Tampil di PC warnet.
+                      Hanya huruf kecil, angka, dan garis bawah 3 sampai 20 karakter. Tampil di PC warnet.
                     </span>
                   </div>
 
@@ -910,14 +1686,14 @@ export default function MemberPage() {
                         value={modalFullName}
                         onChange={(e) => setModalFullName(e.target.value)}
                         placeholder="Nama asli lu"
-                        className="w-full bg-black/60 border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-lg text-xs font-semibold text-white outline-none transition placeholder:text-zinc-500"
+                        className="w-full bg-black/60 border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-xl text-xs font-semibold text-white outline-none transition placeholder:text-zinc-500"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider block mb-1.5">
-                      Nomor WhatsApp / HP
+                      Nomor WhatsApp
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={15} />
@@ -926,12 +1702,12 @@ export default function MemberPage() {
                         value={modalPhone}
                         onChange={(e) => setModalPhone(e.target.value)}
                         placeholder="081234567890"
-                        className="w-full bg-black/60 border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-lg text-xs font-bold text-white outline-none transition placeholder:text-zinc-500"
+                        className="w-full bg-black/60 border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-xl text-xs font-bold text-white outline-none transition placeholder:text-zinc-500"
                         required
                       />
                     </div>
                     <span className="text-[10px] text-zinc-400 block mt-1">
-                      OP warnet akan memanggil atau konfirmasi giliran booking via nomor ini.
+                      Operator warnet akan memanggil atau konfirmasi antrean via nomor ini.
                     </span>
                   </div>
 
@@ -940,7 +1716,7 @@ export default function MemberPage() {
                       <button
                         type="button"
                         onClick={() => setShowProfileModal(false)}
-                        className="px-4 py-2.5 rounded-lg border border-hairline text-zinc-400 hover:text-white text-xs font-bold uppercase transition"
+                        className="px-4 py-2.5 rounded-xl border border-hairline text-zinc-400 hover:text-white text-xs font-bold uppercase transition"
                       >
                         Nanti Saja
                       </button>
@@ -948,7 +1724,7 @@ export default function MemberPage() {
                       <button
                         type="button"
                         onClick={() => setShowProfileModal(false)}
-                        className="px-4 py-2.5 rounded-lg border border-hairline text-zinc-400 hover:text-white text-xs font-bold uppercase transition"
+                        className="px-4 py-2.5 rounded-xl border border-hairline text-zinc-400 hover:text-white text-xs font-bold uppercase transition"
                       >
                         Batal
                       </button>
@@ -957,7 +1733,7 @@ export default function MemberPage() {
                     <button
                       type="submit"
                       disabled={modalLoading}
-                      className="px-5 py-2.5 rounded-lg bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center gap-2"
+                      className="px-5 py-2.5 rounded-xl bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center gap-2"
                     >
                       {modalLoading ? (
                         <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
@@ -972,7 +1748,7 @@ export default function MemberPage() {
           )}
         </AnimatePresence>
 
-        {/* MODAL LUPA PASSWORD */}
+        {/* ── MODAL LUPA PASSWORD ── */}
         <AnimatePresence>
           {showForgotModal && (
             <motion.div
@@ -985,7 +1761,7 @@ export default function MemberPage() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 1 }}
-                className="w-full max-w-md bg-zinc-950 border border-hairline rounded-2xl p-6 shadow-2xl space-y-4"
+                className="w-full max-w-md bg-zinc-950 border border-hairline rounded-3xl p-6 shadow-2xl space-y-4"
               >
                 <div className="flex items-center justify-between border-b border-hairline/60 pb-3">
                   <div className="flex items-center gap-2.5">
@@ -1000,7 +1776,6 @@ export default function MemberPage() {
                   <button
                     type="button"
                     onClick={() => setShowForgotModal(false)}
-                    aria-label="Tutup modal pemulihan kata sandi"
                     className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10"
                   >
                     <X size={16} />
@@ -1008,14 +1783,14 @@ export default function MemberPage() {
                 </div>
 
                 {forgotError && (
-                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                     <AlertCircle size={15} className="shrink-0" />
                     <span>{forgotError}</span>
                   </div>
                 )}
 
                 {forgotSuccess && (
-                  <div className="p-3 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
                     <CheckCircle2 size={15} className="shrink-0" />
                     <span>{forgotSuccess}</span>
                   </div>
@@ -1034,7 +1809,7 @@ export default function MemberPage() {
                           value={forgotEmail}
                           onChange={(e) => setForgotEmail(e.target.value)}
                           placeholder="nama@email.com"
-                          className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-lg text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
+                          className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-xl text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
                           required
                         />
                       </div>
@@ -1047,14 +1822,14 @@ export default function MemberPage() {
                       <button
                         type="button"
                         onClick={() => setShowForgotModal(false)}
-                        className="px-4 py-2.5 rounded-lg border border-hairline text-zinc-400 hover:text-white text-xs font-bold transition"
+                        className="px-4 py-2.5 rounded-xl border border-hairline text-zinc-400 hover:text-white text-xs font-bold transition"
                       >
                         Batal
                       </button>
                       <button
                         type="submit"
                         disabled={isSendingForgot}
-                        className="px-5 py-2.5 rounded-lg bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center gap-2 disabled:opacity-50"
+                        className="px-5 py-2.5 rounded-xl bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center gap-2 disabled:opacity-50"
                       >
                         {isSendingForgot ? (
                           <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
@@ -1072,7 +1847,7 @@ export default function MemberPage() {
                     <button
                       type="button"
                       onClick={() => setShowForgotModal(false)}
-                      className="px-5 py-2.5 rounded-lg bg-surface-soft hover:bg-white/10 text-white text-xs font-bold transition"
+                      className="px-5 py-2.5 rounded-xl bg-surface-soft hover:bg-white/10 text-white text-xs font-bold transition"
                     >
                       Tutup
                     </button>
@@ -1083,7 +1858,7 @@ export default function MemberPage() {
           )}
         </AnimatePresence>
 
-        {/* MODAL SETEL ULANG PASSWORD DARI LINK RECOVERY */}
+        {/* ── MODAL SETEL ULANG PASSWORD DARI LINK RECOVERY ── */}
         <AnimatePresence>
           {isRecoveryMode && (
             <motion.div
@@ -1096,7 +1871,7 @@ export default function MemberPage() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 1 }}
-                className="w-full max-w-md bg-zinc-950 border border-nvidia-green/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(118,185,0,0.15)] space-y-4"
+                className="w-full max-w-md bg-zinc-950 border border-nvidia-green/40 rounded-3xl p-6 shadow-[0_0_40px_rgba(118,185,0,0.15)] space-y-4"
               >
                 <div className="flex items-center gap-3 border-b border-hairline/60 pb-3">
                   <div className="w-9 h-9 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green flex items-center justify-center">
@@ -1109,14 +1884,14 @@ export default function MemberPage() {
                 </div>
 
                 {recoveryError && (
-                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                     <AlertCircle size={15} className="shrink-0" />
                     <span>{recoveryError}</span>
                   </div>
                 )}
 
                 {recoverySuccess && (
-                  <div className="p-3 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
                     <CheckCircle2 size={15} className="shrink-0" />
                     <span>{recoverySuccess}</span>
                   </div>
@@ -1134,7 +1909,7 @@ export default function MemberPage() {
                         value={newRecoveryPassword}
                         onChange={(e) => setNewRecoveryPassword(e.target.value)}
                         placeholder="Minimal 6 karakter"
-                        className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-9 py-2.5 rounded-lg text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
+                        className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-9 py-2.5 rounded-xl text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
                         required
                       />
                       <button
@@ -1158,7 +1933,7 @@ export default function MemberPage() {
                         value={confirmRecoveryPassword}
                         onChange={(e) => setConfirmRecoveryPassword(e.target.value)}
                         placeholder="Ulangi kata sandi di atas"
-                        className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-9 py-2.5 rounded-lg text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
+                        className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-9 py-2.5 rounded-xl text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
                         required
                       />
                     </div>
@@ -1168,7 +1943,7 @@ export default function MemberPage() {
                     <button
                       type="submit"
                       disabled={isUpdatingPassword}
-                      className="w-full py-3 rounded-lg bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="w-full py-3 rounded-xl bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {isUpdatingPassword ? (
                         <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
