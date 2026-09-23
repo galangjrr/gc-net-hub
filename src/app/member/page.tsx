@@ -647,17 +647,17 @@ export default function MemberPage() {
           <div className="space-y-8">
             
             {/* Top Grid: Player Card & Main Esports Level Hub */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-stretch">
               
               {/* Left Column: Digital Esports License Card */}
               <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
-                <div className="rounded-3xl bg-zinc-950 border border-white/15 p-7 sm:p-8 relative flex-1 flex flex-col justify-between">
+                <div className="rounded-3xl bg-zinc-950 border border-white/15 p-5 sm:p-7 lg:p-8 relative flex-1 flex flex-col justify-between shadow-lg">
                   
                   {/* Card Header: Chip & Live Connection */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between mb-5 sm:mb-6">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
                       {/* Sim Chip Icon Simulation */}
-                      <div className="w-10 h-8 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0">
+                      <div className="w-9 sm:w-10 h-7 sm:h-8 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-inner">
                         <div className="w-full h-full border border-amber-950/40 rounded-[3px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
                           <div className="border-r border-b border-amber-950/40" />
                           <div className="border-b border-amber-950/40" />
@@ -670,41 +670,41 @@ export default function MemberPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-200">
-                      <span className="w-2.5 h-2.5 rounded-full bg-nvidia-green animate-pulse" />
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-200">
+                      <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-nvidia-green animate-pulse" />
                       <span className="font-mono font-bold tracking-wider">ONLINE</span>
                     </div>
                   </div>
 
                   {/* Player IGN & Name */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2.5 mb-2">
-                      <span className={`text-xs font-black uppercase px-3 py-1 rounded-md border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
+                  <div className="mb-5 sm:mb-6">
+                    <div className="flex items-center gap-2 sm:gap-2.5 mb-1.5 sm:mb-2">
+                      <span className={`text-xs font-black uppercase px-2.5 sm:px-3 py-1 rounded-md border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
                         {currentTier.name}
                       </span>
-                      <span className="text-sm text-zinc-300 font-bold">
+                      <span className="text-xs sm:text-sm text-zinc-300 font-bold">
                         {currentTier.title}
                       </span>
                     </div>
 
-                    <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase break-all">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase break-all">
                       {profile?.username || sessionUser.email?.split("@")[0]}
                     </h2>
-                    <p className="text-sm text-zinc-300 mt-1 font-medium truncate">
+                    <p className="text-xs sm:text-sm text-zinc-300 mt-1 font-medium truncate">
                       {profile?.full_name || sessionUser.email}
                     </p>
                   </div>
 
                   {/* Balance Display & Member ID Pill */}
-                  <div className="pt-6 border-t border-white/10 flex items-end justify-between gap-4">
+                  <div className="pt-5 sm:pt-6 border-t border-white/10 flex items-end justify-between gap-3 sm:gap-4">
                     <div>
                       <span className="text-xs uppercase text-zinc-400 font-black tracking-wider block mb-1">
                         Saldo Deposit Warnet
                       </span>
-                      <div className="text-2xl sm:text-3xl font-black text-nvidia-green tracking-tight font-mono">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-black text-nvidia-green tracking-tight font-mono">
                         Rp {currentBalance.toLocaleString("id-ID")}
                       </div>
-                      <span className="text-xs text-zinc-400 font-medium block mt-1">
+                      <span className="text-xs text-zinc-400 font-medium block mt-0.5 sm:mt-1">
                         Plafon maksimal satu juta rupiah
                       </span>
                     </div>
@@ -713,7 +713,7 @@ export default function MemberPage() {
                       type="button"
                       onClick={() => handleCopyMemberId(memberCode)}
                       title="Salin ID Member"
-                      className="px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white transition flex items-center gap-2 shrink-0 active:scale-95 shadow-sm"
+                      className="px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white transition flex items-center gap-1.5 sm:gap-2 shrink-0 active:scale-95 shadow-sm"
                     >
                       <span className="font-mono font-black text-xs sm:text-sm text-white">{memberCode}</span>
                       {copiedId ? (
@@ -725,9 +725,9 @@ export default function MemberPage() {
                   </div>
 
                   {/* Status Billing Ready Banner */}
-                  <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm font-bold text-zinc-300">
+                  <div className="mt-5 sm:mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm font-bold text-zinc-300">
                     <span className="flex items-center gap-2">
-                      <Monitor size={16} className="text-nvidia-green" />
+                      <Monitor size={16} className="text-nvidia-green shrink-0" />
                       <span>{profile?.gc_user_id ? "Sesi Aktif di Billing" : "Siap Dipakai Booking"}</span>
                     </span>
                     <span className="text-nvidia-green font-mono">AKTIF</span>
@@ -739,66 +739,66 @@ export default function MemberPage() {
                   <button
                     type="button"
                     onClick={() => setShowTopupInfoModal(true)}
-                    className="p-4 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-white/15 text-left transition group"
+                    className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-white/15 text-left transition group"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <CreditCard size={20} className="text-nvidia-green group-hover:scale-105 transition-transform" />
-                      <ChevronRight size={16} className="text-zinc-400" />
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                      <CreditCard size={18} className="text-nvidia-green group-hover:scale-105 transition-transform" />
+                      <ChevronRight size={14} className="text-zinc-400" />
                     </div>
-                    <span className="text-sm font-black text-white block">Top Up di Kasir</span>
-                    <span className="text-xs text-zinc-400 block mt-0.5">Panduan isi saldo deposit</span>
+                    <span className="text-xs sm:text-sm font-black text-white block">Top Up di Kasir</span>
+                    <span className="text-xs text-zinc-400 block mt-0.5">Panduan isi deposit</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={openEditModal}
-                    className="p-4 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-white/15 text-left transition group"
+                    className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950 hover:bg-zinc-900 border border-white/15 text-left transition group"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <Pencil size={20} className="text-cyan-400 group-hover:scale-105 transition-transform" />
-                      <ChevronRight size={16} className="text-zinc-400" />
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                      <Pencil size={18} className="text-cyan-400 group-hover:scale-105 transition-transform" />
+                      <ChevronRight size={14} className="text-zinc-400" />
                     </div>
-                    <span className="text-sm font-black text-white block">Ubah Profil</span>
-                    <span className="text-xs text-zinc-400 block mt-0.5">Edit IGN dan WhatsApp</span>
+                    <span className="text-xs sm:text-sm font-black text-white block">Ubah Profil</span>
+                    <span className="text-xs text-zinc-400 block mt-0.5">Edit IGN dan WA</span>
                   </button>
                 </div>
               </div>
 
               {/* Right Column: Gamified Progression Hub (Satu-Satunya Pusat Progres EXP) */}
-              <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+              <div className="lg:col-span-7 flex flex-col justify-between space-y-4 sm:space-y-6">
                 
                 {/* Level / Tier Progression Card */}
-                <div className="p-7 sm:p-8 rounded-3xl bg-zinc-950 border border-white/15 flex-1 flex flex-col justify-between">
+                <div className="p-5 sm:p-7 lg:p-8 rounded-3xl bg-zinc-950 border border-white/15 flex-1 flex flex-col justify-between shadow-lg">
                   <div>
-                    <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                    <div className="flex items-center justify-between mb-5 sm:mb-6 flex-wrap gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Trophy size={24} />
+                        <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-2xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Trophy size={22} />
                         </div>
                         <div>
-                          <h3 className="text-lg sm:text-xl font-black uppercase text-white tracking-wide">
+                          <h3 className="text-base sm:text-lg lg:text-xl font-black uppercase text-white tracking-wide">
                             Level Peringkat Gamer
                           </h3>
-                          <p className="text-sm text-zinc-300 font-medium">
+                          <p className="text-xs sm:text-sm text-zinc-300 font-medium">
                             Tingkatkan akumulasi saldo untuk membuka benefit eksklusif
                           </p>
                         </div>
                       </div>
 
-                      <span className={`text-xs sm:text-sm font-black uppercase px-4 py-1.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
+                      <span className={`text-xs sm:text-sm font-black uppercase px-3 sm:px-4 py-1 sm:py-1.5 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
                         Tier {currentTier.name}
                       </span>
                     </div>
 
                     {/* Progress Bar HUD Utama */}
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center justify-between text-sm sm:text-base">
+                    <div className="space-y-2.5 sm:space-y-3 mb-5 sm:mb-6">
+                      <div className="flex items-center justify-between text-xs sm:text-sm lg:text-base">
                         <span className="text-zinc-200 font-bold">Progres Menuju Rank Berikutnya</span>
-                        <span className="font-mono font-black text-white text-base">{progressPercent}%</span>
+                        <span className="font-mono font-black text-white text-sm sm:text-base">{progressPercent}%</span>
                       </div>
 
                       {/* Clean Sharp Progress Track */}
-                      <div className="w-full h-4 rounded-full bg-zinc-900 border border-white/15 p-0.5 overflow-hidden">
+                      <div className="w-full h-3 sm:h-4 rounded-full bg-zinc-900 border border-white/15 p-0.5 overflow-hidden">
                         <div 
                           className="h-full rounded-full bg-gradient-to-r from-nvidia-green to-cyan-400 transition-all duration-500"
                           style={{ width: `${progressPercent}%` }}
@@ -819,14 +819,14 @@ export default function MemberPage() {
                   </div>
 
                   {/* Tier Perks Badges */}
-                  <div className="pt-6 border-t border-white/10">
-                    <span className="text-xs uppercase font-black text-zinc-400 tracking-wider block mb-3">
+                  <div className="pt-5 sm:pt-6 border-t border-white/10">
+                    <span className="text-xs uppercase font-black text-zinc-400 tracking-wider block mb-2.5 sm:mb-3">
                       Privilese Pangkat {currentTier.name}
                     </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                       {currentTier.perks.map((perk, idx) => (
-                        <div key={idx} className="p-3.5 rounded-xl bg-zinc-900 border border-white/10 flex items-center gap-2.5 text-xs sm:text-sm">
-                          <Check size={16} className="text-nvidia-green shrink-0" />
+                        <div key={idx} className="p-3 sm:p-3.5 rounded-xl bg-zinc-900 border border-white/10 flex items-center gap-2 text-xs sm:text-sm">
+                          <Check size={15} className="text-nvidia-green shrink-0" />
                           <span className="text-zinc-200 font-bold leading-snug">{perk}</span>
                         </div>
                       ))}
@@ -835,43 +835,43 @@ export default function MemberPage() {
                 </div>
 
                 {/* 4 Gamified Quick Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-2 text-zinc-400 mb-1.5">
-                      <Zap size={16} className="text-nvidia-green" />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
+                      <Zap size={15} className="text-nvidia-green" />
                       <span className="text-xs font-bold uppercase tracking-wider">Status PC</span>
                     </div>
-                    <span className="text-sm sm:text-base font-black text-white uppercase block">
+                    <span className="text-xs sm:text-sm lg:text-base font-black text-white uppercase block">
                       {profile?.gc_user_id ? "Sesi Aktif" : "Standby"}
                     </span>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-2 text-zinc-400 mb-1.5">
-                      <Flame size={16} className="text-amber-400" />
+                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
+                      <Flame size={15} className="text-amber-400" />
                       <span className="text-xs font-bold uppercase tracking-wider">Total Booking</span>
                     </div>
-                    <span className="text-sm sm:text-base font-black text-white font-mono block">
+                    <span className="text-xs sm:text-sm lg:text-base font-black text-white font-mono block">
                       {bookings.length} Pesanan
                     </span>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-2 text-zinc-400 mb-1.5">
-                      <Award size={16} className="text-cyan-400" />
+                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
+                      <Award size={15} className="text-cyan-400" />
                       <span className="text-xs font-bold uppercase tracking-wider">Pangkat</span>
                     </div>
-                    <span className="text-sm sm:text-base font-black text-white uppercase block truncate">
+                    <span className="text-xs sm:text-sm lg:text-base font-black text-white uppercase block truncate">
                       {currentTier.name}
                     </span>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-zinc-950 border border-white/15">
-                    <div className="flex items-center gap-2 text-zinc-400 mb-1.5">
-                      <ShieldCheck size={16} className="text-emerald-400" />
+                  <div className="p-4 sm:p-5 rounded-2xl bg-zinc-950 border border-white/15">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-400 mb-1">
+                      <ShieldCheck size={15} className="text-emerald-400" />
                       <span className="text-xs font-bold uppercase tracking-wider">Verifikasi</span>
                     </div>
-                    <span className="text-sm sm:text-base font-black text-emerald-400 uppercase block">
+                    <span className="text-xs sm:text-sm lg:text-base font-black text-emerald-400 uppercase block">
                       Akun Resmi
                     </span>
                   </div>
