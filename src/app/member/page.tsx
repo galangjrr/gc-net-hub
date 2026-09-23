@@ -1690,202 +1690,203 @@ export default function MemberPage() {
 
         </div>
         ) : (
-          /* ── NOT LOGGED IN: SPLIT CYBER SHOWCASE & AUTH TERMINAL ── */
-          <div className="flex-1 flex flex-col justify-center py-4 lg:py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              
-              {/* PANEL KIRI: SHOWCASE SISTEM PANGKAT & BENEFIT BISNIS MEMBER */}
-              <div className="lg:col-span-7 space-y-6 sm:space-y-7">
-                {/* Header Tagline & Badges */}
-                <div className="space-y-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs font-black uppercase tracking-wider">
-                    <ShieldCheck size={14} className="shrink-0" />
-                    <span>Sistem Billing & Keanggotaan Member GC-Net</span>
+          /* ── NOT LOGGED IN: SEAMLESS MASTER COCKPIT SHOWCASE & AUTH TERMINAL ── */
+          <div className="flex-1 flex flex-col justify-center py-4 lg:py-8 max-w-6xl mx-auto w-full">
+            <div className="relative rounded-[32px] p-[1px] bg-gradient-to-b from-white/15 via-white/5 to-white/10 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9),0_0_50px_rgba(118,185,0,0.06)] overflow-hidden">
+              {/* Ambient Glow */}
+              <div className="absolute -top-32 -left-32 w-96 h-96 bg-nvidia-green/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative rounded-[31px] bg-zinc-950/85 backdrop-blur-2xl grid grid-cols-1 lg:grid-cols-12 items-stretch divide-y lg:divide-y-0 lg:divide-x divide-white/10">
+                
+                {/* PANEL KIRI: SHOWCASE SISTEM PANGKAT & BENEFIT BISNIS MEMBER */}
+                <div className="lg:col-span-7 p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6 sm:space-y-8 bg-zinc-950/40">
+                  {/* Header Tagline & Badges */}
+                  <div className="space-y-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs font-black uppercase tracking-wider">
+                      <ShieldCheck size={14} className="shrink-0" />
+                      <span>Sistem Billing & Keanggotaan Member GC-Net</span>
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
+                      Akses Billing Member Cepat, Praktis & Terintegrasi
+                    </h2>
+                    <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-xl leading-relaxed">
+                      Sistem keanggotaan warnet GC-Net dengan tier level gamer terpadu. Akun memiliki masa aktif berkala dan potongan biaya pembuka sesi (startup fee) saat login workstation PC, dengan perpanjangan mudah saat top up di kasir.
+                    </p>
                   </div>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-                    Akses Billing Member Cepat, Praktis & Terintegrasi
-                  </h2>
-                  <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-xl leading-relaxed">
-                    Sistem keanggotaan warnet GC-Net dengan tier level gamer terpadu. Akun memiliki masa aktif berkala dan potongan biaya pembuka sesi (startup fee) saat login workstation PC, dengan perpanjangan mudah saat top up di kasir.
-                  </p>
-                </div>
 
-                {/* Kartu Member VIP Preview (Sesuai Desain Asli Dashboard Member) */}
-                <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-yellow-500/40 via-nvidia-green/20 to-transparent max-w-lg shadow-[0_15px_35px_-10px_rgba(0,0,0,0.8),0_0_25px_rgba(234,179,8,0.12)]">
-                  <div className="relative rounded-[23px] bg-zinc-950/95 backdrop-blur-md p-5 sm:p-6 overflow-hidden space-y-4">
-                    {/* Background Tech Watermark */}
-                    <div className="absolute -right-6 -bottom-6 text-white/[0.03] pointer-events-none select-none">
-                      <Gamepad2 size={160} />
-                    </div>
+                  {/* Kartu Member VIP Preview (Sesuai Desain Asli Dashboard Member) */}
+                  <div className="relative rounded-3xl p-[1px] bg-gradient-to-br from-yellow-500/40 via-nvidia-green/20 to-transparent max-w-lg shadow-[0_15px_35px_-10px_rgba(0,0,0,0.8),0_0_25px_rgba(234,179,8,0.12)]">
+                    <div className="relative rounded-[23px] bg-zinc-950/95 backdrop-blur-md p-5 sm:p-6 overflow-hidden space-y-4">
+                      {/* Background Tech Watermark */}
+                      <div className="absolute -right-6 -bottom-6 text-white/[0.03] pointer-events-none select-none">
+                        <Gamepad2 size={160} />
+                      </div>
 
-                    {/* Header Kartu: Sim Chip Emas & Badge Pangkat Gold Striker */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-7 rounded bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
-                          <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
-                            <div className="border-r border-b border-amber-950/40" />
-                            <div className="border-b border-amber-950/40" />
-                            <div className="border-r border-amber-950/40" />
-                            <div />
+                      {/* Header Kartu: Sim Chip Emas & Badge Pangkat Gold Striker */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-7 rounded bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
+                            <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
+                              <div className="border-r border-b border-amber-950/40" />
+                              <div className="border-b border-amber-950/40" />
+                              <div className="border-r border-amber-950/40" />
+                              <div />
+                            </div>
                           </div>
-                        </div>
-                        <span className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-bold">
-                          GC MEMBER ID
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 px-3 py-1 rounded-full border bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm">
-                        <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-                        <span className="font-mono font-bold tracking-wider text-xs uppercase">GOLD</span>
-                      </div>
-                    </div>
-
-                    {/* Identitas Player Preview */}
-                    <div className="flex items-center gap-3.5 pt-1">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-xl shrink-0 shadow-md">
-                        G
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase truncate">
-                            PRO_GAMER_GC
-                          </h3>
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-[11px] font-bold shrink-0">
-                            <CheckCircle2 size={12} />
-                            <span>Verified</span>
+                          <span className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-bold">
+                            GC MEMBER ID
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs">
-                          <span className="text-yellow-400 font-bold">Striker</span>
-                          <span className="text-zinc-600">•</span>
-                          <span className="text-zinc-400">Member Aktif Workstation GC-Net</span>
+
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full border bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm">
+                          <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+                          <span className="font-mono font-bold tracking-wider text-xs uppercase">GOLD</span>
+                        </div>
+                      </div>
+
+                      {/* Identitas Player Preview */}
+                      <div className="flex items-center gap-3.5 pt-1">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-xl shrink-0 shadow-md">
+                          G
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase truncate">
+                              PRO_GAMER_GC
+                            </h3>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-[11px] font-bold shrink-0">
+                              <CheckCircle2 size={12} />
+                              <span>Verified</span>
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs">
+                            <span className="text-yellow-400 font-bold">Striker</span>
+                            <span className="text-zinc-600">•</span>
+                            <span className="text-zinc-400">Member Aktif Workstation GC-Net</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Mini HUD Saldo, Masa Aktif & Startup Fee */}
+                      <div className="rounded-2xl bg-zinc-900/80 border border-white/10 p-3.5 sm:p-4 space-y-2.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-400 font-bold uppercase tracking-wider text-[11px]">Simulasi Saldo</span>
+                          <span className="font-mono font-bold text-zinc-300 text-[11px]">ID: GC-7749-VIP</span>
+                        </div>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xl sm:text-2xl font-black text-amber-300 font-mono">Rp 250.000</span>
+                          <span className="text-[11px] text-zinc-400 font-medium">Rank Striker Aktif</span>
+                        </div>
+
+                        {/* Info Masa Aktif & Biaya Awal */}
+                        <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-[10px] text-zinc-500 uppercase font-bold block">Biaya Login (Startup)</span>
+                            <span className="text-white font-mono font-bold">Rp 2.000 / Sesi</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] text-zinc-500 uppercase font-bold block">Masa Aktif Akun</span>
+                            <span className="text-nvidia-green font-mono font-bold">30 Hari Perpanjangan</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1 pt-1">
+                          <div className="flex justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                            <span>Sistem EXP Pangkat Billing</span>
+                            <span className="text-nvidia-green font-mono text-[10px]">Integrasi GC-Hub</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
+                            <div className="h-full bg-gradient-to-r from-yellow-500 to-nvidia-green rounded-full w-[65%]" />
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Mini HUD Saldo, Masa Aktif & Startup Fee */}
-                    <div className="rounded-2xl bg-zinc-900/80 border border-white/10 p-3.5 sm:p-4 space-y-2.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-400 font-bold uppercase tracking-wider text-[11px]">Simulasi Saldo</span>
-                        <span className="font-mono font-bold text-zinc-300 text-[11px]">ID: GC-7749-VIP</span>
-                      </div>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-xl sm:text-2xl font-black text-amber-300 font-mono">Rp 250.000</span>
-                        <span className="text-[11px] text-zinc-400 font-medium">Rank Striker Aktif</span>
-                      </div>
+                  {/* Strip 5 Pangkat Member (Roadmap Tier Gamer) */}
+                  <div className="space-y-2.5 max-w-xl">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">
+                        Tingkatan Pangkat Gamer
+                      </span>
+                      <span className="text-[11px] text-zinc-500 font-medium">Akumulasi EXP Sesi & Keaktifan Main</span>
+                    </div>
 
-                      {/* Info Masa Aktif & Biaya Awal */}
-                      <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">Biaya Login (Startup)</span>
-                          <span className="text-white font-mono font-bold">Rp 2.000 / Sesi</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">Masa Aktif Akun</span>
-                          <span className="text-nvidia-green font-mono font-bold">30 Hari Perpanjangan</span>
-                        </div>
-                      </div>
+                    <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                      {ALL_RANKS.map((rank, idx) => {
+                        const tierLabels = ["Tier I", "Tier II", "Tier III", "Tier IV", "Tier V"];
+                        return (
+                          <div
+                            key={idx}
+                            className={`p-2 sm:p-2.5 rounded-xl border text-center transition ${
+                              rank.name === "GOLD"
+                                ? "bg-zinc-900 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.15)] ring-1 ring-yellow-500/30"
+                                : "bg-zinc-950/60 border-white/10"
+                            }`}
+                          >
+                            <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${rank.badgeText}`}>
+                              {rank.name}
+                            </div>
+                            <div className="text-[10px] sm:text-xs font-bold text-white mt-0.5 truncate">
+                              {rank.title}
+                            </div>
+                            <div className="text-[9px] font-mono text-zinc-400 mt-1 truncate">
+                              {tierLabels[idx]}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                      <div className="space-y-1 pt-1">
-                        <div className="flex justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                          <span>Sistem EXP Pangkat Billing</span>
-                          <span className="text-nvidia-green font-mono text-[10px]">Integrasi GC-Hub</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
-                          <div className="h-full bg-gradient-to-r from-yellow-500 to-nvidia-green rounded-full w-[65%]" />
-                        </div>
+                  {/* 4 Feature Highlight Bento Grid (Fitur Nyata Bebas Janji Palsu) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-yellow-500/40 transition-colors flex items-start gap-3.5 group">
+                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-yellow-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Zap size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Tarif Khusus Member</h4>
+                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Tarif billing per jam lebih hemat dan terjangkau dibanding biaya sewa tamu personal.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-cyan-500/40 transition-colors flex items-start gap-3.5 group">
+                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Monitor size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Login Otomatis Workstation</h4>
+                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Buka kunci bilik PC langsung di layar client menggunakan username akun tanpa antre kasir.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
+                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Clock size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Masa Aktif Akun</h4>
+                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Akun memiliki periode aktif 30 hari yang otomatis diperpanjang saat isi ulang saldo deposit.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-emerald-500/40 transition-colors flex items-start gap-3.5 group">
+                      <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <ShieldCheck size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-white">Biaya Awal (Startup Fee)</h4>
+                        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Dikenakan saldo minimal pembuka sesi Rp 2.000 saat login pertama kali di workstation PC.</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Strip 5 Pangkat Member (Roadmap Tier Gamer) */}
-                <div className="space-y-2.5 max-w-xl">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">
-                      Tingkatan Pangkat Gamer
-                    </span>
-                    <span className="text-[11px] text-zinc-500 font-medium">Akumulasi EXP Sesi & Keaktifan Main</span>
-                  </div>
-
-                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                    {ALL_RANKS.map((rank, idx) => {
-                      const tierLabels = ["Tier I", "Tier II", "Tier III", "Tier IV", "Tier V"];
-                      return (
-                        <div
-                          key={idx}
-                          className={`p-2 sm:p-2.5 rounded-xl border text-center transition ${
-                            rank.name === "GOLD"
-                              ? "bg-zinc-900 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.15)] ring-1 ring-yellow-500/30"
-                              : "bg-zinc-950/60 border-white/10"
-                          }`}
-                        >
-                          <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${rank.badgeText}`}>
-                            {rank.name}
-                          </div>
-                          <div className="text-[10px] sm:text-xs font-bold text-white mt-0.5 truncate">
-                            {rank.title}
-                          </div>
-                          <div className="text-[9px] font-mono text-zinc-400 mt-1 truncate">
-                            {tierLabels[idx]}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 4 Feature Highlight Bento Grid (Fitur Nyata Bebas Janji Palsu) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-yellow-500/40 transition-colors flex items-start gap-3.5 group">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-yellow-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Zap size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Tarif Khusus Member</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Tarif billing per jam lebih hemat dan terjangkau dibanding biaya sewa tamu personal.</p>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-cyan-500/40 transition-colors flex items-start gap-3.5 group">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Monitor size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Login Otomatis Workstation</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Buka kunci bilik PC langsung di layar client menggunakan username akun tanpa antre kasir.</p>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-nvidia-green/40 transition-colors flex items-start gap-3.5 group">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Clock size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Masa Aktif Akun</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Akun memiliki periode aktif 30 hari yang otomatis diperpanjang saat isi ulang saldo deposit.</p>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-emerald-500/40 transition-colors flex items-start gap-3.5 group">
-                    <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <ShieldCheck size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Biaya Awal (Startup Fee)</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Dikenakan saldo minimal pembuka sesi Rp 2.000 saat login pertama kali di workstation PC.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* PANEL KANAN: AUTH TERMINAL */}
-              <div className="lg:col-span-5 w-full max-w-md mx-auto lg:max-w-none">
-                <div className="relative group">
-                  {/* Subtle Background Glow Accent */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-nvidia-green/20 via-nvidia-green/5 to-transparent rounded-[32px] blur-xl opacity-60 group-hover:opacity-100 transition duration-700 pointer-events-none" />
-
-                  <div className="relative rounded-3xl bg-zinc-950/90 backdrop-blur-xl border border-white/15 p-6 sm:p-8 shadow-2xl space-y-6">
+                {/* PANEL KANAN: AUTH TERMINAL */}
+                <div className="lg:col-span-5 p-6 sm:p-8 lg:p-10 flex flex-col justify-center bg-zinc-900/30">
+                  <div className="space-y-6 max-w-md mx-auto w-full">
                     {/* Header Terminal Card */}
                     <div className="flex items-center gap-3 pb-4 border-b border-white/10">
                       <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 text-nvidia-green flex items-center justify-center shrink-0 shadow-sm">
@@ -2143,8 +2144,8 @@ export default function MemberPage() {
                     </div>
                   </div>
                 </div>
-              </div>
 
+              </div>
             </div>
           </div>
         )}
