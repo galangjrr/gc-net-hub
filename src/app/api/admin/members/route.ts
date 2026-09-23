@@ -150,6 +150,46 @@ export async function PUT(req: Request) {
       return NextResponse.json({ success: true });
     }
 
+    if (action === 'reset_password') {
+      const { new_password } = body;
+      if (!new_password || new_password.trim().length < 6) {
+        return NextResponse.json({ error: 'Password baru minimal 6 karakter' }, { status: 400 });
+      }
+
+      const { error: resetErr } = await supabaseAdmin.auth.admin.updateUserById(id, {
+        password: new_password.trim()
+      });
+
+      if (resetErr) throw resetErr;
+
+      await logActivity(req, {
+        action: 'Reset Password Member',
+        target: currentMember.username,
+        details: `Password diatur ulang oleh kasir untuk akun @${currentMember.username}`
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === 'generate_recovery_link') {
+      const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'recovery',
+        email: currentMember.email
+      });
+
+      if (linkErr) throw linkErr;
+
+      const recoveryLink = linkData?.properties?.action_link;
+
+      await logActivity(req, {
+        action: 'Buat Link Recovery Member',
+        target: currentMember.username,
+        details: `Tautan pemulihan dibuat untuk email ${currentMember.email}`
+      });
+
+      return NextResponse.json({ success: true, link: recoveryLink });
+    }
+
     return NextResponse.json({ error: 'Aksi tidak dikenali' }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Gagal memproses perubahan member' }, { status: 500 });

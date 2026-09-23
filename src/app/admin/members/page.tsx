@@ -19,7 +19,11 @@ import {
   CreditCard,
   Calendar,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Key,
+  Copy,
+  ExternalLink,
+  MessageSquareShare
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import PinGuard from "@/components/PinGuard";
@@ -67,6 +71,16 @@ export default function MemberManagementPage() {
   // Delete Confirm State
   const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Reset Password State
+  const [resetMember, setResetMember] = useState<Member | null>(null);
+  const [newPasswordInput, setNewPasswordInput] = useState<string>("gcnet123");
+  const [isSubmittingReset, setIsSubmittingReset] = useState(false);
+  const [generatedRecoveryLink, setGeneratedRecoveryLink] = useState<string | null>(null);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [resetSuccessMessage, setResetSuccessMessage] = useState<string | null>(null);
+  const [resetModalMode, setResetModalMode] = useState<"direct" | "link">("direct");
 
   const loadMembers = async (showSpinner = false) => {
     if (showSpinner) setIsRefreshing(true);
@@ -208,6 +222,88 @@ export default function MemberManagementPage() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Handle Reset Password Modal
+  const handleOpenResetPassword = (member: Member) => {
+    setResetMember(member);
+    setNewPasswordInput("gcnet123");
+    setGeneratedRecoveryLink(null);
+    setCopiedLink(false);
+    setResetSuccessMessage(null);
+    setResetModalMode("direct");
+  };
+
+  const submitDirectPasswordReset = async () => {
+    if (!resetMember) return;
+    if (!newPasswordInput.trim() || newPasswordInput.trim().length < 6) {
+      alert("Password minimal 6 karakter");
+      return;
+    }
+    setIsSubmittingReset(true);
+    setResetSuccessMessage(null);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: resetMember.id,
+          action: "reset_password",
+          new_password: newPasswordInput.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mengatur password baru");
+
+      setResetSuccessMessage(`Password member @${resetMember.username} berhasil diatur ulang menjadi ${newPasswordInput.trim()}`);
+    } catch (err: any) {
+      alert(err.message || "Gagal mengatur password baru");
+    } finally {
+      setIsSubmittingReset(false);
+    }
+  };
+
+  const submitGenerateRecoveryLink = async () => {
+    if (!resetMember) return;
+    setIsGeneratingLink(true);
+    setCopiedLink(false);
+    try {
+      const res = await fetch("/api/admin/members", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: resetMember.id,
+          action: "generate_recovery_link",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal membuat tautan pemulihan");
+
+      setGeneratedRecoveryLink(data.link);
+    } catch (err: any) {
+      alert(err.message || "Gagal membuat tautan pemulihan");
+    } finally {
+      setIsGeneratingLink(false);
+    }
+  };
+
+  const copyRecoveryLink = async () => {
+    if (!generatedRecoveryLink) return;
+    await navigator.clipboard.writeText(generatedRecoveryLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
+
+  const sendRecoveryLinkWhatsApp = () => {
+    if (!resetMember || !generatedRecoveryLink) return;
+    let phoneNum = (resetMember.phone || "").replace(/[^0-9]/g, "");
+    if (phoneNum.startsWith("0")) {
+      phoneNum = "62" + phoneNum.slice(1);
+    }
+    const message = `Halo ${resetMember.full_name || resetMember.username}, berikut adalah tautan pemulihan kata sandi akun GC Net kamu:\n\n${generatedRecoveryLink}\n\nSilakan klik tautan di atas untuk mengatur kata sandi baru kamu.`;
+    window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(message)}`, "_blank");
   };
 
   return (
@@ -445,6 +541,14 @@ export default function MemberManagementPage() {
                         <td className="py-3.5 pr-6 pl-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
+                              onClick={() => handleOpenResetPassword(m)}
+                              aria-label={`Reset password ${m.username}`}
+                              className="p-2 rounded-lg bg-surface-soft hover:bg-amber-500/20 text-white/70 hover:text-amber-400 border border-hairline transition"
+                              title="Reset Password Akun"
+                            >
+                              <Key size={13} />
+                            </button>
+                            <button
                               onClick={() => handleOpenEdit(m)}
                               aria-label={`Ubah profil ${m.username}`}
                               className="p-2 rounded-lg bg-surface-soft hover:bg-white/10 text-white/70 hover:text-white border border-hairline transition"
@@ -508,6 +612,13 @@ export default function MemberManagementPage() {
                         className="px-2.5 py-1 rounded-md bg-nvidia-green/15 text-nvidia-green font-bold text-xs border border-nvidia-green/30"
                       >
                         + Top Up
+                      </button>
+                      <button
+                        onClick={() => handleOpenResetPassword(m)}
+                        className="p-1.5 rounded-md bg-surface-soft text-amber-400 border border-hairline"
+                        title="Reset Password Akun"
+                      >
+                        <Key size={12} />
                       </button>
                       <button
                         onClick={() => handleOpenEdit(m)}
@@ -763,6 +874,208 @@ export default function MemberManagementPage() {
                     {isDeleting ? "Menghapus..." : "Hapus Permanen"}
                   </button>
                 </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* MODAL RESET PASSWORD */}
+        <AnimatePresence>
+          {resetMember && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 1 }}
+                className="w-full max-w-md bg-surface-1 border border-hairline rounded-2xl p-5 space-y-4 shadow-2xl"
+              >
+                <div className="flex items-center justify-between border-b border-hairline/60 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+                      <Key size={16} />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-white">Atur Ulang Password</h2>
+                      <p className="text-xs text-zinc-400">
+                        Akun member @{resetMember.username}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setResetMember(null)}
+                    aria-label="Tutup modal atur ulang password"
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* Tab Pemilihan Metode */}
+                <div className="grid grid-cols-2 p-1 rounded-xl bg-surface-soft border border-hairline">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetModalMode("direct");
+                      setResetSuccessMessage(null);
+                    }}
+                    className={`py-1.5 text-xs font-bold rounded-lg transition ${
+                      resetModalMode === "direct"
+                        ? "bg-nvidia-green text-black"
+                        : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Password Baru
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetModalMode("link");
+                      setResetSuccessMessage(null);
+                    }}
+                    className={`py-1.5 text-xs font-bold rounded-lg transition ${
+                      resetModalMode === "link"
+                        ? "bg-nvidia-green text-black"
+                        : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Tautan Pemulihan
+                  </button>
+                </div>
+
+                {/* Notifikasi Sukses */}
+                {resetSuccessMessage && (
+                  <div className="p-3 rounded-xl bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
+                    <Check size={14} className="shrink-0" />
+                    <span>{resetSuccessMessage}</span>
+                  </div>
+                )}
+
+                {/* KONTEN METODE 1: DIRECT RESET */}
+                {resetModalMode === "direct" && (
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-zinc-300 block">
+                          Password Sementara Baru
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setNewPasswordInput("gcnet123")}
+                          className="text-[10px] text-nvidia-green hover:underline font-bold"
+                        >
+                          Isi Otomatis gcnet123
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={newPasswordInput}
+                        onChange={(e) => setNewPasswordInput(e.target.value)}
+                        placeholder="Minimal 6 karakter"
+                        className="w-full px-3.5 py-2 rounded-xl bg-surface-soft border border-hairline text-white text-xs font-mono focus:outline-none focus:border-nvidia-green"
+                      />
+                      <span className="text-[11px] text-zinc-500 block">
+                        Kasir dapat memberitahukan kata sandi sementara ini langsung ke member.
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline/60">
+                      <button
+                        type="button"
+                        onClick={() => setResetMember(null)}
+                        className="px-4 py-2 bg-surface-soft hover:bg-white/10 text-zinc-300 text-xs font-bold rounded-xl border border-hairline transition"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSubmittingReset || newPasswordInput.trim().length < 6}
+                        onClick={submitDirectPasswordReset}
+                        className="px-5 py-2 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-50 text-black text-xs font-bold rounded-xl shadow-sm transition"
+                      >
+                        {isSubmittingReset ? "Memproses..." : "Terapkan Password Baru"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* KONTEN METODE 2: RECOVERY LINK */}
+                {resetModalMode === "link" && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      Sistem akan membuat tautan pemulihan resmi dari Supabase Auth untuk alamat email {resetMember.email}. Member cukup membuka tautan tersebut untuk mengatur kata sandi baru secara mandiri.
+                    </p>
+
+                    {!generatedRecoveryLink ? (
+                      <button
+                        type="button"
+                        disabled={isGeneratingLink}
+                        onClick={submitGenerateRecoveryLink}
+                        className="w-full py-2.5 rounded-xl bg-surface-soft hover:bg-white/10 border border-hairline text-white text-xs font-bold flex items-center justify-center gap-2 transition"
+                      >
+                        {isGeneratingLink ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Sparkles size={14} className="text-amber-400" />
+                            <span>Buat Tautan Pemulihan</span>
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-xl bg-black border border-hairline flex items-center gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={generatedRecoveryLink}
+                            className="bg-transparent text-[11px] text-zinc-300 font-mono w-full focus:outline-none truncate select-all"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={copyRecoveryLink}
+                            className="py-2 px-3 rounded-xl bg-surface-soft hover:bg-white/10 border border-hairline text-white text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                          >
+                            {copiedLink ? <Check size={13} className="text-nvidia-green" /> : <Copy size={13} />}
+                            <span>{copiedLink ? "Tersalin" : "Salin Tautan"}</span>
+                          </button>
+
+                          {resetMember.phone ? (
+                            <button
+                              type="button"
+                              onClick={sendRecoveryLinkWhatsApp}
+                              className="py-2 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                            >
+                              <MessageSquareShare size={13} />
+                              <span>Kirim via WA</span>
+                            </button>
+                          ) : (
+                            <div className="py-2 px-3 rounded-xl bg-surface-soft/40 border border-hairline/40 text-zinc-500 text-[11px] font-medium flex items-center justify-center text-center">
+                              No WhatsApp tidak ada
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end pt-2 border-t border-hairline/60">
+                      <button
+                        type="button"
+                        onClick={() => setResetMember(null)}
+                        className="px-4 py-2 bg-surface-soft hover:bg-white/10 text-zinc-300 text-xs font-bold rounded-xl border border-hairline transition"
+                      >
+                        Selesai
+                      </button>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             </motion.div>
           )}

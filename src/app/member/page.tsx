@@ -19,7 +19,8 @@ import {
   Eye,
   EyeOff,
   Pencil,
-  X
+  X,
+  Key
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -53,6 +54,22 @@ export default function MemberPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Forgot Password Modal State
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSendingForgot, setIsSendingForgot] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+
+  // Password Recovery Mode State (saat tautan reset diklik member)
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [newRecoveryPassword, setNewRecoveryPassword] = useState("");
+  const [confirmRecoveryPassword, setConfirmRecoveryPassword] = useState("");
+  const [showRecoveryPassword, setShowRecoveryPassword] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const [recoverySuccess, setRecoverySuccess] = useState<string | null>(null);
+
   const handleGoogleLogin = async () => {
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -80,6 +97,15 @@ export default function MemberPage() {
   useEffect(() => {
     async function initSession() {
       setLoading(true);
+
+      // Cek apakah url mengandung recovery token
+      if (typeof window !== "undefined") {
+        const hash = window.location.hash;
+        if (hash && hash.includes("type=recovery")) {
+          setIsRecoveryMode(true);
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setSessionUser(session.user);
@@ -90,7 +116,11 @@ export default function MemberPage() {
 
     initSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoveryMode(true);
+      }
+
       if (session?.user) {
         setSessionUser(session.user);
         await fetchProfile(session.user.id);
@@ -325,6 +355,64 @@ export default function MemberPage() {
     setSessionUser(null);
     setProfile(null);
     setActionLoading(false);
+  };
+
+  const handleSendForgotPasswordEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(null);
+    setForgotSuccess(null);
+    const cleanEmail = forgotEmail.trim().toLowerCase();
+    if (!cleanEmail) {
+      setForgotError("Alamat email wajib diisi");
+      return;
+    }
+
+    setIsSendingForgot(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: `${window.location.origin}/member`,
+      });
+      if (error) throw error;
+      setForgotSuccess("Tautan pemulihan kata sandi telah dikirim ke email lu. Silakan periksa kotak masuk atau spam.");
+    } catch (err: any) {
+      setForgotError(err?.message || "Gagal mengirim tautan pemulihan kata sandi");
+    } finally {
+      setIsSendingForgot(false);
+    }
+  };
+
+  const handleUpdateRecoveryPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRecoveryError(null);
+    setRecoverySuccess(null);
+
+    const cleanPass = newRecoveryPassword.trim();
+    if (cleanPass.length < 6) {
+      setRecoveryError("Password baru minimal 6 karakter");
+      return;
+    }
+    if (cleanPass !== confirmRecoveryPassword.trim()) {
+      setRecoveryError("Konfirmasi password tidak cocok");
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: cleanPass,
+      });
+      if (error) throw error;
+      setRecoverySuccess("Password akun berhasil diubah. Lu sudah dapat menggunakannya.");
+      setTimeout(() => {
+        setIsRecoveryMode(false);
+        setNewRecoveryPassword("");
+        setConfirmRecoveryPassword("");
+      }, 2000);
+    } catch (err: any) {
+      setRecoveryError(err?.message || "Gagal memperbarui password");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   if (loading) {
@@ -620,9 +708,25 @@ export default function MemberPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                    Password Akun
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                      Password Akun
+                    </label>
+                    {authMode === "login" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgotEmail(email);
+                          setForgotError(null);
+                          setForgotSuccess(null);
+                          setShowForgotModal(true);
+                        }}
+                        className="text-[11px] text-nvidia-green hover:underline font-semibold"
+                      >
+                        Lupa Password?
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
                     <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                     <input
@@ -859,6 +963,217 @@ export default function MemberPage() {
                         <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
                       ) : (
                         <span>Simpan Data</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* MODAL LUPA PASSWORD */}
+        <AnimatePresence>
+          {showForgotModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 1 }}
+                className="w-full max-w-md bg-zinc-950 border border-hairline rounded-2xl p-6 shadow-2xl space-y-4"
+              >
+                <div className="flex items-center justify-between border-b border-hairline/60 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green flex items-center justify-center">
+                      <Key size={16} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Pemulihan Password</h3>
+                      <p className="text-xs text-zinc-400">Kirim tautan reset kata sandi ke email akun</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    aria-label="Tutup modal pemulihan kata sandi"
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {forgotError && (
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0" />
+                    <span>{forgotError}</span>
+                  </div>
+                )}
+
+                {forgotSuccess && (
+                  <div className="p-3 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
+                    <CheckCircle2 size={15} className="shrink-0" />
+                    <span>{forgotSuccess}</span>
+                  </div>
+                )}
+
+                {!forgotSuccess ? (
+                  <form onSubmit={handleSendForgotPasswordEmail} className="space-y-4">
+                    <div>
+                      <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider block mb-1.5">
+                        Alamat Email Akun
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={15} />
+                        <input
+                          type="email"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          placeholder="nama@email.com"
+                          className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-3 py-2.5 rounded-lg text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
+                          required
+                        />
+                      </div>
+                      <span className="text-[11px] text-zinc-500 block mt-1.5">
+                        Tautan khusus untuk menyetel ulang password akan dikirim ke alamat email ini.
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline/60">
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotModal(false)}
+                        className="px-4 py-2.5 rounded-lg border border-hairline text-zinc-400 hover:text-white text-xs font-bold transition"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSendingForgot}
+                        className="px-5 py-2.5 rounded-lg bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {isSendingForgot ? (
+                          <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                        ) : (
+                          <>
+                            <span>Kirim Tautan</span>
+                            <ArrowRight size={14} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotModal(false)}
+                      className="px-5 py-2.5 rounded-lg bg-surface-soft hover:bg-white/10 text-white text-xs font-bold transition"
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* MODAL SETEL ULANG PASSWORD DARI LINK RECOVERY */}
+        <AnimatePresence>
+          {isRecoveryMode && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 1 }}
+                className="w-full max-w-md bg-zinc-950 border border-nvidia-green/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(118,185,0,0.15)] space-y-4"
+              >
+                <div className="flex items-center gap-3 border-b border-hairline/60 pb-3">
+                  <div className="w-9 h-9 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green flex items-center justify-center">
+                    <Key size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Buat Password Baru</h3>
+                    <p className="text-xs text-zinc-400">Atur kata sandi baru untuk akun GC-Net lu</p>
+                  </div>
+                </div>
+
+                {recoveryError && (
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0" />
+                    <span>{recoveryError}</span>
+                  </div>
+                )}
+
+                {recoverySuccess && (
+                  <div className="p-3 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs flex items-center gap-2">
+                    <CheckCircle2 size={15} className="shrink-0" />
+                    <span>{recoverySuccess}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleUpdateRecoveryPassword} className="space-y-4">
+                  <div>
+                    <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider block mb-1.5">
+                      Password Baru
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={15} />
+                      <input
+                        type={showRecoveryPassword ? "text" : "password"}
+                        value={newRecoveryPassword}
+                        onChange={(e) => setNewRecoveryPassword(e.target.value)}
+                        placeholder="Minimal 6 karakter"
+                        className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-9 py-2.5 rounded-lg text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRecoveryPassword(!showRecoveryPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                      >
+                        {showRecoveryPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider block mb-1.5">
+                      Ulangi Password Baru
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={15} />
+                      <input
+                        type={showRecoveryPassword ? "text" : "password"}
+                        value={confirmRecoveryPassword}
+                        onChange={(e) => setConfirmRecoveryPassword(e.target.value)}
+                        placeholder="Ulangi kata sandi di atas"
+                        className="w-full bg-black border border-hairline focus:border-nvidia-green pl-9 pr-9 py-2.5 rounded-lg text-xs font-semibold text-white outline-none transition placeholder:text-zinc-600"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={isUpdatingPassword}
+                      className="w-full py-3 rounded-lg bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {isUpdatingPassword ? (
+                        <div className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                      ) : (
+                        <span>Simpan Password & Masuk</span>
                       )}
                     </button>
                   </div>
