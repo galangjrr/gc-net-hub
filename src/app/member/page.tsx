@@ -823,9 +823,6 @@ export default function MemberPage() {
             <div>
               <div className="flex items-center gap-2.5">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight uppercase text-white">Portal Member GC-Net</h1>
-                <span className="text-xs font-black uppercase px-2.5 py-1 rounded-md bg-nvidia-green/15 text-nvidia-green border border-nvidia-green/30 tracking-wider">
-                  Live Billing
-                </span>
               </div>
               <p className="text-sm text-zinc-300 font-medium mt-0.5">Akun member dan saldo deposit GC-Net</p>
             </div>
