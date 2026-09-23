@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logActivity } from '@/lib/activity-log';
 
 // In-Memory Rate Limiting untuk Anti-Spam Booking
 const bookingAttempts = new Map<string, { count: number; resetTime: number }>();
@@ -123,6 +124,22 @@ export async function POST(req: Request) {
     if (insertError) {
       console.error('Insert booking error:', insertError);
       return NextResponse.json({ error: insertError.message || 'Gagal menyimpan data booking' }, { status: 500 });
+    }
+
+    if (is_admin_manual) {
+      await logActivity(req, {
+        action: 'Input Booking Kasir',
+        target: pc_id,
+        details: `Pemain: ${finalPlayerName} dimasukkan manual oleh kasir`
+      });
+    } else {
+      await logActivity(null, {
+        action: 'Booking Online Masuk',
+        target: pc_id,
+        details: `Pemain: ${finalPlayerName} booking lewat web publik`,
+        actor: 'Pelanggan Online',
+        role: 'publik'
+      });
     }
 
     return NextResponse.json(newBooking);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logActivity } from '@/lib/activity-log';
 
 export async function POST(req: Request) {
   try {
@@ -35,6 +36,15 @@ export async function POST(req: Request) {
     };
     const { error } = await supabaseAdmin.from('pakets').insert(newPaket);
     if (error) throw error;
+
+    if (!data.is_custom) {
+      await logActivity(req, {
+        action: 'Tambah Paket Billing',
+        target: newPaket.name,
+        details: `Harga: Rp ${newPaket.price.toLocaleString('id-ID')}`
+      });
+    }
+
     return NextResponse.json(newPaket);
   } catch (error) {
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
@@ -73,6 +83,13 @@ export async function PUT(req: Request) {
       .eq('id', data.id);
 
     if (error) throw error;
+
+    await logActivity(req, {
+      action: 'Ubah Paket Billing',
+      target: data.name || data.id,
+      details: `Tarif: Rp ${Number(data.price).toLocaleString('id-ID')}`
+    });
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Update paket error:', error);
@@ -93,6 +110,13 @@ export async function DELETE(req: Request) {
 
     const { error } = await supabaseAdmin.from('pakets').delete().eq('id', id);
     if (error) throw error;
+
+    await logActivity(req, {
+      action: 'Hapus Paket Billing',
+      target: id,
+      details: 'Paket billing dihapus dari katalog'
+    });
+
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Delete paket error:', error);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET() {
   try {
@@ -33,6 +34,12 @@ export async function POST(req: Request) {
 
     const { data: inserted, error } = await supabaseAdmin.from('pcs').upsert(payload).select().single();
     if (error) throw error;
+
+    await logActivity(req, {
+      action: 'Simpan Data PC',
+      target: payload.name,
+      details: `Status: ${payload.status}`
+    });
 
     return NextResponse.json(inserted);
   } catch (err: any) {
@@ -72,6 +79,12 @@ export async function PUT(req: Request) {
 
     if (error) throw error;
 
+    await logActivity(req, {
+      action: 'Ubah Data PC',
+      target: updated?.name || cleanId,
+      details: updates.status ? `Status diubah ke ${updates.status}` : 'Spesifikasi/informasi diperbarui'
+    });
+
     return NextResponse.json({ success: true, pc: updated });
   } catch (err: any) {
     console.error('Update PC error:', err);
@@ -94,6 +107,12 @@ export async function DELETE(req: Request) {
 
     const { error } = await supabaseAdmin.from('pcs').delete().eq('id', cleanId);
     if (error) throw error;
+
+    await logActivity(req, {
+      action: 'Hapus Unit PC',
+      target: cleanId,
+      details: 'Unit PC dan antrean terkait dihapus dari sistem'
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

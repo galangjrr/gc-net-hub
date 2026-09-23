@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logActivity } from '@/lib/activity-log';
 
 export async function POST(req: Request) {
   if (!isAdminRequest(req)) {
@@ -41,6 +42,13 @@ export async function POST(req: Request) {
     }));
 
     await supabaseAdmin.from('logs').insert(logEntries);
+
+    const itemsSummary = cart.map((i: any) => `${i.product.name} (${i.qty})`).join(', ');
+    await logActivity(req, {
+      action: 'Checkout Kasir F&B',
+      target: pcTarget,
+      details: `Total: Rp ${(total || 0).toLocaleString('id-ID')} | Item: ${itemsSummary} | Pembeli: ${playerTarget}`
+    });
 
     return NextResponse.json({ success: true, total });
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdminRequest } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -56,6 +57,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     if (action === 'approve') {
       await supabaseAdmin.from('bookings').update({ status: 'active' }).eq('id', id);
+      await logActivity(req, {
+        action: 'Konfirmasi Booking',
+        target: pc?.name || booking.pc_id,
+        details: `Pemain: ${booking.player_name} | Paket: ${paket?.name || 'Paket'}`
+      });
     } else if (action === 'reject') {
       // Delete booking
       await supabaseAdmin.from('bookings').delete().eq('id', id);
@@ -92,6 +98,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       };
       await supabaseAdmin.from('logs').insert(log);
 
+      await logActivity(req, {
+        action: 'Batalkan Booking',
+        target: pc?.name || booking.pc_id,
+        details: `Pemain: ${booking.player_name} | Alasan: ${reason || 'Dibatalkan Kasir'}`
+      });
+
     } else if (action === 'complete') {
       // Delete booking
       await supabaseAdmin.from('bookings').delete().eq('id', id);
@@ -125,6 +137,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       };
       await supabaseAdmin.from('logs').insert(log);
 
+      await logActivity(req, {
+        action: 'Tandai Masuk',
+        target: pc?.name || booking.pc_id,
+        details: `Pemain: ${booking.player_name} masuk ke unit PC | Paket: ${resolvedName}`
+      });
+
     } else if (action === 'edit_paket' && customName && customPrice !== undefined) {
       await cleanupCustomPaket(booking.paket_id, id);
 
@@ -137,6 +155,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       });
 
       await supabaseAdmin.from('bookings').update({ paket_id: customPaketId }).eq('id', id);
+
+      await logActivity(req, {
+        action: 'Ubah Paket Booking',
+        target: pc?.name || booking.pc_id,
+        details: `Pemain: ${booking.player_name} | Paket Baru: ${customName} (Rp ${Number(customPrice).toLocaleString('id-ID')})`
+      });
     } else if (action === 'edit_booking') {
       const { pc_id, player_name, paket_id } = body;
       const updates: any = {};
@@ -149,6 +173,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         updates.paket_id = paket_id;
       }
       await supabaseAdmin.from('bookings').update(updates).eq('id', id);
+
+      await logActivity(req, {
+        action: 'Ubah Data Booking',
+        target: pc?.name || booking.pc_id,
+        details: `Pemain: ${player_name || booking.player_name}`
+      });
     }
 
     return NextResponse.json({ success: true });
@@ -173,6 +203,12 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       if (!rem || rem.length === 0) {
         await supabaseAdmin.from('pcs').update({ expected_empty_time: null, status: 'available' }).eq('id', booking.pc_id);
       }
+
+      await logActivity(req, {
+        action: 'Hapus Antrean',
+        target: booking.pc_id,
+        details: `Pemain: ${booking.player_name} dihapus dari antrean`
+      });
     }
     return NextResponse.json({ success: true });
   } catch (err: any) {

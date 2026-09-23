@@ -94,8 +94,8 @@ export default function RekapKeuanganPage() {
     return 0;
   };
 
-  // Filter logs by period
-  const allLogs = db.logs || [];
+  // Filter logs by period (khusus transaksi finansial: Selesai atau Batal)
+  const allLogs = (db.logs || []).filter(l => l.status === 'Selesai' || l.status === 'Batal');
   const periodLogs = allLogs.filter(l => {
     const logDateStr = l.end_time 
       ? new Date(l.end_time).toLocaleDateString("en-CA") 

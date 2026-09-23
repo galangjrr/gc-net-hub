@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isAdminRequest, hashStaffPassword } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { logActivity } from '@/lib/activity-log';
 
 export interface StaffAccount {
   id: string;
@@ -101,6 +102,12 @@ export async function POST(req: Request) {
 
     if (insertError) throw insertError;
 
+    await logActivity(req, {
+      action: 'Tambah Akun Staf',
+      target: inserted.username,
+      details: `Role: ${inserted.role} | Nama: ${inserted.full_name}`
+    });
+
     return NextResponse.json({
       id: inserted.id,
       username: inserted.username,
@@ -153,6 +160,12 @@ export async function PUT(req: Request) {
 
     if (updateErr) throw updateErr;
 
+    await logActivity(req, {
+      action: 'Ubah Akun Staf',
+      target: targetAccount?.username || id,
+      details: `Role: ${role || targetAccount?.role} | Status: ${active !== false ? 'Aktif' : 'Nonaktif'}`
+    });
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Failed to update account' }, { status: 500 });
@@ -184,6 +197,12 @@ export async function DELETE(req: Request) {
 
     const { error } = await supabaseAdmin.from('staff').delete().eq('id', id);
     if (error) throw error;
+
+    await logActivity(req, {
+      action: 'Hapus Akun Staf',
+      target: targetAccount?.username || id,
+      details: `Akun staf (${targetAccount?.role || 'operator'}) dihapus`
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
