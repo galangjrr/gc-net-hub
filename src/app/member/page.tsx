@@ -835,45 +835,48 @@ export default function MemberPage() {
         </header>
 
         {sessionUser ? (
-          /* ── LOGGED IN: UNIFIED 2-PANEL COHESIVE DASHBOARD ── */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          /* ── LOGGED IN: 2-TIER COHESIVE DASHBOARD ── */
+          <div className="space-y-6">
             
-            {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER SHOWCASE */}
-            <div 
-              className="lg:col-span-5 relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.15)]"
-              style={{ perspective: "1000px" }}
-              onMouseMove={handleCardMouseMove}
-              onMouseLeave={handleCardMouseLeave}
-            >
-              {/* Static Base Border */}
-              <div className="absolute inset-0 rounded-3xl bg-white/10 pointer-events-none" />
-
-              {/* Dynamic Motion Spotlight Border: Kilau Hijau HANYA Menyala Mengikuti Arah Kursor/Motion */}
+            {/* ── TINGKAT 1: PANGGUNG KOKPIT GAMER (EQUAL HEIGHT BALANCED SPLIT) ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              
+              {/* PANEL KIRI: KARTU MEMBER VIP 3D (5 KOLOM) */}
               <div 
-                className="absolute inset-0 rounded-3xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{
-                  background: `radial-gradient(320px circle at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(118, 185, 0, 0.95), rgba(118, 185, 0, 0.2) 45%, transparent 70%)`,
-                }}
-              />
+                className="lg:col-span-5 relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.18)] flex flex-col"
+                style={{ perspective: "1000px" }}
+                onMouseMove={handleCardMouseMove}
+                onMouseLeave={handleCardMouseLeave}
+              >
+                {/* Static Base Border */}
+                <div className="absolute inset-0 rounded-3xl bg-white/10 pointer-events-none" />
 
-              {/* Kartu Utama Berlatar Hitam Solid (Proporsional & Elegan) */}
-              <div className="relative w-full rounded-[23px] bg-zinc-950 p-5 sm:p-6 overflow-hidden">
-                {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan Di Permukaan */}
+                {/* Dynamic Motion Spotlight Border: Kilau Hijau HANYA Menyala Mengikuti Arah Kursor/Motion */}
                 <div 
-                  className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-[23px] overflow-hidden"
+                  className="absolute inset-0 rounded-3xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   style={{
-                    background: `radial-gradient(400px circle at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 45%, transparent 70%)`,
+                    background: `radial-gradient(320px circle at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(118, 185, 0, 0.95), rgba(118, 185, 0, 0.2) 45%, transparent 70%)`,
                   }}
                 />
 
-                {/* 3D Tilting Inner Card Wrapper: Proporsional */}
-                <div 
-                  className="space-y-4 sm:space-y-4.5 transition-transform duration-100 ease-out relative z-30"
-                  style={{
-                    transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
-                    transformStyle: "preserve-3d",
-                  }}
-                >
+                {/* Kartu Utama Berlatar Hitam Solid (Proporsional & Elegan) */}
+                <div className="relative w-full h-full rounded-[23px] bg-zinc-950 p-5 sm:p-6 overflow-hidden flex flex-col justify-between">
+                  {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan Di Permukaan */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-[23px] overflow-hidden"
+                    style={{
+                      background: `radial-gradient(400px circle at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 45%, transparent 70%)`,
+                    }}
+                  />
+
+                  {/* 3D Tilting Inner Card Wrapper */}
+                  <div 
+                    className="h-full flex flex-col justify-between space-y-4 transition-transform duration-100 ease-out relative z-30"
+                    style={{
+                      transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
+                      transformStyle: "preserve-3d",
+                    }}
+                  >
                   {/* Header Kartu: Sim Chip & Status Rank Badge */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -1007,131 +1010,205 @@ export default function MemberPage() {
               </div>
             </div>
 
-            {/* PANEL KANAN: SATU KESATUAN HUB AKTIVITAS, LEVEL & RIWAYAT */}
-            <div className="lg:col-span-7 rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 flex flex-col justify-between shadow-xl space-y-6">
-              
-              {/* Strip Preferensi & Layanan Member (Horizontal Bar di Atas) */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-2xl bg-zinc-900/60 border border-white/10">
-                {/* 1. PC Jagoan */}
-                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-zinc-950/60 border border-white/5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                    <Monitor size={15} />
+            {/* PANEL KANAN: PANEL COMMAND HUD GAMER (7 KOLOM) */}
+            <div className="lg:col-span-7 rounded-3xl bg-zinc-950 border border-white/15 p-5 sm:p-6 shadow-xl flex flex-col justify-between relative overflow-hidden group">
+              {/* Subtle Ambient Glow */}
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-nvidia-green/10 rounded-full blur-3xl pointer-events-none group-hover:bg-nvidia-green/15 transition-all duration-500" />
+
+              {/* Header HUD */}
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 relative z-10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shadow-sm">
+                    <Sparkles size={16} />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">
-                      PC Jagoan
-                    </span>
-                    <span className="text-xs sm:text-sm font-black text-white font-mono truncate block">
-                      {favoritePc}
-                    </span>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-black uppercase text-white tracking-wider">
+                      Status & Aktivitas Member
+                    </h3>
+                    <p className="text-[11px] text-zinc-400 font-medium">
+                      Ringkasan preferensi bermain di GC-Net
+                    </p>
                   </div>
                 </div>
+
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-white/10">
+                  <span className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse" />
+                  <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase">
+                    10 Unit Aktif
+                  </span>
+                </div>
+              </div>
+
+              {/* Grid 4 Kartu Interaktif Beranimasi */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-3 relative z-10 flex-1 content-center">
+                {/* 1. PC Jagoan */}
+                <motion.div 
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900/90 border border-white/10 hover:border-emerald-500/40 transition-all duration-200 shadow-sm space-y-1.5 cursor-default group/card"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                        <Monitor size={14} />
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        PC Jagoan
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                      Favorit
+                    </span>
+                  </div>
+                  <div className="text-base sm:text-lg font-black text-white font-mono tracking-tight pt-0.5">
+                    {favoritePc}
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-medium">
+                    Meja gaming yang paling sering lu pesan
+                  </p>
+                </motion.div>
 
                 {/* 2. Paket Andalan */}
-                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-zinc-950/60 border border-white/5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                    <Clock size={15} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">
-                      Paket Andalan
+                <motion.div 
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900/90 border border-white/10 hover:border-amber-500/40 transition-all duration-200 shadow-sm space-y-1.5 cursor-default group/card"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                        <Clock size={14} />
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        Paket Andalan
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                      Billing
                     </span>
-                    <span className="text-xs sm:text-sm font-black text-white truncate block">
-                      {favoritePaket}
-                    </span>
                   </div>
-                </div>
+                  <div className="text-base sm:text-lg font-black text-white truncate tracking-tight pt-0.5">
+                    {favoritePaket}
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-medium">
+                    Pilihan paket main yang paling rutin lu ambil
+                  </p>
+                </motion.div>
 
                 {/* 3. Privilese Pangkat */}
-                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-zinc-950/60 border border-white/5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
-                    <ShieldCheck size={15} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">
-                      Privilese {currentTier.name}
-                    </span>
-                    <span className="text-xs font-bold text-zinc-200 truncate block">
+                <motion.div 
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  className="p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900/90 border border-white/10 hover:border-cyan-500/40 transition-all duration-200 shadow-sm space-y-1.5 cursor-default group/card"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                        <ShieldCheck size={14} />
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+                        Privilese {currentTier.name}
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
                       {currentTier.title}
                     </span>
                   </div>
-                </div>
+                  <div className="text-sm sm:text-base font-bold text-white tracking-tight pt-0.5 truncate">
+                    {currentTier.perks?.[0] || "Akses standard billing"}
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-medium truncate">
+                    Hak istimewa aktif member pangkat {currentTier.name}
+                  </p>
+                </motion.div>
 
-                {/* 4. Tombol Chat Kasir */}
-                <button
+                {/* 4. Akses Chat Operator Kasir */}
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setIsChatOpen(true)}
-                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-950/80 hover:bg-zinc-900 border border-nvidia-green/30 hover:border-nvidia-green/70 text-white transition group active:scale-95 shadow-sm"
+                  className="p-3.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-nvidia-green/40 hover:border-nvidia-green text-left transition-all duration-200 shadow-md space-y-1.5 flex flex-col justify-between group/chat cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="relative flex h-2 w-2 shrink-0">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green">
+                        <Headphones size={14} className="group-hover/chat:rotate-12 transition-transform duration-300" />
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
+                        Chat Operator Kasir
+                      </span>
+                    </div>
+                    <span className="flex h-2 w-2 relative">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green" />
                     </span>
-                    <Headphones size={15} className="text-nvidia-green group-hover:rotate-12 transition-transform shrink-0" />
-                    <div className="text-left min-w-0">
-                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">
-                        Kasir Online
-                      </span>
-                      <span className="text-xs font-black text-white uppercase tracking-wider block truncate">
-                        Buka Chat
-                      </span>
-                    </div>
                   </div>
-                  <ArrowRight size={13} className="text-zinc-500 group-hover:text-nvidia-green group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
-                </button>
+                  <div className="flex items-center justify-between w-full pt-0.5">
+                    <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wide group-hover/chat:text-nvidia-green transition-colors">
+                      Buka Pesan Kasir
+                    </span>
+                    <ArrowRight size={14} className="text-zinc-400 group-hover/chat:text-nvidia-green group-hover/chat:translate-x-1 transition-all" />
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-medium">
+                    Bantuan cepat seputar PC dan pesanan
+                  </p>
+                </motion.button>
               </div>
 
-              {/* Header Tab Terintegrasi */}
-              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 overflow-x-auto">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("quests")}
-                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
-                    activeTab === "quests"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Misi Warnet
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("level")}
-                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
-                    activeTab === "level"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Pangkat & Benefit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("history")}
-                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
-                    activeTab === "history"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Riwayat Booking
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("profile")}
-                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
-                    activeTab === "profile"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Info Akun
-                </button>
+              {/* Footer Mini HUD */}
+              <div className="flex items-center justify-between pt-2.5 border-t border-white/5 text-[11px] text-zinc-400 font-mono relative z-10">
+                <span>Member ID: {memberCode}</span>
+                <span className="text-zinc-300 font-medium">Total Booking: {bookings.length} Pesanan</span>
               </div>
+            </div>
 
-              {/* Konten Tab yang Terisi Penuh */}
-              <div className="flex-1 flex flex-col justify-between">
+          </div>
+
+          {/* ── TINGKAT 2: PANGGUNG TAB HUB AKTIVITAS LEBAR PENUH ── */}
+          <div className="rounded-3xl bg-zinc-950 border border-white/15 p-6 sm:p-7 shadow-xl space-y-6">
+            
+            {/* Header Tab Terintegrasi dengan Animasi Sliding Pill */}
+            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-zinc-900 border border-white/10 overflow-x-auto relative">
+              {[
+                { id: "quests", label: "Misi Warnet" },
+                { id: "level", label: "Pangkat & Benefit" },
+                { id: "history", label: "Riwayat Booking" },
+                { id: "profile", label: "Info Akun" },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                    className={`relative flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition-colors whitespace-nowrap z-10 ${
+                      isActive ? "text-black" : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabPill"
+                        className="absolute inset-0 bg-nvidia-green rounded-xl shadow-md z-[-1]"
+                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      />
+                    )}
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Konten Tab dengan Animasi Crossfade */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="flex-1 flex flex-col justify-between"
+              >
                 
                 {/* TAB 1: PANGKAT & BENEFIT */}
                 {activeTab === "level" && (
@@ -1563,7 +1640,8 @@ export default function MemberPage() {
                   </div>
                 )}
 
-              </div>
+                </motion.div>
+              </AnimatePresence>
 
             </div>
 
