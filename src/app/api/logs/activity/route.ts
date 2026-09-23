@@ -31,13 +31,13 @@ export async function GET(req: Request) {
     const { data: rows, error } = await query;
     if (error) throw error;
 
-    const todayStr = new Date().toLocaleDateString('en-CA');
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
     let todayCount = 0;
     const operatorCounts: Record<string, number> = {};
 
     const activities = (rows || []).map(r => {
       const timeStr = r.start_time || new Date().toISOString();
-      const rowDate = timeStr.split('T')[0];
+      const rowDate = new Date(timeStr).toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
       if (rowDate === todayStr) {
         todayCount++;
       }
@@ -61,9 +61,10 @@ export async function GET(req: Request) {
         action: r.paket_name,
         details,
         timestamp: timeStr,
+        localDate: rowDate,
       };
     }).filter(act => {
-      if (date && !act.timestamp.startsWith(date)) return false;
+      if (date && act.localDate !== date) return false;
       if (search) {
         const match =
           act.operator.toLowerCase().includes(search) ||
