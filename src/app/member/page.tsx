@@ -25,7 +25,7 @@ import {
   Zap,
   Flame,
   Award,
-  QrCode,
+  Copy,
   Check,
   ChevronRight,
   Monitor,
@@ -195,8 +195,16 @@ export default function MemberPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Barcode Member Modal State
-  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+  // Copy Member ID State
+  const [copiedId, setCopiedId] = useState(false);
+
+  const handleCopyMemberId = (text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    }
+  };
 
   // Topup Info Modal State
   const [showTopupInfoModal, setShowTopupInfoModal] = useState(false);
@@ -695,7 +703,7 @@ export default function MemberPage() {
                     </p>
                   </div>
 
-                  {/* Balance Display & Barcode Quick Trigger */}
+                  {/* Balance Display & Member ID Pill */}
                   <div className="pt-4 border-t border-white/10 relative z-10 flex items-end justify-between gap-4">
                     <div>
                       <span className="text-[10px] uppercase text-zinc-400 font-bold tracking-wider block mb-0.5">
@@ -711,35 +719,50 @@ export default function MemberPage() {
 
                     <button
                       type="button"
-                      onClick={() => setShowBarcodeModal(true)}
-                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-hairline text-zinc-200 hover:text-white transition flex flex-col items-center gap-1 shrink-0 group active:scale-95"
+                      onClick={() => handleCopyMemberId(memberCode)}
+                      title="Salin ID Member"
+                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-hairline text-zinc-300 hover:text-white transition flex flex-col items-end gap-1 shrink-0 group active:scale-95"
                     >
-                      <QrCode size={18} className="text-nvidia-green group-hover:scale-110 transition-transform" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">Barcode ID</span>
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-400 group-hover:text-white font-bold">
+                        <span>{memberCode}</span>
+                        {copiedId ? (
+                          <Check size={12} className="text-nvidia-green" />
+                        ) : (
+                          <Copy size={12} className="text-zinc-400 group-hover:text-white" />
+                        )}
+                      </div>
+                      <span className="text-[9px] uppercase tracking-wider text-zinc-500 group-hover:text-zinc-300">
+                        {copiedId ? "Tersalin" : "Salin ID"}
+                      </span>
                     </button>
                   </div>
 
-                  {/* Visual Barcode Pattern */}
-                  <div 
-                    onClick={() => setShowBarcodeModal(true)}
-                    className="mt-4 pt-3 border-t border-hairline/60 flex items-center justify-between cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <div className="w-1 h-5 bg-white" />
-                      <div className="w-2 h-5 bg-white" />
-                      <div className="w-0.5 h-5 bg-white" />
-                      <div className="w-1.5 h-5 bg-white" />
-                      <div className="w-1 h-5 bg-white" />
-                      <div className="w-0.5 h-5 bg-white" />
-                      <div className="w-2 h-5 bg-white" />
-                      <div className="w-1 h-5 bg-white" />
-                      <div className="w-0.5 h-5 bg-white" />
-                      <div className="w-1.5 h-5 bg-white" />
-                      <div className="w-2 h-5 bg-white" />
+                  {/* Gamer EXP Bar on Card */}
+                  <div className="mt-4 pt-3.5 border-t border-white/10 space-y-2 relative z-10">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 text-zinc-300 font-bold">
+                        <Zap size={14} className="text-nvidia-green animate-pulse" />
+                        <span className="text-[10px] uppercase font-mono tracking-wider">EXP Progress</span>
+                      </div>
+                      <span className="font-mono text-xs font-black text-white">{progressPercent}%</span>
                     </div>
-                    <span className="text-[10px] font-mono tracking-widest text-zinc-400 group-hover:text-white transition-colors">
-                      {memberCode}
-                    </span>
+
+                    {/* Progress Track */}
+                    <div className="w-full h-2.5 rounded-full bg-black/80 border border-white/10 p-0.5 overflow-hidden">
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-nvidia-green via-lime-400 to-cyan-400 shadow-[0_0_12px_rgba(118,185,0,0.4)] transition-all duration-500"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-zinc-400 font-mono">
+                      <span>Tier: {currentTier.name}</span>
+                      {currentTier.nextTier ? (
+                        <span>Target: {currentTier.nextTier}</span>
+                      ) : (
+                        <span className="text-emerald-400 font-bold">Pangkat Tertinggi</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1434,83 +1457,6 @@ export default function MemberPage() {
           </div>
         )}
 
-        {/* ── MODAL FULLSCREEN BARCODE KASIR (QUICK SCAN DI WARNET) ── */}
-        <AnimatePresence>
-          {showBarcodeModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                className="bg-zinc-950 border border-nvidia-green/40 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[0_0_50px_rgba(118,185,0,0.2)] text-center relative overflow-hidden"
-              >
-                <button
-                  type="button"
-                  onClick={() => setShowBarcodeModal(false)}
-                  className="absolute top-5 right-5 p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/10 transition"
-                >
-                  <X size={18} />
-                </button>
-
-                <span className="text-[10px] font-mono tracking-widest text-nvidia-green uppercase font-bold block mb-1">
-                  KARTU IDENTITAS KASIR
-                </span>
-                <h3 className="text-xl font-black text-white uppercase tracking-tight">
-                  {profile?.username || "MEMBER"}
-                </h3>
-                <p className="text-xs text-zinc-400 mb-6">
-                  Tunjukkan barcode ini ke operator saat top up saldo tunai di kasir
-                </p>
-
-                {/* High Contrast Barcode Box */}
-                <div className="p-6 rounded-2xl bg-white text-black shadow-xl space-y-4">
-                  {/* Clean SVG Simulated Barcode */}
-                  <div className="flex items-center justify-center gap-1 h-24 overflow-hidden px-2">
-                    {[3, 1, 4, 1, 2, 5, 2, 4, 1, 3, 2, 1, 4, 2, 5, 1, 3, 2, 4, 1, 2].map((w, i) => (
-                      <div
-                        key={i}
-                        className="bg-black h-full"
-                        style={{ width: `${w * 3}px` }}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="pt-2 border-t border-zinc-200">
-                    <span className="font-mono font-black text-sm tracking-widest text-black block">
-                      {memberCode}
-                    </span>
-                    <span className="text-[10px] font-bold text-zinc-600 block mt-0.5">
-                      {profile?.phone || profile?.email}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-center justify-center gap-2">
-                  <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-wider`}>
-                    Rank {currentTier.name}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-nvidia-green">
-                    Rp {currentBalance.toLocaleString("id-ID")}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowBarcodeModal(false)}
-                  className="w-full mt-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition"
-                >
-                  Tutup Tampilan
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* ── MODAL PANDUAN TOP UP KASIR ── */}
         <AnimatePresence>
           {showTopupInfoModal && (
@@ -1555,7 +1501,7 @@ export default function MemberPage() {
                     </div>
                     <div>
                       <span className="font-bold text-white block mb-0.5">Kunjungi Meja Operator</span>
-                      Datangi kasir warnet dan sebutkan nickname akun ({profile?.username || "nama"}) atau tunjukkan barcode kartu member.
+                      Datangi kasir warnet dan sebutkan nickname akun ({profile?.username || "nama"}) atau tunjukkan kode ID {memberCode}.
                     </div>
                   </div>
 
@@ -1583,14 +1529,11 @@ export default function MemberPage() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowTopupInfoModal(false);
-                      setShowBarcodeModal(true);
-                    }}
+                    onClick={() => handleCopyMemberId(memberCode)}
                     className="flex-1 py-3 rounded-xl bg-nvidia-green hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_15px_rgba(118,185,0,0.25)] flex items-center justify-center gap-1.5"
                   >
-                    <QrCode size={14} />
-                    <span>Buka Barcode ID</span>
+                    {copiedId ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{copiedId ? "ID Tersalin" : "Salin ID Member"}</span>
                   </button>
                   <button
                     type="button"
