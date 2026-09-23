@@ -134,7 +134,15 @@ export default function MemberManagementPage() {
   };
 
   const submitTopUp = async () => {
-    if (!topUpMember || topUpAmount === 0) return;
+    if (!topUpMember) return;
+    if (topUpAmount < 1000) {
+      alert("Minimal top up saldo adalah Rp 1.000");
+      return;
+    }
+    if (topUpAmount > 2000000) {
+      alert("Maksimal top up kasir sekali transaksi adalah Rp 2.000.000");
+      return;
+    }
     setIsSubmittingTopUp(true);
     try {
       const res = await fetch("/api/admin/members", {

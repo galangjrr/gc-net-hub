@@ -82,45 +82,66 @@ export async function PUT(req: Request) {
     }
 
     if (action === 'topup') {
-      const amount = Number(body.amount);
-      if (isNaN(amount) || amount === 0) {
-        return NextResponse.json({ error: 'Nominal top up tidak valid' }, { status: 400 });
+      const rawAmount = Number(body.amount);
+      if (isNaN(rawAmount) || !Number.isFinite(rawAmount)) {
+        return NextResponse.json({ error: 'Nominal top up wajib berupa angka yang sah' }, { status: 400 });
+      }
+
+      const amount = Math.floor(rawAmount);
+
+      // Batas minimal top up kasir Rp 1.000
+      if (amount < 1000) {
+        return NextResponse.json({ error: 'Minimal top up saldo adalah Rp 1.000' }, { status: 400 });
+      }
+
+      // Batas maksimal top up sekali transaksi kasir Rp 2.000.000
+      if (amount > 2000000) {
+        return NextResponse.json({ error: 'Maksimal top up kasir sekali transaksi adalah Rp 2.000.000' }, { status: 400 });
       }
 
       const currentBal = Number(currentMember.balance) || 0;
-      const newBal = Math.max(0, currentBal + amount);
+      const newBal = currentBal + amount;
 
+      // Batas plafon deposit maksimal per akun member Rp 10.000.000
+      if (newBal > 10000000) {
+        return NextResponse.json({ error: 'Saldo akumulasi member tidak boleh melebihi batas Rp 10.000.000' }, { status: 400 });
+      }
+
+      // Catat transaksi keuangan kasir terlebih dahulu ke pembukuan rekap
+      const logId = `log-topup-${crypto.randomUUID()}`;
+      const nowIso = new Date().toISOString();
+
+      const { error: logErr } = await supabaseAdmin.from('logs').insert({
+        id: logId,
+        player_name: currentMember.username,
+        pc_name: 'KASIR',
+        paket_name: `Top Up Saldo Member @${currentMember.username}`,
+        price: amount,
+        start_time: nowIso,
+        end_time: nowIso,
+        status: 'Selesai',
+        reason: `Penerimaan kas kasir untuk ${currentMember.full_name || currentMember.username}`
+      });
+
+      if (logErr) throw logErr;
+
+      // Update saldo akun member
       const { error: updateErr } = await supabaseAdmin
         .from('members')
         .update({
           balance: newBal,
-          updated_at: new Date().toISOString()
+          updated_at: nowIso
         })
         .eq('id', id);
 
       if (updateErr) throw updateErr;
 
-      // Catat ke log aktivitas kasir
+      // Catat ke log audit trail operator kasir
       await logActivity(req, {
-        action: amount > 0 ? 'Top Up Saldo Member' : 'Potong Saldo Member',
+        action: 'Top Up Saldo Member',
         target: currentMember.username,
-        details: `Nominal: ${amount > 0 ? '+' : ''}Rp ${amount.toLocaleString('id-ID')} | Saldo Akhir: Rp ${newBal.toLocaleString('id-ID')}`
+        details: `Nominal: +Rp ${amount.toLocaleString('id-ID')} | Saldo Awal: Rp ${currentBal.toLocaleString('id-ID')} | Saldo Akhir: Rp ${newBal.toLocaleString('id-ID')}`
       });
-
-      // Jika top up bernilai positif via kasir, catat transaksi finansial kasir
-      if (amount > 0) {
-        await supabaseAdmin.from('logs').insert({
-          id: `log-topup-${crypto.randomUUID()}`,
-          player_name: currentMember.username,
-          pc_name: 'KASIR',
-          paket_name: `Top Up Saldo Member (${currentMember.username})`,
-          price: amount,
-          start_time: new Date().toISOString(),
-          end_time: new Date().toISOString(),
-          status: 'Selesai',
-          reason: `Top up kasir untuk ${currentMember.full_name || currentMember.username}`
-        });
-      }
 
       return NextResponse.json({ success: true, balance: newBal });
     }
