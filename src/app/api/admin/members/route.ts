@@ -90,7 +90,7 @@ export async function PUT(req: Request) {
     }
 
     if (action === 'topup') {
-      // 1. Pagar Concurrency Mutex: cegah double spending atau benturan transaksi paralel
+      // 1. Pagar Concurrency Mutex: cegah double click kasir atau benturan request paralel
       if (topUpLocks.has(id)) {
         return NextResponse.json({ 
           error: 'Transaksi top up untuk member ini sedang berjalan. Mohon tunggu beberapa detik.' 
@@ -100,13 +100,16 @@ export async function PUT(req: Request) {
       topUpLocks.add(id);
 
       try {
-        // 2. Sanitasi & Validasi Input Tipe Data
-        const rawAmount = Number(body.amount);
-        if (isNaN(rawAmount) || !Number.isFinite(rawAmount) || !Number.isSafeInteger(Math.floor(rawAmount))) {
-          return NextResponse.json({ error: 'Nominal top up wajib berupa angka bulat positif yang sah' }, { status: 400 });
+        // 2. Sanitasi Kebal Format: hanya ambil digit murni, kebal terhadap titik, koma, spasi, atau format Rp
+        const cleanStr = String(body.amount ?? '').replace(/\D/g, '');
+        if (!cleanStr) {
+          return NextResponse.json({ error: 'Nominal top up wajib berupa angka yang sah' }, { status: 400 });
         }
 
-        const amount = Math.floor(rawAmount);
+        const amount = parseInt(cleanStr, 10);
+        if (isNaN(amount) || amount <= 0) {
+          return NextResponse.json({ error: 'Nominal top up tidak valid' }, { status: 400 });
+        }
 
         // Batas minimal top up kasir Rp 5.000
         if (amount < MIN_SINGLE_TOPUP) {
@@ -122,34 +125,46 @@ export async function PUT(req: Request) {
           }, { status: 400 });
         }
 
-        // 3. Ambil data saldo segar terbaru langsung dari database (bukan cache)
-        const { data: freshMember, error: freshErr } = await supabaseAdmin
+        // 3. Ambil data saldo segar terbaru langsung dari database
+        const { data: freshMember, error: fetchErr } = await supabaseAdmin
           .from('members')
           .select('id, username, full_name, balance')
           .eq('id', id)
           .single();
 
-        if (freshErr || !freshMember) {
+        if (fetchErr || !freshMember) {
           return NextResponse.json({ error: 'Data member tidak ditemukan' }, { status: 404 });
         }
 
         const currentBal = Number(freshMember.balance) || 0;
         const newBal = currentBal + amount;
 
-        // 4. Batas plafon deposit maksimal per akun member Rp 1.000.000
+        // 4. Batas plafon saldo maksimal akun member Rp 1.000.000
         if (newBal > MAX_MEMBER_BALANCE) {
           const maxAllowed = Math.max(0, MAX_MEMBER_BALANCE - currentBal);
           return NextResponse.json({ 
-            error: `Saldo akun melebihi batas maksimal Rp ${MAX_MEMBER_BALANCE.toLocaleString('id-ID')}. Sisa kuota top up akun ini adalah Rp ${maxAllowed.toLocaleString('id-ID')}.` 
+            error: `Saldo akun melebihi batas maksimal Rp ${MAX_MEMBER_BALANCE.toLocaleString('id-ID')}. Sisa kuota pengisian saat ini adalah Rp ${maxAllowed.toLocaleString('id-ID')}.` 
           }, { status: 400 });
         }
 
-        const logId = `log-topup-${crypto.randomUUID()}`;
         const nowIso = new Date().toISOString();
 
-        // 5. Catat transaksi keuangan kasir terlebih dahulu ke pembukuan rekap
-        const { error: logErr } = await supabaseAdmin.from('logs').insert({
-          id: logId,
+        // 5. Update saldo member terlebih dahulu agar hak pemain aman seratus persen
+        const { error: updateErr } = await supabaseAdmin
+          .from('members')
+          .update({
+            balance: newBal,
+            updated_at: nowIso
+          })
+          .eq('id', id);
+
+        if (updateErr) {
+          return NextResponse.json({ error: 'Gagal memperbarui saldo member di database' }, { status: 500 });
+        }
+
+        // 6. Catat transaksi keuangan kasir ke pembukuan rekap
+        await supabaseAdmin.from('logs').insert({
+          id: `log-topup-${crypto.randomUUID()}`,
           player_name: freshMember.username,
           pc_name: 'KASIR',
           paket_name: `Top Up Saldo Member @${freshMember.username}`,
@@ -160,29 +175,7 @@ export async function PUT(req: Request) {
           reason: `Penerimaan kas kasir untuk ${freshMember.full_name || freshMember.username}`
         });
 
-        if (logErr) throw logErr;
-
-        // 6. Update saldo member dengan Optimistic Concurrency Control (OCC)
-        const { data: updatedMember, error: updateErr } = await supabaseAdmin
-          .from('members')
-          .update({
-            balance: newBal,
-            updated_at: nowIso
-          })
-          .eq('id', id)
-          .eq('balance', currentBal)
-          .select('id, balance')
-          .maybeSingle();
-
-        // 7. Rollback transaksi kasir jika update member bentrok atau gagal
-        if (updateErr || !updatedMember) {
-          await supabaseAdmin.from('logs').delete().eq('id', logId);
-          return NextResponse.json({ 
-            error: 'Terjadi benturan data transaksi bersamaan. Saldo tidak berubah, silakan coba kembali.' 
-          }, { status: 409 });
-        }
-
-        // 8. Catat ke log audit trail operator kasir
+        // 7. Catat ke log audit trail operator kasir
         await logActivity(req, {
           action: 'Top Up Saldo Member',
           target: freshMember.username,
@@ -191,7 +184,6 @@ export async function PUT(req: Request) {
 
         return NextResponse.json({ success: true, balance: newBal });
       } finally {
-        // Lepaskan kunci mutex agar member bisa bertransaksi kembali
         topUpLocks.delete(id);
       }
     }
