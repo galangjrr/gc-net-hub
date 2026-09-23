@@ -654,110 +654,128 @@ export default function MemberPage() {
                 {/* Header Kartu: Sim Chip & Status Online */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-8 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-inner">
-                      <div className="w-full h-full border border-amber-950/40 rounded-[3px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
+                    <div className="w-9 h-7 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
+                      <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
                         <div className="border-r border-b border-amber-950/40" />
                         <div className="border-b border-amber-950/40" />
                         <div className="border-r border-amber-950/40" />
                         <div />
                       </div>
                     </div>
-                    <span className="text-xs font-mono tracking-widest text-zinc-300 uppercase font-black">
+                    <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase font-black">
                       GC ESPORTS ID
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-200">
-                    <span className="w-2.5 h-2.5 rounded-full bg-nvidia-green animate-pulse" />
-                    <span className="font-mono font-bold tracking-wider">ONLINE</span>
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs text-zinc-300">
+                    <span className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse" />
+                    <span className="font-mono font-bold tracking-wider text-[11px]">ONLINE</span>
                   </div>
                 </div>
 
-                {/* Nickname & Identitas Akun */}
-                <div>
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <span className={`text-xs font-black uppercase px-3 py-1 rounded-md border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
-                      {currentTier.name}
-                    </span>
-                    <span className="text-xs sm:text-sm text-zinc-300 font-bold">
-                      {currentTier.title}
-                    </span>
+                {/* Nickname & Identitas Akun (Hero Player Treatment) */}
+                <div className="flex items-center gap-4 pt-1">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shrink-0 shadow-lg ring-1 ring-white/10">
+                    {(profile?.username?.[0] || sessionUser.email?.[0] || "G").toUpperCase()}
                   </div>
 
-                  <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase break-all">
-                    {profile?.username || sessionUser.email?.split("@")[0]}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-zinc-300 mt-1 font-medium truncate">
-                    {profile?.full_name || sessionUser.email}
-                  </p>
-                </div>
-
-                {/* Saldo Deposit & Tombol Salin ID */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900/90 border border-white/10 flex items-end justify-between gap-3">
-                  <div>
-                    <span className="text-xs uppercase text-zinc-400 font-black tracking-wider block mb-1">
-                      Saldo Deposit
-                    </span>
-                    <div className="text-2xl sm:text-3xl font-black text-nvidia-green tracking-tight font-mono">
-                      Rp {currentBalance.toLocaleString("id-ID")}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded border ${currentTier.badgeBg} ${currentTier.badgeText} ${currentTier.badgeBorder} tracking-widest`}>
+                        {currentTier.name}
+                      </span>
+                      <span className="text-xs text-zinc-400 font-bold truncate">
+                        {currentTier.title}
+                      </span>
                     </div>
-                    <span className="text-xs text-zinc-400 font-medium block mt-1">
-                      Plafon maksimal Rp 1.000.000
+
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight uppercase truncate">
+                        {profile?.username || sessionUser.email?.split("@")[0]}
+                      </h2>
+                      <CheckCircle2 size={20} className="text-nvidia-green shrink-0" />
+                    </div>
+
+                    <p className="text-xs text-zinc-400 font-medium truncate mt-0.5">
+                      {profile?.full_name || sessionUser.email}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Saldo Deposit & Status Billing Terpadu (Seamless Wallet Ribbon) */}
+                <div className="rounded-2xl bg-zinc-900/60 border border-white/10 p-4 sm:p-5 space-y-3.5 backdrop-blur-sm">
+                  {/* Baris Atas Saldo: Label & ID Member */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <CreditCard size={15} className="text-nvidia-green shrink-0" />
+                      <span className="text-[11px] uppercase text-zinc-400 font-black tracking-wider">
+                        Saldo Deposit Tersedia
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopyMemberId(memberCode)}
+                      title="Salin ID Member"
+                      className="px-2.5 py-1 rounded-lg bg-zinc-950/80 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white transition flex items-center gap-1.5 shrink-0 active:scale-95"
+                    >
+                      <span className="font-mono font-bold text-[11px] text-zinc-200">{memberCode}</span>
+                      {copiedId ? (
+                        <Check size={12} className="text-nvidia-green" />
+                      ) : (
+                        <Copy size={12} className="text-zinc-400" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Nilai Saldo Hero */}
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-lg sm:text-xl font-black text-nvidia-green">Rp</span>
+                    <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
+                      {currentBalance.toLocaleString("id-ID")}
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleCopyMemberId(memberCode)}
-                    title="Salin ID Member"
-                    className="px-3 py-2 rounded-xl bg-black/60 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white transition flex items-center gap-2 shrink-0 active:scale-95 shadow-sm"
-                  >
-                    <span className="font-mono font-black text-xs text-white">{memberCode}</span>
-                    {copiedId ? (
-                      <Check size={14} className="text-nvidia-green" />
-                    ) : (
-                      <Copy size={14} className="text-zinc-400" />
-                    )}
-                  </button>
-                </div>
-
-                {/* Status Billing Ready */}
-                <div className="px-4 py-3 rounded-xl bg-zinc-900/60 border border-white/10 flex items-center justify-between text-xs sm:text-sm font-bold text-zinc-300">
-                  <span className="flex items-center gap-2">
-                    <Monitor size={16} className="text-nvidia-green shrink-0" />
-                    <span>{profile?.gc_user_id ? "Sesi Aktif di Komputer" : "Siap Dipakai Booking PC"}</span>
-                  </span>
-                  <span className="text-nvidia-green font-mono text-xs font-black">TERHUBUNG</span>
+                  {/* Status Integrasi Billing Live (Seamless Footer) */}
+                  <div className="flex items-center justify-between pt-2.5 border-t border-white/5 text-[11px] font-semibold text-zinc-400">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green" />
+                      <span>Koneksi Billing Warnet</span>
+                    </div>
+                    <span className="font-mono font-bold text-nvidia-green text-[10px] tracking-wider uppercase">
+                      {profile?.gc_user_id ? "Sesi Aktif di Komputer" : "Siap Bermain"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Aksi Terintegrasi di Bawah Kartu (Menyatu Utuh) */}
-              <div className="space-y-3 pt-4 border-t border-white/10">
+              {/* Aksi Cepat Terintegrasi (Proporsional & Ramping) */}
+              <div className="space-y-2.5 pt-2">
                 <Link
                   href="/"
-                  className="w-full py-3.5 px-4 rounded-xl bg-nvidia-green hover:bg-white text-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md"
+                  className="w-full py-2.5 px-4 rounded-xl bg-nvidia-green hover:bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-sm hover:scale-[1.01] active:scale-[0.99]"
                 >
-                  <Gamepad2 size={18} />
-                  <span>Pesan PC Sekarang</span>
-                  <ArrowRight size={16} />
+                  <Gamepad2 size={16} />
+                  <span>Pesan Bilik PC Sekarang</span>
+                  <ArrowRight size={14} />
                 </Link>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setShowTopupInfoModal(true)}
-                    className="py-3 px-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
+                    className="py-2 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition"
                   >
-                    <CreditCard size={16} className="text-nvidia-green shrink-0" />
-                    <span>Isi Saldo</span>
+                    <CreditCard size={14} className="text-nvidia-green shrink-0" />
+                    <span>Isi Saldo Kasir</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={openEditModal}
-                    className="py-3 px-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
+                    className="py-2 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-zinc-200 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition"
                   >
-                    <Pencil size={16} className="text-cyan-400 shrink-0" />
+                    <Pencil size={14} className="text-cyan-400 shrink-0" />
                     <span>Ubah Profil</span>
                   </button>
                 </div>
@@ -908,72 +926,136 @@ export default function MemberPage() {
                 {/* TAB 2: MISI WARNET */}
                 {activeTab === "quests" && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                        <Gift size={20} />
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Gift size={20} />
+                        </div>
+                        <div>
+                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                            Misi Harian Pemain
+                          </h3>
+                          <p className="text-xs text-zinc-300 font-medium">
+                            Selesaikan tantangan warnet untuk menambah keaktifan dan EXP akun
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
-                          Misi Harian Pemain
-                        </h3>
-                        <p className="text-xs text-zinc-300 font-medium">
-                          Selesaikan tantangan warnet untuk menambah keaktifan akun lu
-                        </p>
-                      </div>
+
+                      <span className="hidden sm:inline-flex text-[11px] font-mono font-bold text-zinc-400 px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/10">
+                        RESET TIAP 24 JAM
+                      </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="p-4 rounded-2xl bg-zinc-900 border border-nvidia-green/40 flex flex-col justify-between">
+                    {/* Grid Quest Cards yang Menarik & Bergaya Gamifikasi */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                      {/* Quest 1: Check-in Harian (Selesai) */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-emerald-950/20 via-zinc-900 to-zinc-950 border border-emerald-500/30 flex flex-col justify-between hover:border-emerald-500/60 transition shadow-sm">
                         <div>
-                          <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <span className="text-sm font-black text-white">Check-in Harian</span>
-                            <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-nvidia-green/20 text-nvidia-green">
+                          <div className="flex items-center justify-between gap-2 mb-3">
+                            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-nvidia-green shrink-0">
+                              <CheckCircle2 size={18} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-nvidia-green/20 text-nvidia-green border border-nvidia-green/40 tracking-wider">
                               Selesai
                             </span>
                           </div>
+
+                          <h4 className="text-sm font-black text-white mb-1">
+                            Login Harian Portal
+                          </h4>
                           <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Masuk ke portal member dan akun aktif hari ini.
+                            Masuk ke portal member dan aktifkan sesi bermain hari ini.
                           </p>
                         </div>
-                        <div className="mt-4 flex items-center gap-1.5 text-xs text-nvidia-green font-mono font-bold">
-                          <Check size={14} />
-                          <span>50 EXP Diperoleh</span>
+
+                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
+                          <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className="text-zinc-400 font-medium">Progres Misi</span>
+                            <span className="text-nvidia-green font-bold">1 / 1</span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                            <div className="w-full h-full bg-nvidia-green rounded-full" />
+                          </div>
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-[11px] text-zinc-400">Hadiah</span>
+                            <span className="text-xs font-mono font-black text-nvidia-green bg-nvidia-green/10 px-2 py-0.5 rounded border border-nvidia-green/20">
+                              +50 EXP
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex flex-col justify-between">
+                      {/* Quest 2: Amunisi Deposit (Tantangan Aktif) */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-950/15 via-zinc-900 to-zinc-950 border border-amber-500/25 flex flex-col justify-between hover:border-amber-500/50 transition shadow-sm">
                         <div>
-                          <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <span className="text-sm font-black text-white">Amunisi Deposit</span>
-                            <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                          <div className="flex items-center justify-between gap-2 mb-3">
+                            <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                              <Zap size={18} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 tracking-wider">
                               Tantangan
                             </span>
                           </div>
+
+                          <h4 className="text-sm font-black text-white mb-1">
+                            Amunisi Saldo Kasir
+                          </h4>
                           <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Top up saldo minimal Rp 20.000 di kasir warnet.
+                            Top up deposit minimal Rp 20.000 langsung di meja operator kasir.
                           </p>
                         </div>
-                        <div className="mt-4 flex items-center gap-1.5 text-xs text-zinc-300 font-mono font-bold">
-                          <Zap size={14} className="text-amber-400" />
-                          <span>150 EXP Hadiah</span>
+
+                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
+                          <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className="text-zinc-400 font-medium">Progres Misi</span>
+                            <span className="text-amber-400 font-bold">0 / 1</span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                            <div className="w-0 h-full bg-amber-400 rounded-full" />
+                          </div>
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-[11px] text-zinc-400">Hadiah</span>
+                            <span className="text-xs font-mono font-black text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                              +150 EXP
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex flex-col justify-between">
+                      {/* Quest 3: Sultan Midnight (Event Malam) */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-cyan-950/15 via-zinc-900 to-zinc-950 border border-cyan-500/25 flex flex-col justify-between hover:border-cyan-500/50 transition shadow-sm">
                         <div>
-                          <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <span className="text-sm font-black text-white">Sultan Midnight</span>
-                            <span className="text-xs font-bold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
-                              Event
+                          <div className="flex items-center justify-between gap-2 mb-3">
+                            <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                              <Flame size={18} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 tracking-wider">
+                              Event Malam
                             </span>
                           </div>
+
+                          <h4 className="text-sm font-black text-white mb-1">
+                            Sultan Begadang
+                          </h4>
                           <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                            Pesan paket begadang malam di atas jam 21.00 WIB.
+                            Pesan paket billing malam warnet mulai pukul 21.00 WIB ke atas.
                           </p>
                         </div>
-                        <div className="mt-4 flex items-center gap-1.5 text-xs text-zinc-300 font-mono font-bold">
-                          <Flame size={14} className="text-cyan-400" />
-                          <span>200 EXP Hadiah</span>
+
+                        <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
+                          <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className="text-zinc-400 font-medium">Progres Misi</span>
+                            <span className="text-cyan-400 font-bold">0 / 1</span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                            <div className="w-0 h-full bg-cyan-400 rounded-full" />
+                          </div>
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-[11px] text-zinc-400">Hadiah</span>
+                            <span className="text-xs font-mono font-black text-cyan-300 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                              +200 EXP
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
