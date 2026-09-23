@@ -782,30 +782,43 @@ export default function MemberPage() {
             
             {/* PANEL KIRI: SATU KESATUAN KARTU MEMBER, DOMPET & AKSI CEPAT */}
             <div 
-              className="lg:col-span-5 rounded-3xl bg-zinc-950 border border-white/15 hover:border-nvidia-green/80 p-6 sm:p-7 flex flex-col justify-between shadow-2xl hover:shadow-[0_0_35px_rgba(118,185,0,0.35)] space-y-6 relative overflow-hidden group transition-all duration-300"
+              className="lg:col-span-5 relative rounded-3xl p-[1px] group transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-[0_22px_55px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(118,185,0,0.15)]"
               style={{ perspective: "1000px" }}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
             >
-              {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan */}
+              {/* Static Base Border */}
+              <div className="absolute inset-0 rounded-3xl bg-white/10 pointer-events-none" />
+
+              {/* Dynamic Motion Spotlight Border: Kilau Hijau HANYA Menyala Mengikuti Arah Kursor/Motion */}
               <div 
-                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-3xl overflow-hidden backdrop-blur-[1.5px]"
+                className="absolute inset-0 rounded-3xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
-                  background: `radial-gradient(circle 350px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.08), rgba(200,200,200,0.02) 40%, transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 40%)`,
+                  background: `radial-gradient(300px circle at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(118, 185, 0, 0.95), rgba(118, 185, 0, 0.2) 50%, transparent 75%)`,
                 }}
               />
 
-              {/* 3D Tilting Inner Card Wrapper */}
-              <div 
-                className="space-y-6 transition-transform duration-100 ease-out relative z-30"
-                style={{
-                  transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
-                  transformStyle: "preserve-3d",
-                }}
-              >
-                {/* Header Kartu: Sim Chip & Status Online */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+              {/* Kartu Utama Berlatar Hitam Solid (Menutupi Bagian Dalam Sehingga Hanya 1px Border Yang Berkilau) */}
+              <div className="relative h-full w-full rounded-[23px] bg-zinc-950 p-6 sm:p-7 flex flex-col justify-between space-y-6 overflow-hidden">
+                {/* Lapisan Kaca Depan: Kilau Mouse Hover Murni Abu-abu Kaca Transparan Di Permukaan */}
+                <div 
+                  className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 rounded-[23px] overflow-hidden backdrop-blur-[1px]"
+                  style={{
+                    background: `radial-gradient(circle 350px at ${cardTilt.glareX}% ${cardTilt.glareY}%, rgba(255,255,255,0.08), rgba(200,200,200,0.02) 40%, transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 40%)`,
+                  }}
+                />
+
+                {/* 3D Tilting Inner Card Wrapper */}
+                <div 
+                  className="space-y-6 transition-transform duration-100 ease-out relative z-30"
+                  style={{
+                    transform: `rotateX(${cardTilt.rotateX}deg) rotateY(${cardTilt.rotateY}deg)`,
+                    transformStyle: "preserve-3d",
+                  }}
+                >
+                  {/* Header Kartu: Sim Chip & Status Online */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                     <div className="w-9 h-7 rounded-md bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-700 p-0.5 flex items-center justify-center shrink-0 shadow-sm">
                       <div className="w-full h-full border border-amber-950/40 rounded-[2px] grid grid-cols-2 gap-0.5 p-0.5 opacity-80">
                         <div className="border-r border-b border-amber-950/40" />
@@ -924,6 +937,7 @@ export default function MemberPage() {
                 </div>
               </div>
 
+              </div>
             </div>
 
             {/* PANEL KANAN: SATU KESATUAN HUB AKTIVITAS, LEVEL & RIWAYAT */}
