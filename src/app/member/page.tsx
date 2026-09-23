@@ -783,17 +783,6 @@ export default function MemberPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab("history")}
-                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
-                    activeTab === "history"
-                      ? "bg-nvidia-green text-black shadow-md"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Riwayat Booking
-                </button>
-                <button
-                  type="button"
                   onClick={() => setActiveTab("quests")}
                   className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
                     activeTab === "quests"
@@ -802,6 +791,17 @@ export default function MemberPage() {
                   }`}
                 >
                   Misi Warnet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("history")}
+                  className={`flex-1 py-2.5 px-3 text-xs sm:text-sm font-black uppercase tracking-wider rounded-xl transition whitespace-nowrap ${
+                    activeTab === "history"
+                      ? "bg-nvidia-green text-black shadow-md"
+                      : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  Riwayat Booking
                 </button>
                 <button
                   type="button"
@@ -905,109 +905,7 @@ export default function MemberPage() {
                   </div>
                 )}
 
-                {/* TAB 2: RIWAYAT BOOKING */}
-                {activeTab === "history" && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
-                          <Clock size={20} />
-                        </div>
-                        <div>
-                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
-                            Riwayat Pemesanan PC
-                          </h3>
-                          <p className="text-xs text-zinc-300 font-medium">
-                            Daftar tiket dan status antrean bermain lu di GC-Net
-                          </p>
-                        </div>
-                      </div>
-
-                      <Link
-                        href="/"
-                        className="text-xs font-bold text-nvidia-green hover:underline flex items-center gap-1.5"
-                      >
-                        <span>Pesan PC Baru</span>
-                        <ArrowRight size={14} />
-                      </Link>
-                    </div>
-
-                    {bookings.length === 0 ? (
-                      <div className="py-16 text-center border border-dashed border-white/15 rounded-2xl">
-                        <Monitor className="mx-auto text-zinc-600 mb-3" size={36} />
-                        <p className="text-sm font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
-                        <p className="text-xs text-zinc-400 mt-1 mb-5">
-                          Pesan bilik PC favorit lu sekarang dan nikmati kecepatan warnet
-                        </p>
-                        <Link
-                          href="/"
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
-                        >
-                          <span>Pilih PC Sekarang</span>
-                          <ArrowRight size={14} />
-                        </Link>
-                      </div>
-                    ) : (
-                      <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
-                        {bookings.map((b) => (
-                          <div
-                            key={b.id}
-                            className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-3 hover:border-zinc-600 transition"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-xs shrink-0">
-                                {b.pc_id}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-black text-white">
-                                    {b.pcs?.name || b.pc_id}
-                                  </span>
-                                  <span className="text-xs font-mono text-zinc-400 font-bold">
-                                    {b.id}
-                                  </span>
-                                </div>
-                                <span className="text-xs text-zinc-300 font-medium block mt-0.5">
-                                  {b.pakets?.name || b.paket_id} • {b.pakets?.duration_hours ? `${b.pakets.duration_hours} Jam` : "Paket Standar"}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="text-right">
-                              <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border block ${
-                                b.status === "active"
-                                  ? "bg-nvidia-green/15 text-nvidia-green border-nvidia-green/30"
-                                  : b.status === "pending"
-                                  ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                                  : b.status === "completed"
-                                  ? "bg-zinc-800 text-zinc-200 border-zinc-700"
-                                  : "bg-red-500/15 text-red-300 border-red-500/30"
-                              }`}>
-                                {b.status === "active"
-                                  ? "Sesi Berjalan"
-                                  : b.status === "pending"
-                                  ? "Menunggu OP"
-                                  : b.status === "completed"
-                                  ? "Selesai"
-                                  : "Dibatalkan"}
-                              </span>
-                              <span className="text-xs text-zinc-400 font-mono mt-1 block">
-                                {new Date(b.created_at).toLocaleDateString("id-ID", {
-                                  day: "numeric",
-                                  month: "short",
-                                  hour: "2-digit",
-                                  minute: "2-digit"
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* TAB 3: MISI WARNET */}
+                {/* TAB 2: MISI WARNET */}
                 {activeTab === "quests" && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 mb-2">
@@ -1079,6 +977,108 @@ export default function MemberPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* TAB 3: RIWAYAT BOOKING */}
+                {activeTab === "history" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-nvidia-green shrink-0">
+                          <Clock size={20} />
+                        </div>
+                        <div>
+                          <h3 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                            Riwayat Pemesanan PC
+                          </h3>
+                          <p className="text-xs text-zinc-300 font-medium">
+                            Daftar tiket dan status antrean bermain lu di GC-Net
+                          </p>
+                        </div>
+                      </div>
+
+                      <Link
+                        href="/"
+                        className="text-xs font-bold text-nvidia-green hover:underline flex items-center gap-1.5"
+                      >
+                        <span>Pesan PC Baru</span>
+                        <ArrowRight size={14} />
+                      </Link>
+                    </div>
+
+                    {bookings.length === 0 ? (
+                      <div className="py-16 text-center border border-dashed border-white/15 rounded-2xl">
+                        <Monitor className="mx-auto text-zinc-600 mb-3" size={36} />
+                        <p className="text-sm font-bold text-zinc-300 uppercase">Belum ada riwayat booking</p>
+                        <p className="text-xs text-zinc-400 mt-1 mb-5">
+                          Pesan bilik PC favorit lu sekarang dan nikmati kecepatan warnet
+                        </p>
+                        <Link
+                          href="/"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider hover:bg-white transition"
+                        >
+                          <span>Pilih PC Sekarang</span>
+                          <ArrowRight size={14} />
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                        {bookings.map((b) => (
+                          <div
+                            key={b.id}
+                            className="p-4 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-between flex-wrap gap-3 hover:border-zinc-600 transition"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 flex items-center justify-center text-white font-mono font-bold text-xs shrink-0">
+                                {b.pc_id}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-black text-white">
+                                    {b.pcs?.name || b.pc_id}
+                                  </span>
+                                  <span className="text-xs font-mono text-zinc-400 font-bold">
+                                    {b.id}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-zinc-300 font-medium block mt-0.5">
+                                  {b.pakets?.name || b.paket_id} • {b.pakets?.duration_hours ? `${b.pakets.duration_hours} Jam` : "Paket Standar"}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border block ${
+                                b.status === "active"
+                                  ? "bg-nvidia-green/15 text-nvidia-green border-nvidia-green/30"
+                                  : b.status === "pending"
+                                  ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                                  : b.status === "completed"
+                                  ? "bg-zinc-800 text-zinc-200 border-zinc-700"
+                                  : "bg-red-500/15 text-red-300 border-red-500/30"
+                              }`}>
+                                {b.status === "active"
+                                  ? "Sesi Berjalan"
+                                  : b.status === "pending"
+                                  ? "Menunggu OP"
+                                  : b.status === "completed"
+                                  ? "Selesai"
+                                  : "Dibatalkan"}
+                              </span>
+                              <span className="text-xs text-zinc-400 font-mono mt-1 block">
+                                {new Date(b.created_at).toLocaleDateString("id-ID", {
+                                  day: "numeric",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
