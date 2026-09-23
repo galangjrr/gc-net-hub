@@ -1700,13 +1700,13 @@ export default function MemberPage() {
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-nvidia-green/10 border border-nvidia-green/30 text-nvidia-green text-xs font-black uppercase tracking-wider">
                     <ShieldCheck size={14} className="shrink-0" />
-                    <span>Sistem Level & Privilese Member GC-Net</span>
+                    <span>Sistem Billing & Keanggotaan Member GC-Net</span>
                   </div>
                   <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-                    Main Makin Sering, Pangkat Naik, Privilese Makin Mewah
+                    Tarif Khusus Member, Masa Aktif Akun & Startup Fee
                   </h2>
                   <p className="text-sm sm:text-base text-zinc-400 font-medium max-w-xl leading-relaxed">
-                    Sistem keanggotaan warnet GC-Net dengan lima tingkatan pangkat. Nikmati diskon FnB kasir hingga 15 persen, akses prioritas bilik PC VIP, dan sisa billing yang tersimpan aman di cloud.
+                    Sistem keanggotaan warnet GC-Net dengan lima level pangkat. Akun memiliki masa aktif berkala dan potongan biaya pembuka sesi (startup fee) saat login workstation PC, dengan perpanjangan mudah saat top up di kasir.
                   </p>
                 </div>
 
@@ -1763,7 +1763,7 @@ export default function MemberPage() {
                       </div>
                     </div>
 
-                    {/* Mini HUD Saldo & Progress Rank */}
+                    {/* Mini HUD Saldo, Masa Aktif & Startup Fee */}
                     <div className="rounded-2xl bg-zinc-900/80 border border-white/10 p-3.5 sm:p-4 space-y-2.5">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-zinc-400 font-bold uppercase tracking-wider text-[11px]">Simulasi Saldo</span>
@@ -1772,6 +1772,18 @@ export default function MemberPage() {
                       <div className="flex items-baseline justify-between">
                         <span className="text-xl sm:text-2xl font-black text-amber-300 font-mono">Rp 250.000</span>
                         <span className="text-[11px] text-zinc-400 font-medium">Rank Striker Aktif</span>
+                      </div>
+
+                      {/* Info Masa Aktif & Biaya Awal */}
+                      <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">Biaya Login (Startup)</span>
+                          <span className="text-white font-mono font-bold">Rp 2.000 / Sesi</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">Masa Aktif Akun</span>
+                          <span className="text-nvidia-green font-mono font-bold">30 Hari Perpanjangan</span>
+                        </div>
                       </div>
 
                       <div className="space-y-1 pt-1">
@@ -1847,18 +1859,18 @@ export default function MemberPage() {
                       <Clock size={18} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Sisa Menit Tersimpan</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Logout kapan saja, sisa billing tidak pernah hangus dan tersimpan di cloud.</p>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Masa Aktif Akun</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Akun memiliki periode aktif terproteksi dan diperpanjang otomatis tiap top up di kasir.</p>
                     </div>
                   </div>
 
                   <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-white/10 hover:border-emerald-500/40 transition-colors flex items-start gap-3.5 group">
                     <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <Trophy size={18} />
+                      <Zap size={18} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Bebas Antre Kasir</h4>
-                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Notifikasi WhatsApp booking bilik, prioritas antrean, dan free drink per sesi.</p>
+                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Biaya Awal (Startup Fee)</h4>
+                      <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">Dikenakan saldo minimal pembuka sesi Rp 2.000 saat login pertama kali di workstation PC.</p>
                     </div>
                   </div>
                 </div>
