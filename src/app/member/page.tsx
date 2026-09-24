@@ -301,7 +301,6 @@ export default function MemberPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [gisReady, setGisReady] = useState(false);
 
   // Active Dashboard Tab & 3D Transition Direction
   const [activeTab, setActiveTab] = useState<"level" | "history" | "quests" | "profile">("quests");
@@ -432,83 +431,6 @@ export default function MemberPage() {
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false);
-
-  // Google Identity Services (GIS) Initializer
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const googleClientId =
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-      "463096264764-5eg6okh898iokniejpq1csvc17ab0fs2.apps.googleusercontent.com";
-
-    const renderGIS = () => {
-      if ((window as any).google?.accounts?.id) {
-        try {
-          (window as any).google.accounts.id.initialize({
-            client_id: googleClientId,
-            callback: async (response: any) => {
-              if (!response?.credential) return;
-              setGoogleLoading(true);
-              setErrorMessage(null);
-              try {
-                const { error } = await supabase.auth.signInWithIdToken({
-                  provider: "google",
-                  token: response.credential,
-                });
-                if (error) throw error;
-              } catch (err: any) {
-                setErrorMessage(err?.message || "Gagal masuk menggunakan akun Google");
-              } finally {
-                setGoogleLoading(false);
-              }
-            },
-            auto_select: false,
-            cancel_on_tap_outside: true,
-          });
-
-          const container = document.getElementById("google-signin-btn-container");
-          if (container) {
-            container.innerHTML = "";
-            (window as any).google.accounts.id.renderButton(container, {
-              theme: "filled_black",
-              size: "large",
-              text: "continue_with",
-              shape: "rectangular",
-              width: 360,
-              logo_alignment: "left",
-            });
-            setGisReady(true);
-          }
-        } catch (e) {
-          // Abaikan kesalahan inisialisasi awal
-        }
-      }
-    };
-
-    if ((window as any).google?.accounts?.id) {
-      renderGIS();
-    } else {
-      let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]') as HTMLScriptElement;
-      if (!script) {
-        script = document.createElement("script");
-        script.src = "https://accounts.google.com/gsi/client";
-        script.async = true;
-        script.defer = true;
-        document.body.appendChild(script);
-      }
-      script.addEventListener("load", renderGIS);
-
-      const interval = setInterval(() => {
-        if ((window as any).google?.accounts?.id) {
-          renderGIS();
-          clearInterval(interval);
-        }
-      }, 200);
-      return () => {
-        clearInterval(interval);
-        script.removeEventListener("load", renderGIS);
-      };
-    }
-  }, []);
 
   const handleGoogleLogin = async () => {
     setErrorMessage(null);
@@ -2266,46 +2188,36 @@ export default function MemberPage() {
                     </div>
 
                     {/* Google 1-Click Login Button */}
-                    <div className="w-full flex flex-col items-center relative min-h-[44px]">
-                      <div
-                        id="google-signin-btn-container"
-                        className={`w-full flex justify-center transition-opacity duration-300 ${
-                          gisReady ? "opacity-100" : "opacity-0 absolute pointer-events-none"
-                        }`}
-                      />
-                      {!gisReady && (
-                        <button
-                          type="button"
-                          onClick={handleGoogleLogin}
-                          disabled={googleLoading || actionLoading}
-                          className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition shadow-md active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed group"
-                        >
-                          {googleLoading ? (
-                            <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                              <path
-                                fill="#4285F4"
-                                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                              />
-                              <path
-                                fill="#34A853"
-                                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                              />
-                              <path
-                                fill="#FBBC05"
-                                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                              />
-                              <path
-                                fill="#EA4335"
-                                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                              />
-                            </svg>
-                          )}
-                          <span>{googleLoading ? "Menghubungkan Google..." : "Lanjut dengan Google"}</span>
-                        </button>
+                    <button
+                      type="button"
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading || actionLoading}
+                      className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-zinc-100 text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition shadow-md active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed group"
+                    >
+                      {googleLoading ? (
+                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                          <path
+                            fill="#4285F4"
+                            d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                          />
+                          <path
+                            fill="#34A853"
+                            d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                          />
+                          <path
+                            fill="#FBBC05"
+                            d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                          />
+                          <path
+                            fill="#EA4335"
+                            d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                          />
+                        </svg>
                       )}
-                    </div>
+                      <span>{googleLoading ? "Menghubungkan Google..." : "Lanjut dengan Google"}</span>
+                    </button>
 
                     <div className="pt-4 border-t border-white/10 text-center">
                       <p className="text-xs sm:text-sm text-zinc-300 font-medium">

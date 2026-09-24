@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/sidebar";
@@ -46,7 +45,6 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} ${geistMono.variable} antialiased min-h-[100dvh] flex flex-col md:flex-row`}
         suppressHydrationWarning
       >
-        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
         <AuthButton />
         <Sidebar />
         <div className="flex-1 flex flex-col min-h-[100dvh] overflow-x-hidden">
