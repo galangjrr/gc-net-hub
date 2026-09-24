@@ -120,6 +120,14 @@ export default function Sidebar() {
     window.location.href = "/";
   };
 
+  const handleMemberLogout = async () => {
+    await supabase.auth.signOut();
+    setMemberUser(null);
+    if (pathname === "/member") {
+      window.location.reload();
+    }
+  };
+
   // Ensure hydration mismatch doesn't happen by rendering default on server
   const visibleNavs = !mounted ? NAV_ITEMS.filter(item => !item.admin) : NAV_ITEMS.filter(item => !item.admin || isUnlocked);
 
@@ -138,21 +146,32 @@ export default function Sidebar() {
           <span>GC NET HUB</span>
         </div>
         {/* Quick action + Hamburger */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {memberUser && (
+            <Link
+              href="/member"
+              className="px-2.5 py-1 bg-black text-white text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1.5 max-w-[120px] truncate"
+              title={`Sesi Member: @${memberDisplayName}`}
+            >
+              <User size={12} className="text-nvidia-green shrink-0" />
+              <span className="truncate">@{memberDisplayName}</span>
+            </Link>
+          )}
           {isUnlocked ? (
             <button 
               onClick={handleLogout}
-              className="px-3 py-1 bg-black/10 hover:bg-black text-black hover:text-white border border-black/20 text-[10px] font-bold uppercase rounded transition"
+              className="px-2.5 py-1 bg-black/10 hover:bg-black text-black hover:text-white border border-black/20 text-[10px] font-bold uppercase rounded transition"
+              title="Keluar dari sesi kasir/operator"
             >
               LOGOUT OP
             </button>
-          ) : (
+          ) : !memberUser && (
             <Link
               href="/member"
               className="px-2.5 py-1 bg-black text-white text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1.5"
             >
               <User size={12} className="text-nvidia-green" />
-              <span>{memberUser ? `@${memberDisplayName}` : "MEMBER"}</span>
+              <span>MEMBER</span>
             </Link>
           )}
           <button 
@@ -220,16 +239,37 @@ export default function Sidebar() {
           </nav>
 
           {/* Desktop Auth Footer */}
-          <div className="p-4 border-t border-hairline mt-auto">
+          <div className="p-4 border-t border-hairline mt-auto space-y-2">
+            {memberUser && (
+              <div className="flex items-center justify-between text-xs py-2 px-2.5 bg-black/40 border border-white/10 rounded-lg">
+                <Link href="/member" className="flex items-center gap-2 truncate group min-w-0" title={`Akun Member: @${memberDisplayName}`}>
+                  <div className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse shrink-0" />
+                  <span className="text-white/80 group-hover:text-white font-bold text-xs truncate">
+                    @{memberDisplayName}
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleMemberLogout}
+                  className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition ml-2 shrink-0 hover:underline"
+                  title="Logout sesi akun member"
+                >
+                  Keluar
+                </button>
+              </div>
+            )}
+
             {isUnlocked ? (
               <button
+                type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[2px] text-xs font-bold uppercase tracking-wider text-error hover:bg-error/10 border border-error/20 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded text-xs font-bold uppercase tracking-wider text-error hover:bg-error/10 border border-error/20 transition-all"
+                title="Logout sesi kasir/operator"
               >
                 <LogOut size={16} />
                 LOGOUT OP
               </button>
-            ) : (
+            ) : !memberUser && (
               <div 
                 onClick={handleSecretTrigger} 
                 className="text-center text-[10px] text-zinc-600 hover:text-zinc-400 cursor-pointer select-none transition py-2 font-mono"
@@ -283,16 +323,44 @@ export default function Sidebar() {
                 <div className="flex-1"></div>
 
                 {/* Mobile Auth Button */}
-                <div className="border-t border-hairline pt-4 mt-2">
+                <div className="border-t border-hairline pt-4 mt-2 space-y-2">
+                  {memberUser && (
+                    <div className="flex items-center justify-between text-xs py-2.5 px-3 bg-black/40 border border-white/10 rounded-lg">
+                      <Link 
+                        href="/member" 
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 truncate group min-w-0"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse shrink-0" />
+                        <span className="text-white/80 group-hover:text-white font-bold text-xs truncate">
+                          Member: @{memberDisplayName}
+                        </span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileOpen(false);
+                          handleMemberLogout();
+                        }}
+                        className="text-[11px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition ml-2 shrink-0 hover:underline"
+                        title="Logout akun member"
+                      >
+                        Keluar
+                      </button>
+                    </div>
+                  )}
+
                   {isUnlocked ? (
                     <button
+                      type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-[2px] text-xs tracking-tight font-bold tracking-wider uppercase text-error hover:bg-error/10 transition-all"
+                      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded text-xs font-bold tracking-wider uppercase text-error hover:bg-error/10 transition-all border border-error/20"
+                      title="Logout sesi kasir/operator"
                     >
                       <LogOut size={18} />
                       LOGOUT OP
                     </button>
-                  ) : (
+                  ) : !memberUser && (
                     <div 
                       onClick={() => {
                         setMobileOpen(false);
