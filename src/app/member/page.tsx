@@ -861,14 +861,26 @@ export default function MemberPage() {
           
           <div className="flex items-center gap-2.5">
             {sessionUser && (
-              <button
-                type="button"
-                onClick={() => setShowTopupInfoModal(true)}
-                className="text-xs sm:text-sm font-bold text-zinc-200 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-white/15 transition flex items-center gap-2 uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm"
-              >
-                <CreditCard size={15} className="text-nvidia-green" />
-                <span>Isi Saldo</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowTopupInfoModal(true)}
+                  className="text-xs sm:text-sm font-bold text-zinc-200 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-white/15 transition flex items-center gap-2 uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm"
+                >
+                  <CreditCard size={15} className="text-nvidia-green" />
+                  <span>Isi Saldo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={actionLoading}
+                  className="text-xs sm:text-sm font-bold text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 transition flex items-center gap-2 uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm active:scale-[0.99] disabled:opacity-50"
+                  title="Keluar dari akun member"
+                >
+                  <LogOut size={15} />
+                  <span>Keluar</span>
+                </button>
+              </>
             )}
             <Link
               href="/"
