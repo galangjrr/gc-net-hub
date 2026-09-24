@@ -435,8 +435,10 @@ export default function MemberPage() {
 
   // Google Identity Services (GIS) Initializer
   useEffect(() => {
-    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!googleClientId || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
+    const googleClientId =
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      "463096264764-5eg6okh898iokniejpq1csvc17ab0fs2.apps.googleusercontent.com";
 
     const renderGIS = () => {
       if ((window as any).google?.accounts?.id) {
@@ -485,13 +487,26 @@ export default function MemberPage() {
     if ((window as any).google?.accounts?.id) {
       renderGIS();
     } else {
+      let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]') as HTMLScriptElement;
+      if (!script) {
+        script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.defer = true;
+        document.body.appendChild(script);
+      }
+      script.addEventListener("load", renderGIS);
+
       const interval = setInterval(() => {
         if ((window as any).google?.accounts?.id) {
           renderGIS();
           clearInterval(interval);
         }
       }, 200);
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        script.removeEventListener("load", renderGIS);
+      };
     }
   }, []);
 
@@ -2251,10 +2266,12 @@ export default function MemberPage() {
                     </div>
 
                     {/* Google 1-Click Login Button */}
-                    <div className="w-full flex flex-col items-center">
+                    <div className="w-full flex flex-col items-center relative min-h-[44px]">
                       <div
                         id="google-signin-btn-container"
-                        className={`w-full flex justify-center min-h-[44px] transition-all ${gisReady ? "block" : "hidden"}`}
+                        className={`w-full flex justify-center transition-opacity duration-300 ${
+                          gisReady ? "opacity-100" : "opacity-0 absolute pointer-events-none"
+                        }`}
                       />
                       {!gisReady && (
                         <button
