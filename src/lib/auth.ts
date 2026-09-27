@@ -5,7 +5,10 @@ export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 export const OWNER_PASSKEY = process.env.OWNER_PASSKEY;
 
 // Secret key untuk HMAC signing session token admin
-const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "gcnet-secure-admin-token-salt-1975";
+// Juga dipakai untuk hash password staf: mengganti nilainya membuat semua password staf lama tidak cocok lagi.
+const SESSION_SECRET: string = process.env.ADMIN_SESSION_SECRET || (() => {
+  throw new Error("ADMIN_SESSION_SECRET wajib diisi di env.");
+})();
 
 export interface AdminSession {
   user: string;
