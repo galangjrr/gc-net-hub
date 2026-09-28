@@ -38,6 +38,7 @@ import {
 import Link from "next/link";
 import Script from "next/script";
 import { supabase } from "@/lib/supabase";
+import { memberFetch } from "@/lib/member-fetch";
 import FloatingChatMessenger from "@/components/chat/FloatingChatMessenger";
 
 interface MemberProfile {
@@ -470,7 +471,7 @@ export default function MemberPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setSessionUser(session.user);
-        await fetchProfile(session.user.id);
+        await fetchProfile(session.access_token);
       }
       setLoading(false);
     }
@@ -484,7 +485,7 @@ export default function MemberPage() {
 
       if (session?.user) {
         setSessionUser(session.user);
-        await fetchProfile(session.user.id);
+        await fetchProfile(session.access_token);
       } else {
         setSessionUser(null);
         setProfile(null);
@@ -495,13 +496,13 @@ export default function MemberPage() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (accessToken?: string) => {
     try {
-      const res = await fetch(`/api/member/profile?user_id=${userId}`);
+      const res = await memberFetch("/api/member/profile", {}, accessToken);
       const data = await res.json();
       if (res.ok && data.member) {
         setProfile(data.member);
-        fetchBookings(data.member.id, data.member.username);
+        fetchBookings(accessToken);
 
         if (!data.member.phone || data.member.phone.trim() === "") {
           setModalUsername(data.member.username || "");
@@ -514,9 +515,9 @@ export default function MemberPage() {
     } catch (_) {}
   };
 
-  const fetchBookings = async (memberId: string, username: string) => {
+  const fetchBookings = async (accessToken?: string) => {
     try {
-      const res = await fetch(`/api/member/bookings?member_id=${memberId}&player_name=${encodeURIComponent(username)}`);
+      const res = await memberFetch("/api/member/bookings", {}, accessToken);
       const data = await res.json();
       if (res.ok && data.bookings) {
         setBookings(data.bookings);
@@ -567,7 +568,7 @@ export default function MemberPage() {
         return;
       }
 
-      const res = await fetch("/api/member/profile", {
+      const res = await memberFetch("/api/member/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -628,7 +629,7 @@ export default function MemberPage() {
 
       if (data?.user) {
         setSessionUser(data.user);
-        await fetchProfile(data.user.id);
+        await fetchProfile(data.session?.access_token);
         setSuccessMessage("Login berhasil. Selamat datang kembali.");
       }
     } catch (err: any) {
@@ -682,7 +683,7 @@ export default function MemberPage() {
       }
 
       if (signUpData.user) {
-        const profileRes = await fetch("/api/member/profile", {
+        const profileRes = await memberFetch("/api/member/profile", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

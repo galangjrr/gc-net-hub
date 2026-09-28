@@ -213,7 +213,8 @@ export default function DataBookingPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
+    // bookings are not readable with the public key (no realtime on them), so new bookings arrive through this poll
+    const interval = setInterval(loadData, 5000);
 
     // Fast 1-second ticker to check countdown expiry and trigger 10s buzzer alarm
     const timerTicker = setInterval(() => {
@@ -234,9 +235,6 @@ export default function DataBookingPage() {
 
     const channel = supabase
       .channel('public:gc-booking-admin')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
-        loadData();
-      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pcs' }, () => {
         loadData();
       })

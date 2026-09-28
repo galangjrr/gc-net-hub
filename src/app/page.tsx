@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { DatabaseSchema, PC, Paket } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
+import { memberFetch } from "@/lib/member-fetch";
 import PCCarousel from "@/components/pc-carousel";
 import GameIcons from "@/components/game-icons";
 
@@ -290,9 +291,9 @@ export default function Home() {
     handleResize();
     window.addEventListener("resize", handleResize);
 
-    const fetchMemberProfile = async (userId: string) => {
+    const fetchMemberProfile = async (accessToken: string) => {
       try {
-        const res = await fetch(`/api/member/profile?user_id=${userId}`);
+        const res = await memberFetch("/api/member/profile", {}, accessToken);
         const data = await res.json();
         if (res.ok && data.member) {
           setMemberProfile(data.member);
@@ -306,7 +307,7 @@ export default function Home() {
         setMemberSession(session.user);
         const uname = session.user.user_metadata?.username || session.user.email?.split("@")[0] || "";
         if (uname) setPlayerName(uname);
-        fetchMemberProfile(session.user.id);
+        fetchMemberProfile(session.access_token);
       }
     });
 
@@ -315,7 +316,7 @@ export default function Home() {
       if (session?.user) {
         const uname = session.user.user_metadata?.username || session.user.email?.split("@")[0] || "";
         if (uname) setPlayerName(uname);
-        fetchMemberProfile(session.user.id);
+        fetchMemberProfile(session.access_token);
       } else {
         setMemberProfile(null);
       }

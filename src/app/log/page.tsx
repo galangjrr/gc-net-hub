@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import PinGuard from "@/components/PinGuard";
-import { supabase } from "@/lib/supabase";
 
 interface ActivityLog {
   id: string;
@@ -91,19 +90,9 @@ export default function ActivityLogPage() {
   useEffect(() => {
     loadLogs();
 
-    // Supabase Realtime channel untuk sync otomatis setiap ada aksi baru
-    const channel = supabase
-      .channel("public:activity-logs-feed")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "logs" }, (payload) => {
-        if (payload.new && (payload.new as any).status === "Aktivitas") {
-          loadLogs();
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // logs hold revenue and player names, so they are not readable with the public key: poll the staff API instead of realtime
+    const interval = setInterval(loadLogs, 15000);
+    return () => clearInterval(interval);
   }, [filterPeriod, customDate, selectedOperator]);
 
   // Ekstrak daftar unik operator dari log yang ada

@@ -37,14 +37,12 @@ export default function CompanionPage() {
 
   useEffect(() => {
     loadData();
+    // bookings are not readable with the public key, so booking changes arrive through this poll
     const interval = setInterval(loadData, 2500);
 
     const channel = supabase
       .channel("companion-realtime-pcs")
       .on("postgres_changes", { event: "*", schema: "public", table: "pcs" }, () => {
-        loadData();
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, () => {
         loadData();
       })
       .subscribe();

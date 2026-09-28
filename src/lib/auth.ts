@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import type { User } from "@supabase/supabase-js";
+import { supabaseAdmin } from "./supabase";
 
 export const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
@@ -175,4 +177,14 @@ export function isOwnerAuthorized(req: Request): boolean {
   return false;
 }
 
-
+/**
+ * Member signed in with Supabase Auth, from the "Authorization: Bearer <access_token>" header.
+ * Member API routes must use this user's id, never an id taken from the query string or body.
+ */
+export async function getMemberUser(req: Request): Promise<User | null> {
+  const header = req.headers.get("authorization") || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  if (!token) return null;
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  return error ? null : data.user;
+}

@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { getMemberUser } from "@/lib/auth";
 
 /**
- * GET /api/member/profile?user_id=...
- * Mengambil profil member berdasarkan auth user id
+ * GET /api/member/profile
+ * Profil member yang sedang login (Authorization: Bearer <access_token>)
  */
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("user_id");
-
-    if (!userId) {
-      return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+    const user = await getMemberUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Login member dulu" }, { status: 401 });
     }
 
     const { data: member, error } = await supabaseAdmin
       .from("members")
       .select("*")
-      .eq("id", userId)
+      .eq("id", user.id)
       .single();
 
     if (error || !member) {
@@ -37,11 +36,27 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { id, email, username, phone, full_name } = body;
+    const { username, phone, full_name } = body;
 
-    if (!id || !email || !username) {
-      return NextResponse.json({ error: "ID, email, dan username wajib diisi" }, { status: 400 });
+    if (!username) {
+      return NextResponse.json({ error: "Username wajib diisi" }, { status: 400 });
     }
+
+    // Signed in: edit your own row. Right after sign-up there is no session yet (email confirmation is on),
+    // so an account whose email is still unconfirmed may create its row once; it can never overwrite one.
+    let user = await getMemberUser(req);
+    let insertOnly = false;
+    if (!user) {
+      const { data } = typeof body.id === "string" && body.id ? await supabaseAdmin.auth.admin.getUserById(body.id) : { data: null };
+      const fresh = data?.user;
+      if (!fresh || fresh.email_confirmed_at || fresh.email?.toLowerCase() !== String(body.email || "").trim().toLowerCase()) {
+        return NextResponse.json({ error: "Login member dulu" }, { status: 401 });
+      }
+      user = fresh;
+      insertOnly = true;
+    }
+    const id = user.id;
+    const email = user.email || "";
 
     // Validasi format username (persiapan gc_user_id)
     const cleanUsername = username.trim().toLowerCase();
@@ -52,18 +67,17 @@ export async function POST(req: Request) {
     }
 
     // Upsert profil member ke tabel members
-    const { data, error } = await supabaseAdmin
-      .from("members")
-      .upsert({
-        id,
-        email: email.trim().toLowerCase(),
-        username: cleanUsername,
-        phone: phone ? phone.trim() : null,
-        full_name: full_name ? full_name.trim() : cleanUsername,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "id" })
-      .select()
-      .single();
+    const row = {
+      id,
+      email: email.trim().toLowerCase(),
+      username: cleanUsername,
+      phone: phone ? String(phone).trim() : null,
+      full_name: full_name ? String(full_name).trim() : cleanUsername,
+      updated_at: new Date().toISOString()
+    };
+    const { data, error } = insertOnly
+      ? await supabaseAdmin.from("members").insert(row).select().single()
+      : await supabaseAdmin.from("members").upsert(row, { onConflict: "id" }).select().single();
 
     if (error) {
       console.error("[Member Profile] Upsert error:", error);
