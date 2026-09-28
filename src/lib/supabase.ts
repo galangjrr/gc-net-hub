@@ -5,6 +5,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY wajib diisi di env.');
 }
+// NEXT_PUBLIC_ values are inlined into the browser bundle: a secret key here would be handed to every visitor.
+if (supabaseAnonKey.startsWith('sb_secret_')) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY berisi secret key. Isi dengan publishable key (sb_publishable_...), secret key hanya untuk SUPABASE_SERVICE_ROLE_KEY.');
+}
 // Server routes get the secret key. In the browser bundle it is undefined, so the admin client falls back to the publishable key and RLS applies.
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
 
