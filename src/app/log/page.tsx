@@ -209,7 +209,7 @@ export default function ActivityLogPage() {
               <span className="text-xs font-black uppercase tracking-wider text-zinc-400 block mb-2">
                 Operator Teraktif
               </span>
-              <div className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">
+              <div className="text-2xl sm:text-3xl font-black text-white tracking-tight break-words">
                 {stats.topOperator}
               </div>
               <span className="text-xs font-bold text-emerald-400 block mt-1.5">
@@ -352,11 +352,11 @@ export default function ActivityLogPage() {
         {/* 3. EMPTY STATE */}
         {!loading && !error && filteredLogs.length === 0 && (
           <div className="p-12 rounded-2xl bg-surface-1 border border-hairline text-center space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-surface-soft border border-hairline text-zinc-500 flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-surface-soft border border-hairline text-zinc-300 flex items-center justify-center mx-auto">
               <History size={26} />
             </div>
             <h3 className="font-black text-white text-base uppercase">Belum Ada Aktivitas Tercatat</h3>
-            <p className="text-sm text-zinc-400 max-w-md mx-auto">
+            <p className="text-sm text-zinc-300 font-medium max-w-md mx-auto">
               Tidak ada riwayat aktivitas yang cocok dengan kriteria filter saat ini.
             </p>
           </div>
@@ -400,7 +400,7 @@ export default function ActivityLogPage() {
                               {log.operator.slice(0, 1).toUpperCase()}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="font-black text-white text-sm sm:text-base truncate">{log.operator}</span>
+                              <span className="font-black text-white text-sm sm:text-base break-words">{log.operator}</span>
                               <span className="text-xs text-zinc-400 uppercase tracking-wider font-bold">
                                 {log.role}
                               </span>
@@ -419,7 +419,7 @@ export default function ActivityLogPage() {
                         <td className="py-4 sm:py-5 px-4">
                           <div className="flex items-center gap-2 font-black text-sm sm:text-base text-white">
                             {getTargetIcon(log.target)}
-                            <span className="truncate">{log.target}</span>
+                            <span className="break-words">{log.target}</span>
                           </div>
                         </td>
 

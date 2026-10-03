@@ -150,18 +150,18 @@ export default function Sidebar() {
           {memberUser && (
             <Link
               href="/member"
-              className="px-2.5 py-1 bg-black text-white text-[10px] font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1.5 max-w-[120px] truncate"
+              className="px-2.5 py-1 bg-black text-white text-xs font-bold uppercase rounded shadow-sm hover:bg-black/80 transition flex items-center gap-1.5 max-w-[140px] truncate"
               title={`Sesi Member: @${memberDisplayName}`}
             >
-              <User size={12} className="text-nvidia-green shrink-0" />
+              <User size={13} className="text-nvidia-green shrink-0" />
               <span className="truncate">@{memberDisplayName}</span>
             </Link>
           )}
           {isUnlocked ? (
             <button 
               onClick={handleLogout}
-              className="px-2.5 py-1 bg-black/10 hover:bg-black text-black hover:text-white border border-black/20 text-[10px] font-bold uppercase rounded transition"
-              title="Keluar dari sesi kasir/operator"
+              className="px-2.5 py-1 bg-black/10 hover:bg-black text-black hover:text-white border border-black/20 text-xs font-bold uppercase rounded transition"
+              title="Keluar dari sesi operator"
             >
               LOGOUT OP
             </button>
@@ -218,10 +218,10 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                     isActive
                       ? "bg-nvidia-green text-black font-bold shadow-[0_0_15px_rgba(118,185,0,0.25)]"
-                      : "text-white/60 hover:text-white hover:bg-white/[0.05]"
+                      : "text-white/60 hover:text-white hover:bg-white/[0.08]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -244,14 +244,14 @@ export default function Sidebar() {
               <div className="flex items-center justify-between text-xs py-2 px-2.5 bg-black/40 border border-white/10 rounded-lg">
                 <Link href="/member" className="flex items-center gap-2 truncate group min-w-0" title={`Akun Member: @${memberDisplayName}`}>
                   <div className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse shrink-0" />
-                  <span className="text-white/80 group-hover:text-white font-bold text-xs truncate">
+                  <span className="text-zinc-200 group-hover:text-white font-bold text-xs truncate">
                     @{memberDisplayName}
                   </span>
                 </Link>
                 <button
                   type="button"
                   onClick={handleMemberLogout}
-                  className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition ml-2 shrink-0 hover:underline"
+                  className="text-xs text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition ml-2 shrink-0 hover:underline"
                   title="Logout sesi akun member"
                 >
                   Keluar
@@ -263,7 +263,7 @@ export default function Sidebar() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded text-xs font-bold uppercase tracking-wider text-error hover:bg-error/10 border border-error/20 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded text-xs font-bold uppercase tracking-wider text-error hover:bg-error/10 border border-error/20 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 title="Logout sesi kasir/operator"
               >
                 <LogOut size={16} />
@@ -301,10 +301,10 @@ export default function Sidebar() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                         isActive
                           ? "bg-nvidia-green text-black font-bold shadow-[0_0_15px_rgba(118,185,0,0.25)]"
-                          : "text-white/60 hover:text-white hover:bg-white/[0.05]"
+                          : "text-white/60 hover:text-white hover:bg-white/[0.08]"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -332,7 +332,7 @@ export default function Sidebar() {
                         className="flex items-center gap-2 truncate group min-w-0"
                       >
                         <div className="w-2 h-2 rounded-full bg-nvidia-green animate-pulse shrink-0" />
-                        <span className="text-white/80 group-hover:text-white font-bold text-xs truncate">
+                        <span className="text-zinc-200 group-hover:text-white font-bold text-xs truncate">
                           Member: @{memberDisplayName}
                         </span>
                       </Link>
@@ -342,7 +342,7 @@ export default function Sidebar() {
                           setMobileOpen(false);
                           handleMemberLogout();
                         }}
-                        className="text-[11px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition ml-2 shrink-0 hover:underline"
+                        className="text-xs text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition ml-2 shrink-0 hover:underline"
                         title="Logout akun member"
                       >
                         Keluar

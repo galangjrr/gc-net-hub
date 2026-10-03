@@ -320,7 +320,7 @@ export default function FloatingChatMessenger({
                         <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                           {isUser ? "Anda" : msg.sender_name}
                         </span>
-                        <span className="text-[9px] font-mono text-zinc-500">
+                        <span className="text-[10px] font-mono text-zinc-400 font-medium">
                           {new Date(msg.created_at).toLocaleTimeString("id-ID", {
                             hour: "2-digit",
                             minute: "2-digit"

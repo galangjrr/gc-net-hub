@@ -228,34 +228,34 @@ export default function DataPC() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-dark p-4 md:p-8 xl:p-10 pt-16 md:pt-8 text-white space-y-6 pb-32">
-      <div className="w-full max-w-[1680px] 2xl:max-w-[2200px] mx-auto space-y-6">
+    <div className="min-h-screen bg-surface-dark p-3 sm:p-5 md:p-6 pt-14 md:pt-6 text-white space-y-4 sm:space-y-5 pb-28">
+      <div className="w-full max-w-[1680px] 2xl:max-w-[2200px] mx-auto space-y-4 sm:space-y-5">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4 xl:pb-6">
-          <div className="flex items-center gap-3 xl:gap-4">
-            <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green shrink-0">
-              <Monitor size={32} />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-hairline pb-3 sm:pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 sm:p-2.5 bg-nvidia-green/10 border border-nvidia-green/30 rounded-lg text-nvidia-green shrink-0">
+              <Monitor size={22} className="sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white flex items-center gap-3">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white flex items-center gap-2.5">
                 Data PC & Spesifikasi
               </h1>
-              <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
+              <p className="text-xs text-white/50 tracking-tight mt-0.5">
                 Daftar unit PC warnet dan rincian spesifikasi hardware
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3 self-start md:self-auto">
-            <span className="bg-surface border border-hairline px-4 py-2 rounded-xl text-xs xl:text-sm font-bold tabular-nums text-white/80 shadow-sm">
+          <div className="flex items-center gap-2.5 self-start md:self-auto">
+            <span className="bg-surface border border-hairline px-3 py-1.5 rounded-lg text-xs font-bold tabular-nums text-white/80 shadow-sm">
               Total: {totalCount} Unit PC
             </span>
             <button 
               onClick={openAdd}
-              className="nvidia-button flex items-center gap-2 px-5 xl:px-6 py-2.5 xl:py-3 rounded-xl font-bold text-xs xl:text-sm uppercase tracking-wider shrink-0"
+              className="nvidia-button flex items-center gap-2 h-9 sm:h-10 px-3.5 sm:px-4 rounded-lg font-bold text-xs uppercase tracking-wider shrink-0"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               Tambah Unit PC
             </button>
           </div>

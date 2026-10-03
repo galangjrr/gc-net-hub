@@ -20,21 +20,43 @@ body {
   @apply bg-surface-dark text-white antialiased selection:bg-nvidia-green/30 selection:text-white;
 }
 
+/* Universal Clickable Elements: Pointer Cursor & Interactive State */
+button,
+[role="button"],
+a,
+select,
+summary,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+button[disabled],
+input:disabled {
+  cursor: not-allowed;
+}
+
 @layer utilities {
   .nvidia-card {
-    @apply bg-surface-dark border border-hairline relative rounded-[2px] overflow-hidden;
+    @apply bg-surface-dark border border-hairline relative rounded-xl overflow-hidden;
   }
   
   .nvidia-corner {
-    @apply absolute top-0 left-0 w-[12px] h-[12px] bg-nvidia-green z-10;
+    @apply absolute top-0 left-0 w-[10px] h-[10px] bg-nvidia-green z-10;
   }
 
   .nvidia-button {
-    @apply bg-nvidia-green text-black font-bold px-6 py-[11px] h-[44px] rounded-[2px] transition-colors hover:bg-nvidia-dark inline-flex items-center justify-center tracking-tight;
+    @apply bg-nvidia-green text-black font-bold px-4 py-2 sm:px-5 sm:py-2.5 h-9 sm:h-10 text-xs sm:text-sm rounded-lg transition-all hover:bg-nvidia-dark inline-flex items-center justify-center tracking-tight active:scale-95;
   }
 
   .nvidia-outline {
-    @apply bg-transparent text-white font-bold px-6 py-[11px] h-[44px] rounded-[2px] border border-white transition-colors hover:bg-white hover:text-black inline-flex items-center justify-center tracking-tight;
+    @apply bg-transparent text-white font-bold px-4 py-2 sm:px-5 sm:py-2.5 h-9 sm:h-10 text-xs sm:text-sm rounded-lg border border-white/20 transition-all hover:bg-white hover:text-black inline-flex items-center justify-center tracking-tight active:scale-95;
   }
 }
 
@@ -51,6 +73,30 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #76b900;
+}
+
+/* High-Affordance Visible Scrollbar for Cards */
+.custom-card-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.05);
+}
+.custom-card-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-card-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 9999px;
+  margin: 4px 0;
+}
+.custom-card-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+}
+.custom-card-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 /* Immersive Scanline Effect */

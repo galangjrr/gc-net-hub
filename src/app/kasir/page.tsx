@@ -191,20 +191,20 @@ export default function KasirPage() {
 
   return (
     <PinGuard>
-      <div className="min-h-screen bg-[#0d0e11] p-4 md:p-8 pt-16 md:pt-8 text-zinc-100 space-y-6">
-        <div className="max-w-[1400px] 2xl:max-w-[1720px] mx-auto flex flex-col xl:flex-row gap-6 items-start">
+      <div className="min-h-screen bg-[#0d0e11] p-3 sm:p-5 md:p-6 pt-14 md:pt-6 text-zinc-100 space-y-4">
+        <div className="max-w-[1400px] 2xl:max-w-[1720px] mx-auto flex flex-col xl:flex-row gap-4 sm:gap-5 items-start">
           
           {/* Sisi Kiri: Katalog Barang */}
-          <div className="flex-1 w-full space-y-5">
+          <div className="flex-1 w-full space-y-4">
             
             {/* Header Toolbar */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-hairline/80">
-              <div className="flex items-center gap-3.5">
-                <div className="p-2.5 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green shrink-0">
-                  <ShoppingCart size={28} />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-3 sm:pb-3.5 border-b border-hairline/80">
+              <div className="flex items-center gap-3">
+                <div className="p-2 sm:p-2.5 bg-nvidia-green/10 border border-nvidia-green/30 rounded-lg text-nvidia-green shrink-0">
+                  <ShoppingCart size={22} className="sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h1 className="text-xl md:text-2xl 2xl:text-3xl font-bold text-white tracking-tight">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight">
                     Meja Kasir dan Warung
                   </h1>
                   <p className="text-xs text-zinc-400 mt-0.5">
@@ -214,29 +214,29 @@ export default function KasirPage() {
               </div>
 
               {/* Kontrol Pencarian, Filter Kategori, dan Mode Tampilan */}
-              <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                 
                 {/* Input Pencarian dengan Shortcut Badge */}
-                <div className="relative w-full sm:w-48 xl:w-56">
+                <div className="relative w-full sm:w-44 xl:w-52">
                   <input
                     ref={searchInputRef}
                     type="text"
                     placeholder="Cari barang kasir..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-[#16171b] border border-hairline pl-3.5 pr-8 py-2 text-xs text-zinc-100 rounded-lg outline-none focus:border-nvidia-green transition"
+                    className="w-full h-9 bg-[#16171b] border border-hairline pl-3 pr-7 text-xs text-zinc-100 rounded-lg outline-none focus:border-nvidia-green transition"
                   />
                   {search ? (
                     <button
                       onClick={() => setSearch("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition"
                       title="Bersihkan pencarian"
                     >
-                      <X size={14} />
+                      <X size={13} />
                     </button>
                   ) : (
                     <kbd 
-                      className="hidden sm:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400 bg-white/5 border border-white/10 rounded pointer-events-none"
+                      className="hidden sm:inline-flex absolute right-2 top-1/2 -translate-y-1/2 px-1 py-0.2 text-[10px] font-semibold text-zinc-400 bg-white/5 border border-white/10 rounded pointer-events-none"
                       title="Shortcut keyboard tombol garis miring"
                     >
                       /
@@ -245,12 +245,12 @@ export default function KasirPage() {
                 </div>
 
                 {/* Filter Kategori */}
-                <div className="bg-[#16171b] border border-hairline/80 p-1 rounded-xl flex gap-1 overflow-x-auto">
+                <div className="bg-[#16171b] border border-hairline/80 p-0.5 rounded-lg flex gap-1 overflow-x-auto">
                   {(["all", "food", "drink", "other"] as const).map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-md transition ${
                         selectedCategory === cat
                           ? "bg-white/10 text-white border border-white/15 shadow-sm font-bold"
                           : "text-zinc-400 hover:text-white"
@@ -262,43 +262,43 @@ export default function KasirPage() {
                 </div>
 
                 {/* Tombol Pengalih Tampilan Kotak vs Baris */}
-                <div className="bg-[#16171b] border border-hairline/80 p-1 rounded-xl flex items-center gap-1">
+                <div className="bg-[#16171b] border border-hairline/80 p-0.5 rounded-lg flex items-center gap-1">
                   <button
                     onClick={() => handleSetViewMode("grid")}
                     title="Tampilan Kotak Kompak"
-                    className={`p-1.5 rounded-lg transition ${
+                    className={`p-1.5 rounded-md transition ${
                       viewMode === "grid"
                         ? "bg-nvidia-green text-black font-bold shadow-sm"
                         : "text-zinc-400 hover:text-white"
                     }`}
                   >
-                    <LayoutGrid size={16} />
+                    <LayoutGrid size={15} />
                   </button>
                   <button
                     onClick={() => handleSetViewMode("list")}
                     title="Tampilan Baris Cepat"
-                    className={`p-1.5 rounded-lg transition ${
+                    className={`p-1.5 rounded-md transition ${
                       viewMode === "list"
                         ? "bg-nvidia-green text-black font-bold shadow-sm"
                         : "text-zinc-400 hover:text-white"
                     }`}
                   >
-                    <List size={16} />
+                    <List size={15} />
                   </button>
                 </div>
 
                 {/* Hint Bar Tombol Cepat Keyboard */}
-                <div className="hidden lg:flex items-center gap-2 text-[11px] text-zinc-400 bg-[#16171b] border border-hairline/80 px-3 py-1.5 rounded-xl">
+                <div className="hidden lg:flex items-center gap-2 text-[10px] text-zinc-400 bg-[#16171b] border border-hairline/80 px-2.5 py-1 rounded-lg">
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-zinc-300 font-semibold">/</kbd> Cari
+                    <kbd className="px-1 py-0.2 bg-white/5 border border-white/10 rounded text-[9px] text-zinc-300 font-semibold">/</kbd> Cari
                   </span>
                   <span className="text-zinc-600">•</span>
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-zinc-300 font-semibold">F9</kbd> Bayar
+                    <kbd className="px-1 py-0.2 bg-white/5 border border-white/10 rounded text-[9px] text-zinc-300 font-semibold">F9</kbd> Bayar
                   </span>
                   <span className="text-zinc-600">•</span>
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-zinc-300 font-semibold">Esc</kbd> Reset
+                    <kbd className="px-1 py-0.2 bg-white/5 border border-white/10 rounded text-[9px] text-zinc-300 font-semibold">Esc</kbd> Reset
                   </span>
                 </div>
 
@@ -307,7 +307,7 @@ export default function KasirPage() {
 
             {/* Tampilan 1: Mode Kotak Kompak Berwarna (Grid Tile) */}
             {viewMode === "grid" && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3">
                 {inventoryItems.map((p: InventoryItem) => {
                   const inCart = cart.find((c) => c.product.id === p.id)?.qty || 0;
                   const isOutOfStock = p.stock - inCart <= 0;
@@ -319,7 +319,7 @@ export default function KasirPage() {
                       key={p.id}
                       disabled={isOutOfStock}
                       onClick={() => addToCart(p)}
-                      className={`relative text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[104px] xl:min-h-[110px] overflow-hidden ${
+                      className={`relative text-left p-2.5 sm:p-3 rounded-lg border transition-all flex flex-col justify-between min-h-[92px] sm:min-h-[98px] overflow-hidden ${
                         isOutOfStock
                           ? "opacity-35 cursor-not-allowed bg-[#141518] border-white/5"
                           : inCart > 0
@@ -334,7 +334,7 @@ export default function KasirPage() {
                       {/* Baris Atas: Kategori dan Stok */}
                       <div className="flex items-center justify-between w-full">
                         <span
-                          className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-md ${
+                          className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                             isFood
                               ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
                               : isDrink
@@ -342,18 +342,18 @@ export default function KasirPage() {
                               : "bg-purple-500/10 text-purple-300 border border-purple-500/20"
                           }`}
                         >
-                          {isFood ? <Utensils size={11} /> : isDrink ? <Coffee size={11} /> : <Package size={11} />}
+                          {isFood ? <Utensils size={10} /> : isDrink ? <Coffee size={10} /> : <Package size={10} />}
                           <span>{getCategoryLabel(p.category)}</span>
                         </span>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           {inCart > 0 && (
-                            <span className="bg-nvidia-green text-black font-black tabular-nums text-[11px] px-2 py-0.2 rounded-full shadow-sm">
+                            <span className="bg-nvidia-green text-black font-black tabular-nums text-[10px] px-1.5 py-0.2 rounded-full shadow-sm">
                               x{inCart}
                             </span>
                           )}
                           <span
-                            className={`text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-md ${
+                            className={`text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded ${
                               p.stock <= 3
                                 ? "bg-red-500/20 text-red-300 border border-red-500/30 font-bold"
                                 : p.stock <= 5
@@ -367,12 +367,12 @@ export default function KasirPage() {
                       </div>
 
                       {/* Baris Bawah: Judul Alami dan Harga */}
-                      <div className="mt-2">
-                        <h3 className="text-sm font-bold text-zinc-100 tracking-normal line-clamp-1">
+                      <div className="mt-1.5">
+                        <h3 className="text-xs sm:text-sm font-semibold text-zinc-100 tracking-normal line-clamp-2 min-h-[2.2rem] leading-snug">
                           {cleanName(p.name)}
                         </h3>
-                        <p className="text-nvidia-green font-bold text-sm xl:text-base tabular-nums mt-0.5">
-                          <span className="text-xs font-semibold mr-0.5">Rp</span>
+                        <p className="text-nvidia-green font-bold text-xs sm:text-sm tabular-nums mt-0.5">
+                          <span className="text-[10px] font-semibold mr-0.5">Rp</span>
                           {p.price.toLocaleString("id-ID")}
                         </p>
                       </div>
@@ -384,7 +384,7 @@ export default function KasirPage() {
 
             {/* Tampilan 2: Mode Baris Cepat (List View) */}
             {viewMode === "list" && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {inventoryItems.map((p: InventoryItem) => {
                   const inCart = cart.find((c) => c.product.id === p.id)?.qty || 0;
                   const isOutOfStock = p.stock - inCart <= 0;
@@ -394,7 +394,7 @@ export default function KasirPage() {
                   return (
                     <div
                       key={p.id}
-                      className={`p-3 px-4 bg-[#16171b] border rounded-xl flex items-center justify-between gap-3 transition-all ${
+                      className={`p-2 px-3 sm:px-3.5 bg-[#16171b] border rounded-lg flex items-center justify-between gap-2.5 transition-all ${
                         isOutOfStock
                           ? "opacity-40 border-hairline/40"
                           : inCart > 0
@@ -403,9 +403,9 @@ export default function KasirPage() {
                       }`}
                     >
                       {/* Kiri: Icon Kategori dan Nama */}
-                      <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                          className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
                             isFood
                               ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                               : isDrink
@@ -413,16 +413,16 @@ export default function KasirPage() {
                               : "bg-purple-500/10 text-purple-400 border border-purple-500/20"
                           }`}
                         >
-                          {isFood ? <Utensils size={16} /> : isDrink ? <Coffee size={16} /> : <Package size={16} />}
+                          {isFood ? <Utensils size={13} /> : isDrink ? <Coffee size={13} /> : <Package size={13} />}
                         </div>
 
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2.5">
-                            <h3 className="text-sm font-bold text-zinc-100 truncate">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xs sm:text-sm font-semibold text-zinc-100 break-words line-clamp-1">
                               {cleanName(p.name)}
                             </h3>
                             <span
-                              className={`text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-md shrink-0 ${
+                              className={`text-[10px] font-semibold tabular-nums px-1.5 py-0.2 rounded shrink-0 ${
                                 p.stock <= 3
                                   ? "bg-red-500/20 text-red-300 border border-red-500/30 font-bold"
                                   : "bg-white/5 text-zinc-300 border border-white/10"
@@ -431,28 +431,28 @@ export default function KasirPage() {
                               {isOutOfStock ? "Habis" : `Sisa ${p.stock}`}
                             </span>
                           </div>
-                          <span className="text-xs text-zinc-400 font-medium">
+                          <span className="text-[11px] text-zinc-400 font-medium">
                             {getCategoryLabel(p.category)}
                           </span>
                         </div>
                       </div>
 
                       {/* Kanan: Harga dan Kontrol Tambah */}
-                      <div className="flex items-center gap-3.5 shrink-0">
-                        <span className="text-nvidia-green font-bold text-sm xl:text-base tabular-nums">
-                          <span className="text-xs font-semibold mr-0.5">Rp</span>
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <span className="text-nvidia-green font-bold text-xs sm:text-sm tabular-nums">
+                          <span className="text-[10px] font-semibold mr-0.5">Rp</span>
                           {p.price.toLocaleString("id-ID")}
                         </span>
 
                         {inCart > 0 ? (
-                          <div className="flex items-center gap-1.5 bg-[#0d0e11] border border-hairline px-1.5 py-1 rounded-lg">
+                          <div className="flex items-center gap-1 bg-[#0d0e11] border border-hairline px-1 py-0.5 rounded-md">
                             <button
                               onClick={() => decrementCart(p.id)}
                               className="w-5 h-5 flex items-center justify-center text-zinc-300 hover:text-white rounded transition"
                             >
-                              <Minus size={12} />
+                              <Minus size={11} />
                             </button>
-                            <span className="w-6 text-center tabular-nums font-bold text-xs text-nvidia-green">
+                            <span className="w-5 text-center tabular-nums font-bold text-xs text-nvidia-green">
                               {inCart}
                             </span>
                             <button
@@ -460,14 +460,14 @@ export default function KasirPage() {
                               disabled={isOutOfStock}
                               className="w-5 h-5 flex items-center justify-center text-zinc-300 hover:text-white disabled:opacity-30 rounded transition"
                             >
-                              <Plus size={12} />
+                              <Plus size={11} />
                             </button>
                           </div>
                         ) : (
                           <button
                             disabled={isOutOfStock}
                             onClick={() => addToCart(p)}
-                            className="px-3.5 py-1.5 bg-[#0d0e11] hover:bg-nvidia-green hover:text-black border border-hairline disabled:opacity-30 rounded-lg text-xs font-bold transition"
+                            className="h-7 px-2.5 bg-[#0d0e11] hover:bg-nvidia-green hover:text-black border border-hairline disabled:opacity-30 rounded-md text-xs font-semibold transition"
                           >
                             Tambah
                           </button>
@@ -488,19 +488,19 @@ export default function KasirPage() {
           </div>
 
           {/* Sisi Kanan: Keranjang Kasir & Konteks Pengantaran */}
-          <div className="w-full xl:w-[360px] 2xl:w-[400px] shrink-0 xl:sticky xl:top-6">
-            <div className="bg-[#16171b] border border-hairline rounded-2xl p-4 xl:p-5 flex flex-col justify-between shadow-2xl space-y-4">
+          <div className="w-full xl:w-[340px] 2xl:w-[380px] shrink-0 xl:sticky xl:top-6">
+            <div className="bg-[#16171b] border border-hairline rounded-xl p-3.5 sm:p-4 flex flex-col justify-between shadow-xl space-y-3">
               
               {/* Header Keranjang */}
-              <div className="flex items-center justify-between pb-3 border-b border-hairline">
-                <h2 className="font-bold text-sm xl:text-base text-white flex items-center gap-2 tracking-tight">
-                  <ShoppingCart size={18} className="text-nvidia-green" />
+              <div className="flex items-center justify-between pb-2.5 border-b border-hairline">
+                <h2 className="font-bold text-xs sm:text-sm text-white flex items-center gap-2 tracking-tight">
+                  <ShoppingCart size={16} className="text-nvidia-green" />
                   <span>Keranjang Kasir</span>
                 </h2>
                 {cart.length > 0 && (
                   <button
                     onClick={() => setCart([])}
-                    className="text-xs text-red-400 font-bold hover:underline"
+                    className="text-[11px] text-red-400 font-bold hover:underline"
                   >
                     Kosongkan
                   </button>
@@ -508,8 +508,8 @@ export default function KasirPage() {
               </div>
 
               {/* Konteks Target Pesanan Kasir */}
-              <div className="space-y-2.5 bg-[#0d0e11] border border-hairline p-3 rounded-xl">
-                <span className="text-xs font-semibold text-zinc-400 block">
+              <div className="space-y-2 bg-[#0d0e11] border border-hairline p-2.5 rounded-lg">
+                <span className="text-[11px] font-semibold text-zinc-400 block">
                   Tujuan Pesanan
                 </span>
 
@@ -517,38 +517,38 @@ export default function KasirPage() {
                   <button
                     type="button"
                     onClick={() => setTargetType("walkin")}
-                    className={`py-2 px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                    className={`py-1.5 px-2 rounded-md text-xs font-semibold transition flex items-center justify-center gap-1.5 ${
                       targetType === "walkin"
-                        ? "bg-white/10 text-white border border-white/20 shadow-sm"
+                        ? "bg-white/10 text-white border border-white/20 shadow-sm font-bold"
                         : "text-zinc-400 hover:text-white"
                     }`}
                   >
-                    <User size={14} />
+                    <User size={13} />
                     <span>Bawa Sendiri</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setTargetType("pc")}
-                    className={`py-2 px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                    className={`py-1.5 px-2 rounded-md text-xs font-semibold transition flex items-center justify-center gap-1.5 ${
                       targetType === "pc"
                         ? "bg-nvidia-green text-black font-bold shadow-sm"
                         : "text-zinc-400 hover:text-white"
                     }`}
                   >
-                    <Monitor size={14} />
+                    <Monitor size={13} />
                     <span>Antar ke PC</span>
                   </button>
                 </div>
 
                 {targetType === "pc" && (
-                  <div className="pt-1 space-y-1.5">
-                    <label className="text-xs text-zinc-400 font-semibold block">
+                  <div className="pt-0.5 space-y-1">
+                    <label className="text-[11px] text-zinc-400 font-medium block">
                       Pilih Nomor PC
                     </label>
                     <select
                       value={selectedPc}
                       onChange={(e) => setSelectedPc(e.target.value)}
-                      className="w-full bg-[#16171b] border border-hairline p-2 rounded-lg text-xs text-white focus:border-nvidia-green outline-none"
+                      className="w-full bg-[#16171b] border border-hairline p-1.5 rounded-md text-xs text-white focus:border-nvidia-green outline-none"
                     >
                       <option value="">Pilih PC Pemesan</option>
                       {activePcs.map((pc) => (
@@ -563,28 +563,28 @@ export default function KasirPage() {
 
               {/* Daftar Barang di Keranjang */}
               {cart.length === 0 ? (
-                <div className="py-12 flex flex-col items-center justify-center text-zinc-500 text-xs space-y-2 border border-dashed border-white/10 rounded-xl">
-                  <ShoppingCart size={32} className="opacity-40" />
+                <div className="py-8 flex flex-col items-center justify-center text-zinc-400 font-medium text-xs space-y-1.5 border border-dashed border-white/10 rounded-lg">
+                  <ShoppingCart size={24} className="opacity-40" />
                   <span>Keranjang Masih Kosong</span>
                 </div>
               ) : (
-                <div className="max-h-[260px] overflow-y-auto divide-y divide-hairline pr-1 space-y-2.5 custom-scrollbar">
+                <div className="max-h-[240px] overflow-y-auto divide-y divide-hairline pr-1 space-y-2 custom-scrollbar">
                   {cart.map((item) => (
-                    <div key={item.product.id} className="pt-2.5 flex items-center justify-between gap-2">
+                    <div key={item.product.id} className="pt-2 flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0 pr-1">
-                        <h4 className="font-bold text-zinc-100 text-xs xl:text-sm truncate">
+                        <h4 className="font-semibold text-zinc-100 text-xs break-words line-clamp-1">
                           {cleanName(item.product.name)}
                         </h4>
-                        <p className="text-nvidia-green font-bold text-xs xl:text-sm tabular-nums mt-0.5">
+                        <p className="text-nvidia-green font-bold text-xs tabular-nums mt-0.5">
                           <span className="text-[10px] font-semibold mr-0.5">Rp</span>
                           {(item.product.price * item.qty).toLocaleString("id-ID")}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => decrementCart(item.product.id)}
-                          className="w-6 h-6 flex items-center justify-center bg-[#0d0e11] border border-hairline text-zinc-300 hover:bg-white/10 font-bold text-xs transition rounded-lg"
+                          className="w-5 h-5 flex items-center justify-center bg-[#0d0e11] border border-hairline text-zinc-300 hover:bg-white/10 font-bold text-xs transition rounded"
                         >
                           -
                         </button>
@@ -594,15 +594,15 @@ export default function KasirPage() {
                         <button
                           onClick={() => addToCart(item.product)}
                           disabled={item.qty >= item.product.stock}
-                          className="w-6 h-6 flex items-center justify-center bg-[#0d0e11] border border-hairline text-zinc-300 hover:bg-white/10 font-bold text-xs transition rounded-lg disabled:opacity-30"
+                          className="w-5 h-5 flex items-center justify-center bg-[#0d0e11] border border-hairline text-zinc-300 hover:bg-white/10 font-bold text-xs transition rounded disabled:opacity-30"
                         >
                           +
                         </button>
                         <button
                           onClick={() => removeFromCart(item.product.id)}
-                          className="p-1 text-zinc-400 hover:text-red-400 transition"
+                          className="p-1 text-zinc-400 hover:text-red-400 transition ml-0.5"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -611,13 +611,13 @@ export default function KasirPage() {
               )}
 
               {/* Total dan Tombol Bayar */}
-              <div className="pt-3 border-t border-hairline space-y-3">
+              <div className="pt-2.5 border-t border-hairline space-y-2.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-zinc-400 font-semibold">
+                  <span className="text-xs text-zinc-400 font-medium">
                     Total Pembayaran
                   </span>
-                  <span className="text-2xl xl:text-3xl font-extrabold text-nvidia-green tabular-nums">
-                    <span className="text-base font-bold mr-1">Rp</span>
+                  <span className="text-lg sm:text-xl font-black text-nvidia-green tabular-nums">
+                    <span className="text-xs font-bold mr-0.5">Rp</span>
                     {total.toLocaleString("id-ID")}
                   </span>
                 </div>
@@ -625,10 +625,10 @@ export default function KasirPage() {
                 <button
                   disabled={cart.length === 0 || loading}
                   onClick={() => setShowConfirm(true)}
-                  className="w-full py-3 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 text-black font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-[0_0_20px_rgba(118,185,0,0.25)] flex items-center justify-center gap-2 active:scale-95"
+                  className="w-full h-10 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 text-black font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-[0_0_15px_rgba(118,185,0,0.25)] flex items-center justify-center gap-2 active:scale-95"
                 >
                   <span>{loading ? "Memproses..." : "Bayar Cash Lunas"}</span>
-                  <kbd className="px-1.5 py-0.5 text-[10px] bg-black/20 text-black/80 font-bold rounded border border-black/20" title="Shortcut keyboard F9">
+                  <kbd className="px-1.5 py-0.2 text-[10px] bg-black/20 text-black/80 font-bold rounded border border-black/20" title="Shortcut keyboard F9">
                     F9
                   </kbd>
                 </button>
@@ -639,29 +639,32 @@ export default function KasirPage() {
 
         </div>
 
-        {/* Modal Konfirmasi Pembayaran */}
+        {/* Modal Konfirmasi Pembayaran Polished */}
         {showConfirm && (
-          <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#141518] border border-white/10 rounded-2xl p-5 md:p-6 w-full max-w-sm shadow-2xl space-y-4">
+          <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-[#121316] border border-white/15 rounded-2xl p-5 sm:p-6 w-full max-w-sm shadow-[0_0_50px_rgba(0,0,0,0.8)] space-y-4">
               <div>
-                <span className="text-[11px] font-bold tracking-wider text-nvidia-green bg-nvidia-green/10 border border-nvidia-green/20 px-2 py-0.5 rounded-full">
-                  Kasir F&B
-                </span>
-                <h2 className="text-base font-bold text-white tracking-tight mt-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-extrabold tracking-wider text-nvidia-green bg-nvidia-green/10 border border-nvidia-green/20 px-2.5 py-0.5 rounded-full uppercase">
+                    KASIR F&B
+                  </span>
+                  <span className="text-xs font-mono font-bold text-zinc-400">
+                    {cart.length} Item
+                  </span>
+                </div>
+                <h2 className="text-base sm:text-lg font-black text-white tracking-tight uppercase">
                   Konfirmasi Pembayaran
                 </h2>
-                <p className="text-xs text-zinc-400 mt-1">
-                  {cart.length} item • Total: Rp {total.toLocaleString("id-ID")}
-                </p>
-                <div className="text-xs text-zinc-400 mt-1">
-                  Tujuan: <strong className="text-white">{targetType === "pc" ? `Antar ke ${selectedPc || "Meja PC"}` : "Bawa Sendiri"}</strong>
+                <div className="text-xs text-zinc-300 mt-1 flex items-center justify-between">
+                  <span>Tujuan Pesanan:</span>
+                  <strong className="text-white font-bold">{targetType === "pc" ? `Antar ke ${selectedPc || "Meja PC"}` : "Bawa Sendiri"}</strong>
                 </div>
               </div>
 
-              <div className="border border-hairline divide-y divide-hairline rounded-xl max-h-48 overflow-y-auto bg-[#0d0e11] custom-scrollbar">
+              <div className="border border-white/10 divide-y divide-white/5 rounded-xl max-h-48 overflow-y-auto bg-black/50 custom-scrollbar">
                 {cart.map((item) => (
-                  <div key={item.product.id} className="flex justify-between px-3 py-2 text-xs">
-                    <span className="text-zinc-200">{cleanName(item.product.name)} ×{item.qty}</span>
+                  <div key={item.product.id} className="flex justify-between items-center px-3 py-2 text-xs">
+                    <span className="text-zinc-200 font-medium">{cleanName(item.product.name)} ×{item.qty}</span>
                     <span className="text-nvidia-green font-bold tabular-nums">
                       <span className="text-[10px] font-semibold mr-0.5">Rp</span>
                       {(item.product.price * item.qty).toLocaleString("id-ID")}
@@ -670,7 +673,14 @@ export default function KasirPage() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1">
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between">
+                <span className="text-xs text-zinc-300 font-bold uppercase">Total Tagihan:</span>
+                <span className="text-lg font-black text-white tabular-nums tracking-tight">
+                  Rp {total.toLocaleString("id-ID")}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-zinc-400">
                 <span>Enter konfirmasi lunas</span>
                 <span>Esc batal</span>
               </div>
@@ -679,20 +689,20 @@ export default function KasirPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(false)}
-                  className="flex-1 py-2.5 bg-[#1a1b20] border border-hairline text-zinc-300 hover:text-white rounded-lg font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition"
+                  className="flex-1 h-10 bg-white/5 border border-white/10 hover:bg-white/10 text-zinc-300 hover:text-white rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition"
                 >
                   <span>Batal</span>
-                  <kbd className="px-1.5 py-0.2 bg-white/10 text-zinc-400 text-[10px] rounded font-semibold">Esc</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-white/10 text-zinc-400 text-[9px] rounded font-semibold">Esc</kbd>
                 </button>
                 <button
                   type="button"
                   onClick={handleCheckout}
                   disabled={loading}
-                  className="flex-1 py-2.5 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-50 text-black rounded-lg font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition shadow-sm"
+                  className="flex-1 h-10 bg-nvidia-green hover:bg-[#88d600] disabled:opacity-50 text-black rounded-xl font-black text-xs uppercase flex items-center justify-center gap-1.5 transition shadow-[0_0_20px_rgba(118,185,0,0.3)]"
                 >
-                  <Check size={16} />
+                  <Check size={15} />
                   <span>{loading ? "Memproses..." : "Lunas"}</span>
-                  <kbd className="px-1.5 py-0.2 bg-black/20 text-black text-[10px] rounded font-semibold">Enter</kbd>
+                  <kbd className="px-1.5 py-0.5 bg-black/20 text-black text-[9px] rounded font-black">Enter</kbd>
                 </button>
               </div>
             </div>

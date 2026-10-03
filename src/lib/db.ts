@@ -55,6 +55,9 @@ export type Booking = {
   ss_bukti?: string; // URL or base64 if needed
   member_id?: string;
   payment_method?: 'qris' | 'kasir';
+  booking_type?: 'queue' | 'scheduled' | 'slot';
+  scheduled_at?: string | null;
+  start_time?: string | null;
   dana_partner_ref?: string;
   dana_reference_no?: string;
   dana_qr_content?: string;
@@ -116,7 +119,7 @@ export async function getDB(options?: { includeLogs?: boolean }): Promise<Databa
     supabaseAdmin.from('inventory').select('id, name, price, stock, category').neq('category', 'staff_account'),
     supabaseAdmin.from('pcs').select('id, name, status, expected_empty_time, image, specs').order('id', { ascending: true }),
     supabaseAdmin.from('pakets').select('id, name, price, duration_minutes, fixed_start_time, fixed_end_time, days, is_custom').order('price', { ascending: true }),
-    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at').order('created_at', { ascending: false }).limit(60),
+    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at, ss_bukti, member_id, booking_type, scheduled_at, start_time').order('created_at', { ascending: false }).limit(60),
     shouldFetchLogs 
       ? supabaseAdmin.from('logs').select('*').order('end_time', { ascending: false }).limit(200)
       : Promise.resolve({ data: [] })
@@ -129,14 +132,45 @@ export async function getDB(options?: { includeLogs?: boolean }): Promise<Databa
   const bookings = bookingsRes.data;
   const logs = logsRes.data;
 
-  const now = Date.now();
-  const activeBookingsMap = new Map<string, any>();
+  // Hitung user_counter efektif agar selalu sinkron dengan User <N> tertinggi yang ada
+  let effectiveUserCounter = typeof settings?.user_counter === 'number' ? settings.user_counter : 80;
   (bookings || []).forEach((b: any) => {
-    if (b.status === 'active' && b.pc_id) {
-      activeBookingsMap.set(b.pc_id.toLowerCase(), b);
+    if (b.player_name) {
+      const match = b.player_name.match(/^User\s+(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > effectiveUserCounter) {
+          effectiveUserCounter = num;
+        }
+      }
     }
   });
 
+  const effectiveSettings = settings 
+    ? { ...settings, user_counter: effectiveUserCounter } 
+    : { id: 1, user_counter: effectiveUserCounter, daily_pdf_revenue: 0 };
+
+  const isScheduled = (b: any) => {
+    if (b.booking_type === 'slot' || b.booking_type === 'scheduled') return true;
+    if (b.scheduled_at || b.start_time) return true;
+    return false;
+  };
+
+  const activeBookingsMap = new Map<string, any>();
+  (bookings || []).forEach((b: any) => {
+    if (b.status === 'active' && b.pc_id) {
+      const pcKey = b.pc_id.toLowerCase();
+      const existing = activeBookingsMap.get(pcKey);
+      if (!existing) {
+        activeBookingsMap.set(pcKey, b);
+      } else if (isScheduled(existing) && !isScheduled(b)) {
+        // Antrean langsung yang aktif memiliki prioritas lebih tinggi dibanding booking jam tertentu
+        activeBookingsMap.set(pcKey, b);
+      }
+    }
+  });
+
+  const now = Date.now();
   const cleanedPcs = (pcs || []).map((pc: any) => {
     const activeBooking = activeBookingsMap.get(pc.id.toLowerCase());
     const paket = activeBooking ? (pakets || []).find((p: any) => p.id === activeBooking.paket_id) : null;
@@ -164,12 +198,28 @@ export async function getDB(options?: { includeLogs?: boolean }): Promise<Databa
     };
   });
 
+  // Prioritas antrean sistem:
+  // 1. Antrean Langsung / Main Sekarang SELALU DI ATAS (prioritas utama)
+  // 2. Booking Jam Tertentu (Scheduled) SELALU DI BAWAH
+  const prioritizedBookings = (bookings || []).sort((a: any, b: any) => {
+    const aSched = isScheduled(a);
+    const bSched = isScheduled(b);
+    if (!aSched && bSched) return -1;
+    if (aSched && !bSched) return 1;
+    if (aSched && bSched) {
+      const aTime = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0;
+      const bTime = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0;
+      if (aTime && bTime && aTime !== bTime) return aTime - bTime;
+    }
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  });
+
   return {
-    settings: settings || { userCounter: 1 },
+    settings: effectiveSettings,
     inventory: inventory || [],
     pcs: cleanedPcs,
     pakets: pakets || [],
-    bookings: bookings || [],
+    bookings: prioritizedBookings,
     logs: logs || [],
     player_history: []
   };

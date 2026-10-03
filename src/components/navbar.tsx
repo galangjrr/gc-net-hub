@@ -23,8 +23,8 @@ export default function Navbar() {
       <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center group-hover:glow-cyan transition-shadow">
-            <span className="tracking-tight text-cyan-400 text-sm font-bold">G</span>
+          <div className="w-8 h-8 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center group-hover:border-nvidia-green/60 transition-colors">
+            <span className="tracking-tight text-nvidia-green text-sm font-bold">G</span>
           </div>
           <span className="tracking-tight text-sm tracking-[0.2em] text-zinc-300 group-hover:text-white transition-colors">
             GC_NET
@@ -42,7 +42,7 @@ export default function Navbar() {
                 className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive
                     ? "text-white"
-                    : "text-zinc-500 hover:text-zinc-200"
+                    : "text-zinc-300 hover:text-white font-medium"
                 }`}
               >
                 {isActive && (
@@ -88,7 +88,7 @@ export default function Navbar() {
                     className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       isActive
                         ? "text-white bg-white/[0.06]"
-                        : "text-zinc-500 hover:text-white hover:bg-white/[0.04]"
+                        : "text-zinc-300 hover:text-white hover:bg-white/[0.04] font-medium"
                     }`}
                   >
                     {item.label}

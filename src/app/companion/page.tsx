@@ -173,7 +173,7 @@ export default function CompanionPage() {
           {/* Quick Counter Pills */}
           <div className="max-w-md mx-auto grid grid-cols-3 gap-2 mt-3">
             <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-1.5 text-center">
-              <span className="text-[10px] text-zinc-500 uppercase font-semibold">Total PC</span>
+              <span className="text-[10px] text-zinc-300 uppercase font-semibold">Total PC</span>
               <div className="text-base font-bold text-white">{pcs.length}</div>
             </div>
             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3 py-1.5 text-center">
@@ -281,7 +281,7 @@ export default function CompanionPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-[11px] text-zinc-500 font-medium flex items-center gap-1">
+                      <div className="text-xs text-zinc-300 font-medium flex items-center gap-1">
                         <Unlock size={12} /> Tersedia
                       </div>
                     )}
@@ -302,7 +302,7 @@ export default function CompanionPage() {
                         <Clock size={11} /> {remainingMin > 0 ? `${remainingMin}m tersisa` : 'Aktif'}
                       </div>
                     ) : (
-                      <div className="text-zinc-500 flex items-center gap-0.5">
+                      <div className="text-zinc-300 font-medium flex items-center gap-0.5">
                         Tap untuk buka <ChevronRight size={12} />
                       </div>
                     )}
@@ -381,7 +381,7 @@ export default function CompanionPage() {
                             <div className="text-[11px] text-emerald-400 font-bold tabular-nums mt-0.5">
                               Rp {pkt.price.toLocaleString("id-ID")}
                             </div>
-                            <div className="text-[10px] text-zinc-500 mt-0.5">
+                            <div className="text-xs text-zinc-300 font-medium mt-0.5">
                               {pkt.duration_minutes ? `${pkt.duration_minutes} Menit` : "Paket Malam"}
                             </div>
                           </button>

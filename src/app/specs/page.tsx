@@ -21,7 +21,7 @@ export default function SpecsPage() {
     <div className="max-w-[1400px] mx-auto px-6 py-12 md:py-20">
       <div className="mb-10">
         <h1 className="text-2xl font-medium tracking-tight mb-1">Spesifikasi PC & Game</h1>
-        <p className="text-sm text-zinc-500">Detail hardware dan daftar game yang terinstall di setiap unit.</p>
+        <p className="text-sm text-zinc-300 font-medium">Detail hardware dan daftar game yang terinstall di setiap unit.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -42,74 +42,74 @@ export default function SpecsPage() {
                 <Monitor size={20} className="text-cyan-400" />
               </div>
               <div>
-                <div className="tracking-tight text-sm font-medium">{pc.name}</div>
-                <div className="text-[11px] text-zinc-600">{s.monitor}</div>
+                <div className="tracking-tight text-sm font-bold text-white">{pc.name}</div>
+                <div className="text-xs text-zinc-300 font-medium">{s.monitor}</div>
               </div>
             </div>
 
             {/* Specs Grid */}
             <div className="grid grid-cols-2 gap-3 mb-5">
               <div className="flex items-start gap-2">
-                <Cpu size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Cpu size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">CPU</div>
-                  <div className="text-xs tracking-tight font-medium">{s.cpu}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">CPU</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.cpu}</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-2">
-                <Monitor size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Monitor size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">GPU</div>
-                  <div className="text-xs tracking-tight font-medium">{s.gpu}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">GPU</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.gpu}</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-2 col-span-2">
-                <Cpu size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Cpu size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Mainboard</div>
-                  <div className="text-xs tracking-tight font-medium">{s.mainboard || "-"}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Mainboard</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.mainboard || "-"}</div>
                 </div>
               </div>
               
               <div className="flex items-start gap-2">
-                <Cpu size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Cpu size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">RAM</div>
-                  <div className="text-xs tracking-tight font-medium">{s.ram || "-"}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">RAM</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.ram || "-"}</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-2">
-                <HardDrive size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <HardDrive size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Storage</div>
-                  <div className="text-xs tracking-tight font-medium">{s.storage || "-"}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Storage</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.storage || "-"}</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-2">
-                <Gamepad2 size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Gamepad2 size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Keyboard</div>
-                  <div className="text-xs tracking-tight font-medium">{s.keyboard || "-"}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Keyboard</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.keyboard || "-"}</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-2">
-                <Gamepad2 size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Gamepad2 size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Mouse</div>
-                  <div className="text-xs tracking-tight font-medium">{s.mouse || "-"}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Mouse</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.mouse || "-"}</div>
                 </div>
               </div>
               
               <div className="flex items-start gap-2 col-span-2">
-                <Gamepad2 size={14} className="text-zinc-600 mt-0.5 shrink-0" />
+                <Gamepad2 size={14} className="text-zinc-400 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[10px] text-zinc-600 uppercase tracking-wider">Headset</div>
-                  <div className="text-xs tracking-tight font-medium">{s.headset || "-"}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Headset</div>
+                  <div className="text-xs tracking-tight font-semibold text-white">{s.headset || "-"}</div>
                 </div>
               </div>
             </div>
@@ -118,13 +118,13 @@ export default function SpecsPage() {
             <div className="mt-4 pt-4 border-t border-white/[0.05]">
               <div className="flex items-center gap-1.5 mb-2">
                 <Gamepad2 size={14} className="text-cyan-500" />
-                <span className="text-[10px] text-zinc-500 tracking-tight">INSTALLED GAMES</span>
+                <span className="text-[10px] text-zinc-300 uppercase font-bold tracking-wider">INSTALLED GAMES</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {(s.games || []).map(game => (
                   <span
                     key={game}
-                    className="text-[11px] text-zinc-400 bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded-md"
+                    className="text-xs text-zinc-200 font-medium bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded-md"
                   >
                     {game}
                   </span>

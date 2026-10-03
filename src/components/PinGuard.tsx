@@ -99,7 +99,7 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
         </div>
         <div className="nvidia-corner"></div>
         <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase">Akses Terkunci</h2>
-        <p className="text-xs tracking-tight text-white/50 mb-6 uppercase">Masukkan Username & Password</p>
+        <p className="text-xs tracking-tight text-zinc-300 font-medium mb-6 uppercase">Masukkan Username & Password</p>
         
         <div className="space-y-4 relative z-10">
           <input 
@@ -127,9 +127,9 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
               checked={rememberMe}
               onChange={e => setRememberMe(e.target.checked)}
             />
-            <span className="text-xs tracking-tight text-white/50 group-hover:text-white transition-colors uppercase">Biarkan saya tetap masuk</span>
+            <span className="text-xs tracking-tight text-zinc-300 group-hover:text-white transition-colors uppercase font-medium">Biarkan saya tetap masuk</span>
           </label>
-          {error && <p className="text-[10px] text-error font-bold tracking-tight uppercase text-center mt-2">Username/Password Salah!</p>}
+          {error && <p className="text-xs text-red-400 font-bold tracking-tight uppercase text-center mt-2">Username atau password salah</p>}
           <button 
             onClick={handleUnlock}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-nvidia-green/10 border border-nvidia-green/50 text-nvidia-green hover:bg-nvidia-green hover:text-black hover:shadow-[0_0_20px_rgba(118,185,0,0.6)] rounded-[2px] transition-all tracking-tight font-bold text-sm uppercase tracking-widest group mt-2"

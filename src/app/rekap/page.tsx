@@ -274,18 +274,18 @@ export default function RekapKeuanganPage() {
                   <Users size={16} className="text-zinc-400" />
                 </div>
                 <p className="text-2xl xl:text-3xl font-extrabold text-white tabular-nums">
-                  {totalTransactions} <span className="text-xs text-zinc-400 font-normal">transaksi</span>
+                  {totalTransactions} <span className="text-xs text-zinc-300 font-medium">transaksi</span>
                 </p>
               </div>
-              <p className="text-xs text-zinc-400 mt-3 pt-3 border-t border-hairline/80 truncate">
-                Gabungan pesanan kasir F&B dan sewa PC
+              <p className="text-xs text-zinc-300 mt-3 pt-3 border-t border-hairline/80 font-medium">
+                Gabungan pesanan kasir dan sewa PC
               </p>
             </div>
 
             {/* Money Pooling Card */}
             <div className="p-4 xl:p-5 rounded-xl bg-surface border border-hairline shadow-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-zinc-400 text-xs uppercase tracking-wider font-semibold mb-1">
+                <div className="flex items-center justify-between text-zinc-300 text-xs uppercase tracking-wider font-semibold mb-1">
                   <span>Money Pooling Antrean</span>
                   <Coins size={16} className="text-nvidia-green" />
                 </div>
@@ -298,7 +298,7 @@ export default function RekapKeuanganPage() {
                   {activePooling.toLocaleString("id-ID")}
                 </p>
               </div>
-              <p className="text-xs text-zinc-400 mt-3 pt-3 border-t border-hairline/80 truncate">
+              <p className="text-xs text-zinc-300 mt-3 pt-3 border-t border-hairline/80 font-medium">
                 Uang tertahan di <span className="text-nvidia-green font-bold">{activeBookings.length} booking</span> antrean aktif
               </p>
             </div>
@@ -565,11 +565,11 @@ export default function RekapKeuanganPage() {
                       </div>
                     ) : (
                       <div className="space-y-1">
-                        <Upload size={22} className="mx-auto text-white/40" />
-                        <p className="text-xs text-white/70 font-semibold">
+                        <Upload size={22} className="mx-auto text-zinc-400" />
+                        <p className="text-xs text-zinc-200 font-semibold">
                           Klik atau seret file PDF ke sini
                         </p>
-                        <p className="text-[10px] text-white/40">
+                        <p className="text-xs text-zinc-300 font-medium">
                           Format berkas wajib dokumen PDF billing
                         </p>
                       </div>

@@ -28,23 +28,23 @@ export default function StatusPage() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-2xl font-medium tracking-tight mb-1">Status Lengkap</h1>
-        <p className="text-sm text-zinc-500">Data realtime semua PC di warnet.</p>
+        <p className="text-sm text-zinc-300 font-medium">Data realtime semua PC di warnet.</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3 mb-8">
         <div className="glass-panel rounded-xl p-4">
-          <div className="text-xs text-zinc-500 mb-2">Total PC</div>
+          <div className="text-xs text-zinc-300 font-medium mb-2">Total PC</div>
           <div className="text-2xl font-semibold tracking-tight">{MOCK_PCS.length}</div>
         </div>
         <div className="glass-panel rounded-xl p-4">
-          <div className="text-xs text-zinc-500 mb-2 flex items-center gap-1.5">
+          <div className="text-xs text-zinc-300 font-medium mb-2 flex items-center gap-1.5">
             <Circle size={8} className="fill-cyan-500 text-cyan-500" /> Tersedia
           </div>
           <div className="text-2xl font-semibold tracking-tight text-cyan-400">{availableCount}</div>
         </div>
         <div className="glass-panel rounded-xl p-4">
-          <div className="text-xs text-zinc-500 mb-2 flex items-center gap-1.5">
+          <div className="text-xs text-zinc-300 font-medium mb-2 flex items-center gap-1.5">
             <Circle size={8} className="fill-amber-500 text-amber-500" /> Dipakai
           </div>
           <div className="text-2xl font-semibold tracking-tight text-amber-400">{occupiedCount}</div>
@@ -62,7 +62,7 @@ export default function StatusPage() {
         <div className="hidden md:block">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-white/[0.06] text-xs text-zinc-500">
+              <tr className="border-b border-white/[0.06] text-xs text-zinc-300 font-bold uppercase tracking-wider">
                 <th className="px-5 py-4 font-medium">PC</th>
                 <th className="px-5 py-4 font-medium">Status</th>
                 <th className="px-5 py-4 font-medium">Player</th>
@@ -82,7 +82,7 @@ export default function StatusPage() {
                 >
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2.5">
-                      <Monitor size={16} className="text-zinc-600" />
+                      <Monitor size={16} className="text-zinc-400" />
                       <span className="tracking-tight text-sm">{pc.name}</span>
                     </div>
                   </td>
@@ -100,15 +100,15 @@ export default function StatusPage() {
                   <td className="px-5 py-4">
                     {pc.player ? (
                       <div className="flex items-center gap-1.5 text-sm">
-                        <User size={14} className="text-zinc-600" />
+                        <User size={14} className="text-zinc-400" />
                         {pc.player}
                       </div>
                     ) : (
-                      <span className="text-zinc-700">—</span>
+                      <span className="text-zinc-600">—</span>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-sm text-zinc-400">{pc.paket || <span className="text-zinc-700">—</span>}</td>
-                  <td className="px-5 py-4 text-sm tracking-tight text-zinc-400">{pc.started_at || <span className="text-zinc-700">—</span>}</td>
+                  <td className="px-5 py-4 text-sm text-zinc-300 font-medium">{pc.paket || <span className="text-zinc-600">—</span>}</td>
+                  <td className="px-5 py-4 text-sm tracking-tight text-zinc-300 font-medium">{pc.started_at || <span className="text-zinc-600">—</span>}</td>
                   <td className="px-5 py-4">
                     {pc.time_left ? (
                       <div className="flex items-center gap-1.5 text-sm tracking-tight text-amber-400">
@@ -116,7 +116,7 @@ export default function StatusPage() {
                         {pc.time_left}
                       </div>
                     ) : (
-                      <span className="text-zinc-700">—</span>
+                      <span className="text-zinc-600">—</span>
                     )}
                   </td>
                 </motion.tr>
@@ -130,10 +130,10 @@ export default function StatusPage() {
           {MOCK_PCS.map((pc) => (
             <div key={pc.id} className="px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Monitor size={20} className={pc.status === "available" ? "text-cyan-500" : "text-zinc-600"} />
+                <Monitor size={20} className={pc.status === "available" ? "text-cyan-500" : "text-zinc-400"} />
                 <div>
-                  <div className="tracking-tight text-sm">{pc.name}</div>
-                  {pc.player && <div className="text-xs text-zinc-500">{pc.player}</div>}
+                  <div className="tracking-tight text-sm font-semibold">{pc.name}</div>
+                  {pc.player && <div className="text-xs text-zinc-300 font-medium">{pc.player}</div>}
                 </div>
               </div>
               <div className="text-right">

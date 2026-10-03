@@ -31,60 +31,46 @@ const THEMES = [
     hoverBg: "hover:bg-[#76b900]"
   },
   {
-    glow: "bg-cyan-500/10", 
-    border: "border-cyan-500", 
-    border50: "border-cyan-500/50",
-    border30: "border-cyan-500/30",
-    text: "text-cyan-500",
-    text70: "text-cyan-500/70",
-    bg: "bg-cyan-500",
-    bgLight: "bg-cyan-500/15",
-    shadow: "shadow-[0_0_15px_rgba(6,182,212,0.2)]",
-    shadowHover: "group-hover:shadow-[0_0_60px_rgba(6,182,212,0.3)]",
-    hoverBorder: "hover:border-cyan-500",
-    hoverBg: "hover:bg-cyan-500"
+    glow: "bg-white/5", 
+    border: "border-white/50", 
+    border50: "border-white/40",
+    border30: "border-white/20",
+    text: "text-white",
+    text70: "text-zinc-300",
+    bg: "bg-white",
+    bgLight: "bg-white/10",
+    shadow: "shadow-[0_0_15px_rgba(255,255,255,0.06)]",
+    shadowHover: "group-hover:shadow-[0_0_60px_rgba(255,255,255,0.12)]",
+    hoverBorder: "hover:border-white",
+    hoverBg: "hover:bg-white"
   },
   {
-    glow: "bg-purple-500/10", 
-    border: "border-purple-500", 
-    border50: "border-purple-500/50",
-    border30: "border-purple-500/30",
-    text: "text-purple-500",
-    text70: "text-purple-500/70",
-    bg: "bg-purple-500",
-    bgLight: "bg-purple-500/15",
-    shadow: "shadow-[0_0_15px_rgba(168,85,247,0.2)]",
-    shadowHover: "group-hover:shadow-[0_0_60px_rgba(168,85,247,0.3)]",
-    hoverBorder: "hover:border-purple-500",
-    hoverBg: "hover:bg-purple-500"
+    glow: "bg-[#76b900]/10", 
+    border: "border-[#76b900]/80", 
+    border50: "border-[#76b900]/40",
+    border30: "border-[#76b900]/25",
+    text: "text-[#76b900]",
+    text70: "text-[#76b900]/70",
+    bg: "bg-[#76b900]",
+    bgLight: "bg-[#76b900]/15",
+    shadow: "shadow-[0_0_15px_rgba(118,185,0,0.2)]",
+    shadowHover: "group-hover:shadow-[0_0_60px_rgba(118,185,0,0.3)]",
+    hoverBorder: "hover:border-[#76b900]",
+    hoverBg: "hover:bg-[#76b900]"
   },
   {
-    glow: "bg-orange-500/10", 
-    border: "border-orange-500", 
-    border50: "border-orange-500/50",
-    border30: "border-orange-500/30",
-    text: "text-orange-500",
-    text70: "text-orange-500/70",
-    bg: "bg-orange-500",
-    bgLight: "bg-orange-500/15",
-    shadow: "shadow-[0_0_15px_rgba(249,115,22,0.2)]",
-    shadowHover: "group-hover:shadow-[0_0_60px_rgba(249,115,22,0.3)]",
-    hoverBorder: "hover:border-orange-500",
-    hoverBg: "hover:bg-orange-500"
-  },
-  {
-    glow: "bg-rose-500/10", 
-    border: "border-rose-500", 
-    border50: "border-rose-500/50",
-    border30: "border-rose-500/30",
-    text: "text-rose-500",
-    text70: "text-rose-500/70",
-    bg: "bg-rose-500",
-    bgLight: "bg-rose-500/15",
-    shadow: "shadow-[0_0_15px_rgba(244,63,94,0.2)]",
-    shadowHover: "group-hover:shadow-[0_0_60px_rgba(244,63,94,0.3)]",
-    hoverBorder: "hover:border-rose-500",
-    hoverBg: "hover:bg-rose-500"
+    glow: "bg-white/5", 
+    border: "border-zinc-400", 
+    border50: "border-zinc-500/50",
+    border30: "border-zinc-600/30",
+    text: "text-zinc-200",
+    text70: "text-zinc-400",
+    bg: "bg-zinc-200",
+    bgLight: "bg-white/10",
+    shadow: "shadow-[0_0_15px_rgba(255,255,255,0.04)]",
+    shadowHover: "group-hover:shadow-[0_0_60px_rgba(255,255,255,0.08)]",
+    hoverBorder: "hover:border-zinc-300",
+    hoverBg: "hover:bg-zinc-200"
   }
 ];
 
@@ -128,23 +114,23 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
   const getSpecMeta = (title: string) => {
     switch (title) {
       case "PROCESSOR":
-        return { icon: Cpu, color: "text-amber-400", border: "border-amber-500/40", bg: "bg-amber-500/15", tag: "CPU CORE", category: "core" };
+        return { icon: Cpu, color: "text-zinc-300", border: "border-white/15", bg: "bg-white/5", tag: "CPU CORE", category: "core" };
       case "GRAPHICS":
-        return { icon: Gamepad2, color: "text-emerald-400", border: "border-emerald-500/40", bg: "bg-emerald-500/15", tag: "VGA GAMING", category: "core" };
+        return { icon: Gamepad2, color: "text-nvidia-green", border: "border-nvidia-green/40", bg: "bg-nvidia-green/10", tag: "VGA GAMING", category: "core" };
       case "MAINBOARD":
-        return { icon: Layers, color: "text-blue-400", border: "border-blue-500/40", bg: "bg-blue-500/15", tag: "LOGIC BOARD", category: "core" };
+        return { icon: Layers, color: "text-zinc-300", border: "border-white/15", bg: "bg-white/5", tag: "LOGIC BOARD", category: "core" };
       case "MEMORY":
-        return { icon: Zap, color: "text-purple-400", border: "border-purple-500/40", bg: "bg-purple-500/15", tag: "DUAL CHANNEL", category: "core" };
+        return { icon: Zap, color: "text-zinc-300", border: "border-white/15", bg: "bg-white/5", tag: "DUAL CHANNEL", category: "core" };
       case "STORAGE":
-        return { icon: HardDrive, color: "text-cyan-400", border: "border-cyan-500/40", bg: "bg-cyan-500/15", tag: "ULTRA SSD", category: "core" };
+        return { icon: HardDrive, color: "text-zinc-300", border: "border-white/15", bg: "bg-white/5", tag: "ULTRA SSD", category: "core" };
       case "DISPLAY":
-        return { icon: Monitor, color: "text-cyan-300", border: "border-cyan-400/40", bg: "bg-cyan-500/20", tag: "240Hz PRO", category: "gear" };
+        return { icon: Monitor, color: "text-zinc-200", border: "border-white/20", bg: "bg-white/10", tag: "240Hz PRO", category: "gear" };
       case "KEYBOARD":
-        return { icon: Keyboard, color: "text-rose-400", border: "border-rose-500/40", bg: "bg-rose-500/15", tag: "MECHANICAL", category: "gear" };
+        return { icon: Keyboard, color: "text-zinc-300", border: "border-white/15", bg: "bg-white/5", tag: "MECHANICAL", category: "gear" };
       case "MOUSE":
-        return { icon: Mouse, color: "text-orange-400", border: "border-orange-500/40", bg: "bg-orange-500/15", tag: "RGB SENSOR", category: "gear" };
+        return { icon: Mouse, color: "text-zinc-300", border: "border-white/15", bg: "bg-white/5", tag: "RGB SENSOR", category: "gear" };
       case "HEADSET":
-        return { icon: Headphones, color: "text-indigo-400", border: "border-indigo-500/40", bg: "bg-indigo-500/15", tag: "7.1 SURROUND", category: "gear" };
+        return { icon: Headphones, color: "text-zinc-300", border: "border-white/15", bg: "bg-white/5", tag: "7.1 SURROUND", category: "gear" };
       default:
         return { icon: Cpu, color: "text-zinc-400", border: "border-zinc-700", bg: "bg-zinc-800", tag: "HARDWARE", category: "core" };
     }
@@ -312,45 +298,45 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                   <motion.div 
                     animate={heroAnimate}
                     transition={heroTransition}
-                    className={`relative w-64 h-64 md:w-80 md:h-80 group ${!isActive ? "cursor-pointer" : ""}`}
+                    className={`relative w-52 h-52 sm:w-60 sm:h-60 md:w-72 md:h-72 group ${!isActive ? "cursor-pointer" : ""}`}
                   >
                     
                     {/* Breathing Aura for Active Hero */}
                     {isActive && (
                       <motion.div 
-                        animate={{ opacity: [0.4, 0.8, 0.4], scale: [1, 1.05, 1] }}
+                        animate={{ opacity: [0.35, 0.7, 0.35], scale: [1, 1.05, 1] }}
                         transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                        className={`absolute inset-0 rounded-full blur-[60px] -z-10 ${theme.glow}`}
+                        className={`absolute inset-0 rounded-full blur-[50px] -z-10 ${theme.glow}`}
                       />
                     )}
 
-                    <div className={`absolute inset-0 border ${theme.border30} bg-black/50 backdrop-blur-sm rounded-[2px] ${theme.shadow} ${theme.shadowHover} transition-shadow duration-500`} />
+                    <div className={`absolute inset-0 border ${theme.border30} bg-black/50 backdrop-blur-sm rounded-xl ${theme.shadow} ${theme.shadowHover} transition-shadow duration-500`} />
                     
                     {/* Corner Borders */}
-                    <div className={`absolute -top-3 -right-3 w-10 h-10 border-t-2 border-r-2 ${theme.border} transition-colors`} />
-                    <div className={`absolute -bottom-3 -left-3 w-10 h-10 border-b-2 border-l-2 ${theme.border} transition-colors`} />
+                    <div className={`absolute -top-2 -right-2 w-6 h-6 border-t-2 border-r-2 ${theme.border} transition-colors`} />
+                    <div className={`absolute -bottom-2 -left-2 w-6 h-6 border-b-2 border-l-2 ${theme.border} transition-colors`} />
                     
                     {/* Hero Character Image — dynamic per PC */}
                     <motion.img 
                       src={pc.image || "/hero.png"}
                       alt={pc.name}
                       animate={{
-                        scale: isActive ? 1.15 : 0.9,
-                        y: isActive ? -15 : 0,
+                        scale: isActive ? 1.12 : 0.9,
+                        y: isActive ? -10 : 0,
                         filter: isActive ? "grayscale(0%) drop-shadow(0 0 15px rgba(255,255,255,0.3))" : "grayscale(100%) drop-shadow(0 0 0px rgba(0,0,0,0))"
                       }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      className="w-full h-full object-cover p-6 mix-blend-screen opacity-90 relative z-20 pointer-events-none" 
+                      className="w-full h-full object-cover p-5 mix-blend-screen opacity-90 relative z-20 pointer-events-none" 
                     />
                     
                     {/* Hero Name Badge */}
                     <motion.div 
                       animate={{
-                        y: isActive ? 10 : 0,
-                        scale: isActive ? 1.05 : 1
+                        y: isActive ? 8 : 0,
+                        scale: isActive ? 1.04 : 1
                       }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      className={`absolute -bottom-5 left-1/2 -translate-x-1/2 text-lg font-bold tracking-tight text-white tracking-widest whitespace-nowrap bg-black px-6 py-1.5 border ${theme.border50} ${theme.shadow} transition-colors z-30`}
+                      className={`absolute -bottom-4 left-1/2 -translate-x-1/2 text-sm sm:text-base font-bold tracking-tight text-white tracking-wider whitespace-nowrap bg-black px-4 py-1 border ${theme.border50} ${theme.shadow} rounded-md transition-colors z-30`}
                     >
                       {pc.name}
                     </motion.div>
@@ -373,7 +359,7 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                               setCurrentAbilityIndex(Math.floor(pcSpecsData.length / 2));
                             }
                           }}
-                          className={`absolute bottom-4 md:bottom-12 left-1/2 -translate-x-1/2 z-30 px-6 py-2 w-max whitespace-nowrap bg-black/80 backdrop-blur-md border-2 ${showSpecs ? 'border-error text-error hover:bg-error hover:text-white' : `${theme.border} ${theme.text} ${theme.hoverBg} hover:text-black`} tracking-tight font-bold text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(0,0,0,0.6)]`}
+                          className={`absolute bottom-3 md:bottom-8 left-1/2 -translate-x-1/2 z-30 px-4 py-1.5 w-max whitespace-nowrap bg-black/80 backdrop-blur-md border-2 ${showSpecs ? 'border-error text-error hover:bg-error hover:text-white' : `${theme.border} ${theme.text} ${theme.hoverBg} hover:text-black`} tracking-tight font-bold text-[11px] uppercase tracking-wider rounded-lg transition-all shadow-[0_0_20px_rgba(0,0,0,0.6)]`}
                         >
                           {showSpecs ? "[ CLOSE ABILITIES ]" : "[ SCAN ABILITIES ]"}
                         </motion.button>
@@ -387,15 +373,15 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                         {pcSpecsData.map((spec, i) => {
                           // HUD Layout for 9 Specs (4 Left, 5 Right)
                           const desktopLayout = [
-                            { x: -380, y: -160 }, // 0: PROCESSOR
-                            { x: -380, y: -50 },  // 1: GRAPHICS
-                            { x: -380, y: 60 },   // 2: MAINBOARD
-                            { x: -380, y: 170 },  // 3: MEMORY
-                            { x: 380, y: -215 },  // 4: STORAGE
-                            { x: 380, y: -105 },  // 5: DISPLAY
-                            { x: 380, y: 5 },     // 6: KEYBOARD
-                            { x: 380, y: 115 },   // 7: MOUSE
-                            { x: 380, y: 225 },   // 8: HEADSET
+                            { x: -310, y: -140 }, // 0: PROCESSOR
+                            { x: -310, y: -45 },  // 1: GRAPHICS
+                            { x: -310, y: 50 },   // 2: MAINBOARD
+                            { x: -310, y: 145 },  // 3: MEMORY
+                            { x: 310, y: -185 },  // 4: STORAGE
+                            { x: 310, y: -90 },   // 5: DISPLAY
+                            { x: 310, y: 5 },     // 6: KEYBOARD
+                            { x: 310, y: 100 },   // 7: MOUSE
+                            { x: 310, y: 195 },   // 8: HEADSET
                           ];
 
                           const popX = desktopLayout[i % desktopLayout.length].x;
@@ -493,7 +479,7 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                               animate={{ ...animate, z: popZ, rotateX: rotX, rotateY: rotY, zIndex: zIndexFinal }}
                               exit={{ ...exit, z: popZ, rotateX: rotX, rotateY: rotY, zIndex: 0 }}
                               transition={transition}
-                              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-[70px] md:w-[240px] md:h-[90px] cursor-pointer pointer-events-auto group perspective-[1000px] hover:z-50 ${isExpanded ? 'z-50' : ''}`}
+                              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-[62px] md:w-[200px] md:h-[75px] cursor-pointer pointer-events-auto group perspective-[1000px] hover:z-50 ${isExpanded ? 'z-50' : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (currentAbilityIndex !== i) {
@@ -530,14 +516,14 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                                     <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none" />
                                     
                                     <div className="flex justify-between items-start relative z-20">
-                                      <span className={`text-[9px] md:text-[10px] uppercase font-bold tracking-tight tracking-widest ${theme.text}`}>
+                                      <span className={`text-[10px] md:text-xs uppercase font-bold tracking-wider ${theme.text}`}>
                                         {spec.title}
                                       </span>
-                                      <span className={`text-[8px] md:text-[9px] border ${theme.border} ${theme.text} px-1.5 py-0.5 uppercase`}>
+                                      <span className={`text-[9px] md:text-[10px] font-bold border ${theme.border} ${theme.text} px-2 py-0.5 rounded uppercase`}>
                                         CLICK
                                       </span>
                                     </div>
-                                    <h3 className="text-white font-bold tracking-tight text-[11px] md:text-sm mt-1 mb-2 leading-tight">
+                                    <h3 className="text-white font-bold text-xs md:text-sm mt-1 mb-2 leading-tight">
                                       {spec.value}
                                     </h3>
                                   </div>
@@ -554,8 +540,8 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                                   />
                                   <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none" />
 
-                                  <p className={`text-[10px] font-bold ${theme.text} uppercase tracking-widest tracking-tight mb-2 relative z-20`}>-- {spec.title} DATA --</p>
-                                  <p className="text-[10px] text-white/80 tracking-tight uppercase leading-relaxed relative z-20">{spec.desc}</p>
+                                  <p className={`text-xs font-bold ${theme.text} uppercase tracking-wider mb-2 relative z-20`}>{spec.title} DATA</p>
+                                  <p className="text-xs text-zinc-200 font-medium uppercase leading-relaxed relative z-20">{spec.desc}</p>
                                 </div>
                               </motion.div>
                               </div>
@@ -632,16 +618,16 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
             {/* Telemetry Highlights */}
             <div className="grid grid-cols-3 gap-1.5 pt-2 pb-1 relative z-10 shrink-0">
               <div className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-hairline flex flex-col items-center justify-center text-center">
-                <span className="text-[9px] font-mono text-zinc-400 uppercase">GPU TIER</span>
-                <span className="text-[10px] font-extrabold text-emerald-400 tracking-tight">HIGH FPS</span>
+                <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase">GPU TIER</span>
+                <span className="text-xs font-bold text-nvidia-green tracking-tight">HIGH FPS</span>
               </div>
               <div className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-hairline flex flex-col items-center justify-center text-center">
-                <span className="text-[9px] font-mono text-zinc-400 uppercase">MONITOR</span>
-                <span className="text-[10px] font-extrabold text-cyan-400 tracking-tight">240Hz PRO</span>
+                <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase">MONITOR</span>
+                <span className="text-xs font-bold text-white tracking-tight">240Hz PRO</span>
               </div>
               <div className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-hairline flex flex-col items-center justify-center text-center">
-                <span className="text-[9px] font-mono text-zinc-400 uppercase">AUDIO</span>
-                <span className="text-[10px] font-extrabold text-purple-400 tracking-tight">SURROUND 7.1</span>
+                <span className="text-[10px] font-mono font-bold text-zinc-300 uppercase">AUDIO</span>
+                <span className="text-xs font-bold text-zinc-200 tracking-tight">SURROUND 7.1</span>
               </div>
             </div>
 
@@ -650,35 +636,35 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
               <button
                 type="button"
                 onClick={() => setSpecCategory('all')}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
                   specCategory === 'all'
                     ? `${activeTheme.bg} text-black font-black shadow-[0_0_12px_rgba(255,255,255,0.2)]`
-                    : 'bg-white/5 text-zinc-400 hover:text-white border border-hairline'
+                    : 'bg-white/5 text-zinc-300 hover:text-white border border-hairline'
                 }`}
               >
-                Semua (9)
+                Semua
               </button>
               <button
                 type="button"
                 onClick={() => setSpecCategory('core')}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
                   specCategory === 'core'
                     ? `${activeTheme.bg} text-black font-black shadow-[0_0_12px_rgba(255,255,255,0.2)]`
-                    : 'bg-white/5 text-zinc-400 hover:text-white border border-hairline'
+                    : 'bg-white/5 text-zinc-300 hover:text-white border border-hairline'
                 }`}
               >
-                Mesin PC (5)
+                Mesin PC
               </button>
               <button
                 type="button"
                 onClick={() => setSpecCategory('gear')}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
                   specCategory === 'gear'
                     ? `${activeTheme.bg} text-black font-black shadow-[0_0_12px_rgba(255,255,255,0.2)]`
-                    : 'bg-white/5 text-zinc-400 hover:text-white border border-hairline'
+                    : 'bg-white/5 text-zinc-300 hover:text-white border border-hairline'
                 }`}
               >
-                Monitor & Gear (4)
+                Gear
               </button>
             </div>
 
@@ -711,10 +697,10 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1 mb-0.5">
-                            <span className={`text-[10px] font-black uppercase tracking-wider ${meta.color}`}>
+                            <span className={`text-xs font-bold uppercase tracking-wider ${meta.color}`}>
                               {spec.title}
                             </span>
-                            <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${meta.border} ${meta.color} bg-black/50 shrink-0`}>
+                            <span className={`text-[10px] sm:text-[11px] font-bold uppercase px-2 py-0.5 rounded-md border ${meta.border} ${meta.color} bg-black/50 shrink-0`}>
                               {meta.tag}
                             </span>
                           </div>
@@ -722,7 +708,7 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                             {spec.value}
                           </div>
                         </div>
-                        <div className="pt-1 text-zinc-500 shrink-0">
+                        <div className="pt-1 text-zinc-400 shrink-0">
                           <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180 text-white' : ''}`} />
                         </div>
                       </div>
@@ -738,7 +724,7 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                           >
                             <div className="flex items-start gap-2 bg-white/[0.02] p-2 rounded-lg border border-hairline">
                               <div className={`w-1 h-3 rounded-full ${meta.color.replace('text-', 'bg-')} shrink-0 mt-0.5`} />
-                              <p className="text-[11px] text-zinc-300 leading-relaxed font-medium">
+                              <p className="text-xs text-zinc-200 leading-relaxed font-medium">
                                 {spec.desc}
                               </p>
                             </div>
@@ -773,9 +759,9 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                     onSelectPc(activePc.id);
                   }
                 }}
-                className="flex-1 py-2.5 px-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition bg-nvidia-green hover:bg-white active:scale-95 text-black flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.35)] truncate"
+                className="flex-1 py-2.5 px-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition bg-nvidia-green hover:bg-white active:scale-95 text-black flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.35)] whitespace-nowrap"
               >
-                <span className="truncate">Booking {activePc?.name}</span>
+                <span>Booking {activePc?.name ? activePc.name.split(' - ')[0] : 'PC'}</span>
                 <ArrowRight size={14} className="shrink-0" />
               </button>
             </div>

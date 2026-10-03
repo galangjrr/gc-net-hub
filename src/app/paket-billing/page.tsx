@@ -107,22 +107,32 @@ export default function PaketBillingPage() {
 
   const getPaketDesc = (p: Paket) => {
     if (p.fixed_start_time) {
-      if (p.name.toLowerCase().includes("malam")) return "Sesi malam dengan koneksi lancar sampai subuh.";
-      if (p.name.toLowerCase().includes("pagi") || p.name.toLowerCase().includes("subuh")) return "Sesi pagi tenang dan fokus main.";
+      if (p.name.toLowerCase().includes("malam")) return "Sesi malam lancar sampai subuh.";
+      if (p.name.toLowerCase().includes("pagi") || p.name.toLowerCase().includes("subuh")) return "Sesi pagi tenang dan fokus.";
       return "Sesi waktu tetap sesuai jadwal.";
     }
     if (p.name.endsWith(" Jam")) {
       const h = Math.round((p.duration_minutes || 60) / 60);
-      return `Sesi ${h} jam reguler standar warnet.`;
+      if (h === 1) return "Sesi kilat pemanasan santai.";
+      if (h === 2) return "Pas buat dua sampai tiga match.";
+      if (h === 3) return "Paling favorit buat mabar bareng.";
+      if (h === 4) return "Fokus kejar win streak kompetitif.";
+      if (h === 5) return "Sesi panjang leluasa tanpa buru-buru.";
+      if (h === 6) return "Fokus leveling quest dan raid game.";
+      if (h === 7) return "Sesi komitmen dungeon bareng squad.";
+      if (h === 8) return "Setara satu shift warnet seharian.";
+      if (h === 9) return "Sesi gaming intensif tanpa jeda.";
+      if (h >= 10) return "Durasi maksimal puas seharian penuh.";
+      return `Sesi ${h} jam reguler standar.`;
     }
-    if (p.price === 3000) return "Durasi kilat pas buat urusan singkat.";
-    if (p.price === 5000) return "Modal goceng dapat durasi pas di kantong.";
-    if (p.price === 6000) return "Durasi santai buat selesaikan misi.";
+    if (p.price === 3000) return "Durasi kilat urusan cepat.";
+    if (p.price === 5000) return "Goceng dapat satu jam lebih.";
+    if (p.price === 6000) return "Satu setengah jam santai.";
     if (p.price === 7000) return "Waktu main leluasa.";
-    if (p.price === 9000) return "Cukup buat push rank beberapa match.";
-    if (p.price === 10000) return "Uang pas ceban dapat dua setengah jam.";
+    if (p.price === 9000) return "Cukup push rank beberapa match.";
+    if (p.price === 10000) return "Ceban dapat dua setengah jam.";
     if (p.price === 15000) return "Sesi panjang puas tanpa ribet.";
-    return "Pecahan nominal uang pas ramah kantong.";
+    return "Pecahan nominal pas di kantong.";
   };
 
   const groupedPakets = useMemo(() => {
@@ -332,20 +342,20 @@ export default function PaketBillingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-dark p-4 md:p-8 pt-16 md:pt-8 text-white space-y-6 pb-32">
-      <div className="max-w-[1400px] 2xl:max-w-[1720px] mx-auto space-y-6">
+    <div className="min-h-screen bg-surface-dark p-3 sm:p-5 md:p-6 pt-14 md:pt-6 text-white space-y-4 sm:space-y-5 pb-28">
+      <div className="max-w-[1400px] 2xl:max-w-[1720px] mx-auto space-y-4 sm:space-y-5">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4 xl:pb-6">
-          <div className="flex items-center gap-3 xl:gap-4">
-            <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green shrink-0">
-              <Sliders size={30} />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-hairline pb-3 sm:pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 sm:p-2.5 bg-nvidia-green/10 border border-nvidia-green/30 rounded-lg text-nvidia-green shrink-0">
+              <Sliders size={22} className="sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white flex items-center gap-2.5">
                 Master Data Paket dan Tarif
               </h1>
-              <p className="text-xs xl:text-sm text-zinc-400 tracking-tight mt-1">
+              <p className="text-xs text-zinc-400 tracking-tight mt-0.5">
                 Kelola paket jam reguler, paket malam dan spesial, serta paket hemat fleksibel
               </p>
             </div>
@@ -354,9 +364,9 @@ export default function PaketBillingPage() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setShowAddForm(prev => !prev)}
-              className="nvidia-button flex items-center gap-2 rounded-xl text-xs xl:text-sm px-4 py-2.5 shadow-[0_0_20px_rgba(118,185,0,0.3)]"
+              className="nvidia-button flex items-center gap-2 rounded-lg text-xs h-9 sm:h-10 px-3.5 sm:px-4 shadow-[0_0_15px_rgba(118,185,0,0.25)]"
             >
-              <Plus size={16} />
+              <Plus size={15} />
               <span>{showAddForm ? "Tutup Form" : "Tambah Paket"}</span>
             </button>
           </div>
@@ -368,7 +378,7 @@ export default function PaketBillingPage() {
             <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Paket</span>
             <div className="flex items-baseline justify-between mt-1">
               <span className="text-xl font-black text-white tabular-nums">{counts.all}</span>
-              <span className="text-[10px] font-mono font-bold text-zinc-500">KATALOG</span>
+              <span className="text-[10px] font-mono font-bold text-zinc-400">KATALOG</span>
             </div>
           </div>
           <div className="p-3.5 rounded-xl bg-surface border border-hairline flex flex-col justify-between">
@@ -743,7 +753,7 @@ export default function PaketBillingPage() {
                                           </span>
                                         )}
                                       </div>
-                                      <span className="text-[11px] text-zinc-400 block mt-0.5 truncate group-hover:text-zinc-300 transition-colors">
+                                      <span className="text-xs text-zinc-300 block mt-0.5 line-clamp-2 break-words group-hover:text-zinc-200 transition-colors">
                                         {getPaketDesc(p)}
                                       </span>
                                     </div>
@@ -762,8 +772,8 @@ export default function PaketBillingPage() {
                                       <Clock size={12} className="text-zinc-400" />
                                       <span>{formatDurationText(p.duration_minutes)}</span>
                                       {p.duration_minutes && (
-                                        <span className="text-[10px] text-zinc-500 tabular-nums font-mono">
-                                          ({p.duration_minutes} mnt)
+                                        <span className="text-xs text-zinc-300 tabular-nums font-mono">
+                                          · {p.duration_minutes} mnt
                                         </span>
                                       )}
                                     </div>
@@ -836,8 +846,8 @@ export default function PaketBillingPage() {
                               <IconComp size={15} />
                             </div>
                             <div className="min-w-0">
-                              <h4 className="font-bold text-white text-sm truncate">{p.name}</h4>
-                              <span className="text-[10px] text-zinc-400 block truncate">{getPaketDesc(p)}</span>
+                              <h4 className="font-bold text-white text-sm break-words">{p.name}</h4>
+                              <span className="text-xs text-zinc-300 block font-medium leading-relaxed mt-0.5">{getPaketDesc(p)}</span>
                             </div>
                           </div>
                           <span className="text-nvidia-green font-black text-sm tabular-nums shrink-0">
@@ -847,13 +857,13 @@ export default function PaketBillingPage() {
 
                         <div className="grid grid-cols-2 gap-2 text-[11px] pt-1.5 border-t border-hairline">
                           <div>
-                            <span className="text-zinc-500 text-[10px] uppercase font-bold block">Durasi / Waktu</span>
+                            <span className="text-zinc-300 text-[10px] uppercase font-bold block">Durasi Waktu</span>
                             <span className="text-zinc-200 font-semibold">
                               {p.type === 'spesial' ? `${p.fixed_start_time}-${p.fixed_end_time}` : formatDurationText(p.duration_minutes)}
                             </span>
                           </div>
                           <div>
-                            <span className="text-zinc-500 text-[10px] uppercase font-bold block">Hari</span>
+                            <span className="text-zinc-300 text-[10px] uppercase font-bold block">Hari</span>
                             <span className="text-zinc-300 font-medium">
                               {p.type === 'spesial' && p.days && p.days.length > 0 && p.days.length < 7
                                 ? p.days.join(", ")
@@ -884,7 +894,7 @@ export default function PaketBillingPage() {
             })}
           </div>
         ) : (
-          <div className="p-12 text-center text-zinc-500 text-xs uppercase tracking-wider font-bold bg-surface border border-hairline rounded-2xl">
+          <div className="p-12 text-center text-zinc-300 text-xs uppercase tracking-wider font-bold bg-surface border border-hairline rounded-2xl">
             Tidak ada paket yang sesuai dengan filter atau kata kunci
           </div>
         )}

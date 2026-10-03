@@ -8,7 +8,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params;
     const { data: booking, error } = await supabaseAdmin
       .from('bookings')
-      .select('id, pc_id, paket_id, player_name, status, created_at, ss_bukti')
+      .select('id, pc_id, paket_id, player_name, status, created_at, ss_bukti, booking_type, scheduled_at, start_time')
       .eq('id', id)
       .single();
 
@@ -56,7 +56,35 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { data: pc } = await supabaseAdmin.from('pcs').select('*').eq('id', booking.pc_id).single();
 
     if (action === 'approve') {
-      await supabaseAdmin.from('bookings').update({ status: 'active' }).eq('id', id);
+      const isTargetScheduled = booking.booking_type === 'slot' || booking.booking_type === 'scheduled' || Boolean(booking.scheduled_at || booking.start_time);
+
+      const { data: existingActive } = await supabaseAdmin
+        .from('bookings')
+        .select('id, booking_type, scheduled_at, start_time')
+        .eq('pc_id', booking.pc_id)
+        .eq('status', 'active')
+        .neq('id', id)
+        .maybeSingle();
+
+      if (existingActive) {
+        const isExistingScheduled = existingActive.booking_type === 'slot' || existingActive.booking_type === 'scheduled' || Boolean(existingActive.scheduled_at || existingActive.start_time);
+
+        if (!isTargetScheduled && isExistingScheduled) {
+          await supabaseAdmin.from('bookings').update({ status: 'pending' }).eq('id', existingActive.id);
+          const { error: updateErr } = await supabaseAdmin.from('bookings').update({ status: 'active' }).eq('id', id);
+          if (updateErr) {
+            console.error('Approve update error:', updateErr);
+            return NextResponse.json({ error: updateErr.message }, { status: 500 });
+          }
+        }
+      } else {
+        const { error: updateErr } = await supabaseAdmin.from('bookings').update({ status: 'active' }).eq('id', id);
+        if (updateErr) {
+          console.error('Approve update error:', updateErr);
+          return NextResponse.json({ error: updateErr.message }, { status: 500 });
+        }
+      }
+
       await logActivity(req, {
         action: 'Konfirmasi Booking',
         target: pc?.name || booking.pc_id,
@@ -162,17 +190,68 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         details: `Pemain: ${booking.player_name} | Paket Baru: ${customName} (Rp ${Number(customPrice).toLocaleString('id-ID')})`
       });
     } else if (action === 'edit_booking') {
-      const { pc_id, player_name, paket_id } = body;
+      const { pc_id, player_name, paket_id, booking_type, scheduled_at, start_time } = body;
       const updates: any = {};
       if (pc_id) updates.pc_id = pc_id;
       if (player_name) updates.player_name = player_name;
+      
+      const isSlot = booking_type === 'slot' || booking_type === 'scheduled';
+
+      // Convert time string to valid ISO timestamptz
+      let validIso: string | null = null;
+      if (scheduled_at) {
+        validIso = scheduled_at;
+      } else if (start_time && typeof start_time === 'string') {
+        if (start_time.includes('T')) {
+          validIso = start_time;
+        } else if (start_time.includes(':')) {
+          try {
+            const [hh, mm] = start_time.split(':').map(Number);
+            const d = new Date();
+            d.setHours(hh || 0, mm || 0, 0, 0);
+            validIso = d.toISOString();
+          } catch (_) {}
+        }
+      }
+
+      if (isSlot) {
+        updates.booking_type = 'slot';
+        updates.scheduled_at = validIso;
+        updates.start_time = validIso;
+      } else if (booking_type === 'queue') {
+        updates.booking_type = 'queue';
+        updates.scheduled_at = null;
+        updates.start_time = null;
+      } else {
+        if (scheduled_at !== undefined) updates.scheduled_at = validIso;
+        if (start_time !== undefined) updates.start_time = validIso;
+      }
+
       if (paket_id) {
         if (paket_id !== booking.paket_id) {
           await cleanupCustomPaket(booking.paket_id, id);
         }
         updates.paket_id = paket_id;
+
+        // Auto update booking_type jika paket baru punya fixed_start_time
+        const { data: newPkt } = await supabaseAdmin.from('pakets').select('fixed_start_time').eq('id', paket_id).single();
+        if (newPkt?.fixed_start_time && !booking_type) {
+          updates.booking_type = 'slot';
+          try {
+            const [hh, mm] = newPkt.fixed_start_time.split(':').map(Number);
+            const schedDate = new Date();
+            schedDate.setHours(hh || 0, mm || 0, 0, 0);
+            updates.scheduled_at = schedDate.toISOString();
+            updates.start_time = schedDate.toISOString();
+          } catch (_) {}
+        }
       }
-      await supabaseAdmin.from('bookings').update(updates).eq('id', id);
+
+      const { error: updateErr } = await supabaseAdmin.from('bookings').update(updates).eq('id', id);
+      if (updateErr) {
+        console.error('Update booking error:', updateErr);
+        return NextResponse.json({ error: updateErr.message }, { status: 400 });
+      }
 
       await logActivity(req, {
         action: 'Ubah Data Booking',

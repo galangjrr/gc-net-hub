@@ -65,13 +65,13 @@ export default function AuthButton() {
             >
               <button 
                 onClick={() => { setShowLogin(false); setLoginError(false); setUsername(""); setPassword(""); }}
-                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+                className="absolute top-4 right-4 text-white/50 hover:text-white cursor-pointer transition-all duration-200 hover:scale-110 active:scale-90"
               >
                 <X size={20} />
               </button>
               
               <h2 className="text-xl font-bold tracking-tight text-white mb-2 uppercase">Login Admin</h2>
-              <p className="text-xs text-white/50 tracking-tight mb-6 uppercase tracking-wider">Akses menu kasir & manajemen</p>
+              <p className="text-xs text-zinc-300 font-medium tracking-tight mb-6 uppercase tracking-wider">Akses menu kasir dan manajemen</p>
               
               <div className="space-y-4">
                 <input 
@@ -92,7 +92,7 @@ export default function AuthButton() {
                 {loginError && <p className="text-[10px] text-error font-bold tracking-tight uppercase text-center">Username/Password Salah!</p>}
                 <button 
                   onClick={handleLogin}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-nvidia-green/10 border border-nvidia-green/50 text-nvidia-green hover:bg-nvidia-green hover:text-black hover:shadow-[0_0_20px_rgba(118,185,0,0.6)] rounded-[2px] transition-all tracking-tight font-bold text-sm uppercase tracking-widest group mt-2"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-nvidia-green/10 border border-nvidia-green/50 text-nvidia-green hover:bg-nvidia-green hover:text-black hover:shadow-[0_0_20px_rgba(118,185,0,0.6)] rounded-[2px] cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] tracking-tight font-bold text-sm uppercase tracking-widest group mt-2"
                 >
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75 group-hover:bg-black"></span>

@@ -97,7 +97,7 @@ export default function AdminPage() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`relative px-4 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
-                  isActive ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                  isActive ? "text-white" : "text-zinc-300 hover:text-white"
                 }`}
               >
                 {isActive && (
@@ -133,7 +133,7 @@ export default function AdminPage() {
               <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight uppercase flex items-center gap-3">
                 Admin Dashboard <span className="px-2 py-1 bg-amber-500/20 text-amber-500 text-[10px] rounded border border-amber-500/50">WIP</span>
               </h1>
-              <p className="text-white/50 text-xs md:text-sm tracking-tight mt-1 uppercase tracking-widest hidden md:block">
+              <p className="text-zinc-300 text-xs md:text-sm tracking-tight mt-1 uppercase tracking-widest hidden md:block">
                 Management System & Analytics Mock Data
               </p>
             </div>
@@ -277,7 +277,7 @@ export default function AdminPage() {
               {cart.length > 0 && (
                 <div className="border-t border-white/[0.06] pt-4 mt-4">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs text-zinc-500">Total</span>
+                    <span className="text-xs text-zinc-300 font-medium">Total</span>
                     <span className="tracking-tight text-sm text-cyan-400">Rp {cartTotal.toLocaleString("id-ID")}</span>
                   </div>
                   <button
@@ -310,12 +310,12 @@ export default function AdminPage() {
               <Sparkles size={28} className="text-cyan-400 animate-float" />
             </div>
             <h2 className="text-lg font-medium mb-2">Gemini AI Analytics</h2>
-            <p className="text-sm text-zinc-500 max-w-sm">
+            <p className="text-sm text-zinc-300 font-medium max-w-sm">
               Insight otomatis dari data omzet, pemakaian PC, dan stok F&B. Menunggu integrasi backend di Step 3.
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-6">
               {["Ringkasan Omzet", "Trend Harian", "Rekomendasi Stok", "Peak Hours"].map((f) => (
-                <span key={f} className="text-[11px] text-zinc-600 bg-white/[0.03] border border-white/[0.06] px-3 py-1 rounded-full">
+                <span key={f} className="text-xs text-zinc-300 font-medium bg-white/[0.03] border border-white/[0.06] px-3 py-1 rounded-full">
                   {f}
                 </span>
               ))}
@@ -336,29 +336,29 @@ export default function AdminPage() {
             <h2 className="text-lg font-medium mb-6">Rekap Harian</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="rounded-xl bg-zinc-950/40 border border-white/[0.04] p-5">
-                <div className="text-xs text-zinc-500 mb-2">Omzet Warnet</div>
+                <div className="text-xs text-zinc-300 font-medium mb-2">Omzet Warnet</div>
                 <div className="text-xl font-semibold tracking-tight text-cyan-400">
                   Rp {MOCK_DAILY.totalWarnet.toLocaleString("id-ID")}
                 </div>
               </div>
               <div className="rounded-xl bg-zinc-950/40 border border-white/[0.04] p-5">
-                <div className="text-xs text-zinc-500 mb-2">Omzet F&B</div>
+                <div className="text-xs text-zinc-300 font-medium mb-2">Omzet F&B</div>
                 <div className="text-xl font-semibold tracking-tight text-cyan-400">
                   Rp {MOCK_DAILY.totalFnb.toLocaleString("id-ID")}
                 </div>
               </div>
               <div className="rounded-xl bg-zinc-950/40 border border-white/[0.04] p-5">
-                <div className="text-xs text-zinc-500 mb-2">Total Transaksi</div>
+                <div className="text-xs text-zinc-300 font-medium mb-2">Total Transaksi</div>
                 <div className="text-xl font-semibold">{MOCK_DAILY.totalTrx}</div>
               </div>
               <div className="rounded-xl bg-zinc-950/40 border border-white/[0.04] p-5">
-                <div className="text-xs text-zinc-500 mb-2">Jam Pemakaian PC</div>
+                <div className="text-xs text-zinc-300 font-medium mb-2">Jam Pemakaian PC</div>
                 <div className="text-xl font-semibold">{MOCK_DAILY.pcUsageHours} jam</div>
               </div>
             </div>
 
             <div className="mt-6 rounded-xl bg-zinc-950/40 border border-white/[0.04] p-5">
-              <div className="text-xs text-zinc-500 mb-3">Grand Total Hari Ini</div>
+              <div className="text-xs text-zinc-300 font-medium mb-3">Grand Total Hari Ini</div>
               <div className="text-3xl font-semibold tracking-tight text-gradient">
                 Rp {(MOCK_DAILY.totalWarnet + MOCK_DAILY.totalFnb).toLocaleString("id-ID")}
               </div>

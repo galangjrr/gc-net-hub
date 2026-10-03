@@ -301,7 +301,7 @@ export default function AccountsManagementPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4 xl:pb-6">
             <div className="flex items-center gap-3 xl:gap-4">
-              <Link href="/data-booking" className="p-2.5 xl:p-3 hover:bg-surface border border-hairline rounded-xl text-white/50 hover:text-white transition">
+              <Link href="/data-booking" className="p-2.5 xl:p-3 hover:bg-surface border border-hairline rounded-xl text-zinc-400 hover:text-white transition">
                 <ArrowLeft size={22} />
               </Link>
               <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green shrink-0">
@@ -311,7 +311,7 @@ export default function AccountsManagementPage() {
                 <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white flex items-center gap-3">
                   Manajemen Akun Login
                 </h1>
-                <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
+                <p className="text-xs xl:text-sm text-zinc-300 font-medium tracking-tight mt-1">
                   Kelola hak akses kasir, operator, dan admin warnet
                 </p>
               </div>
@@ -335,7 +335,7 @@ export default function AccountsManagementPage() {
 
           {/* Accounts Grid / Table */}
           {loading ? (
-            <div className="p-12 text-center text-white/40 text-xs xl:text-sm uppercase tracking-wider animate-pulse font-bold">
+            <div className="p-12 text-center text-zinc-300 font-medium text-xs xl:text-sm uppercase tracking-wider animate-pulse">
               Memuat data akun...
             </div>
           ) : (
@@ -374,7 +374,7 @@ export default function AccountsManagementPage() {
                       </span>
                     </div>
 
-                    <div className="text-xs xl:text-sm text-white/50 uppercase tracking-wider space-y-1 mb-5">
+                    <div className="text-xs xl:text-sm text-zinc-300 font-medium uppercase tracking-wider space-y-1 mb-5">
                       <div className="flex items-center gap-2">
                         <span>Status:</span>
                         <span className={acc.active ? "text-emerald-400 font-bold" : "text-error font-bold"}>
@@ -435,7 +435,7 @@ export default function AccountsManagementPage() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Username Login</label>
+                      <label className="text-xs font-bold text-zinc-300 uppercase block mb-1.5">Username Login</label>
                       <input
                         type="text"
                         value={formUsername}
@@ -446,7 +446,7 @@ export default function AccountsManagementPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Password</label>
+                      <label className="text-xs font-bold text-zinc-300 uppercase block mb-1.5">Password</label>
                       <input
                         type="password"
                         value={formPassword}
@@ -457,7 +457,7 @@ export default function AccountsManagementPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Nama Lengkap atau Panggilan</label>
+                      <label className="text-xs font-bold text-zinc-300 uppercase block mb-1.5">Nama Lengkap atau Panggilan</label>
                       <input
                         type="text"
                         value={formFullName}
@@ -468,7 +468,7 @@ export default function AccountsManagementPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Role atau Jabatan</label>
+                      <label className="text-xs font-bold text-zinc-300 uppercase block mb-1.5">Role atau Jabatan</label>
                       <select
                         value={formRole}
                         onChange={e => setFormRole(e.target.value as any)}
@@ -529,7 +529,7 @@ export default function AccountsManagementPage() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Nama Lengkap</label>
+                      <label className="text-xs font-bold text-zinc-300 uppercase block mb-1.5">Nama Lengkap</label>
                       <input
                         type="text"
                         value={formFullName}
@@ -539,7 +539,7 @@ export default function AccountsManagementPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">
+                      <label className="text-xs font-bold text-zinc-300 uppercase block mb-1.5">
                         Ganti Password, kosongkan jika tidak diubah
                       </label>
                       <input
@@ -552,7 +552,7 @@ export default function AccountsManagementPage() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] xl:text-xs font-bold text-white/50 uppercase block mb-1.5">Role atau Jabatan</label>
+                      <label className="text-xs font-bold text-zinc-300 uppercase block mb-1.5">Role atau Jabatan</label>
                       <select
                         value={formRole}
                         onChange={e => setFormRole(e.target.value as any)}

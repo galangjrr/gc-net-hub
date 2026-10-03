@@ -513,7 +513,7 @@ export default function MemberManagementPage() {
                                 {m.phone}
                               </span>
                             ) : (
-                              <span className="text-zinc-500 italic">No HP belum ada</span>
+                              <span className="text-zinc-400 italic font-medium">No HP belum ada</span>
                             )}
                             <span className="text-[11px] text-zinc-400 truncate flex items-center gap-1.5">
                               <Mail size={11} className="text-zinc-400" />
@@ -545,7 +545,7 @@ export default function MemberManagementPage() {
                               <Monitor size={11} /> {m.gc_user_id}
                             </span>
                           ) : (
-                            <span className="text-[11px] text-zinc-500 italic">
+                            <span className="text-xs text-zinc-400 italic font-medium">
                               Belum ditautkan
                             </span>
                           )}
@@ -616,7 +616,7 @@ export default function MemberManagementPage() {
                       {m.gc_user_id ? (
                         <span className="text-cyan-400 font-semibold flex items-center gap-1"><Monitor size={11} /> {m.gc_user_id}</span>
                       ) : (
-                        <span className="italic text-zinc-500">Tanpa ID Billing</span>
+                        <span className="italic text-zinc-400 font-medium">Tanpa ID Billing</span>
                       )}
                     </div>
 
@@ -744,7 +744,7 @@ export default function MemberManagementPage() {
                         placeholder="Minimal 5000, maksimal 500000"
                         className="w-full px-3.5 py-2.5 rounded-xl bg-surface-soft border border-hairline text-white font-bold text-sm focus:outline-none focus:border-nvidia-green"
                       />
-                      <span className="text-[10px] text-zinc-500 block">
+                      <span className="text-xs text-zinc-300 font-medium block">
                         Maksimal pengisian per transaksi lima ratus ribu rupiah.
                       </span>
                     </div>
@@ -847,7 +847,7 @@ export default function MemberManagementPage() {
                       placeholder="Username akun billing Cyberindo"
                       className="w-full px-3.5 py-2 rounded-xl bg-surface-soft border border-hairline text-white text-xs focus:outline-none focus:border-nvidia-green"
                     />
-                    <span className="text-[11px] text-zinc-500 block">
+                    <span className="text-xs text-zinc-300 font-medium block">
                       Tautkan dengan ID akun billing pemain untuk integrasi otomatis.
                     </span>
                   </div>
@@ -1021,7 +1021,7 @@ export default function MemberManagementPage() {
                         placeholder="Minimal 6 karakter"
                         className="w-full px-3.5 py-2 rounded-xl bg-surface-soft border border-hairline text-white text-xs font-mono focus:outline-none focus:border-nvidia-green"
                       />
-                      <span className="text-[11px] text-zinc-500 block">
+                      <span className="text-xs text-zinc-300 font-medium block">
                         Kasir dapat memberitahukan kata sandi sementara ini langsung ke member.
                       </span>
                     </div>
@@ -1100,7 +1100,7 @@ export default function MemberManagementPage() {
                               <span>Kirim via WA</span>
                             </button>
                           ) : (
-                            <div className="py-2 px-3 rounded-xl bg-surface-soft/40 border border-hairline/40 text-zinc-500 text-[11px] font-medium flex items-center justify-center text-center">
+                            <div className="py-2 px-3 rounded-xl bg-surface-soft/40 border border-hairline/40 text-zinc-300 text-xs font-medium flex items-center justify-center text-center">
                               No WhatsApp tidak ada
                             </div>
                           )}

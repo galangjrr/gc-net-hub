@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Database, CheckCircle2, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X, Volume2, VolumeX, Banknote, Lock, Moon, Zap } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Database, CheckCircle2, AlertTriangle, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X, Volume2, VolumeX, Banknote, Lock, Moon, Zap, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import useSound from "use-sound";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
@@ -14,6 +14,127 @@ export default function DataBookingPage() {
   const [editBookingId, setEditBookingId] = useState<string | null>(null);
   const [filterTab, setFilterTab] = useState<'all' | 'pending' | 'active'>('all');
   const [searchQuery, setSearchQuery] = useState("");
+  const [manualIsScheduled, setManualIsScheduled] = useState(false);
+  const [manualScheduleTime, setManualScheduleTime] = useState("");
+
+  const [popoverTime, setPopoverTime] = useState<string>("");
+
+  const getDefaultScheduleTime = (b?: Booking | null) => {
+    const raw = b?.start_time || b?.scheduled_at;
+    if (raw) {
+      if (typeof raw === 'string' && raw.includes(':') && !raw.includes('T')) {
+        return raw.slice(0, 5);
+      }
+      try {
+        const dt = new Date(raw);
+        if (!isNaN(dt.getTime())) {
+          return `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+        }
+      } catch (_) {}
+    }
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  };
+
+  const isScheduledBooking = (b: Booking, currentDb: DatabaseSchema | null = db): boolean => {
+    if (b.booking_type === 'slot' || b.booking_type === 'scheduled') return true;
+    if (b.scheduled_at) return true;
+    if (b.start_time) return true;
+    const pkg = currentDb?.pakets?.find(p => p.id === b.paket_id);
+    return Boolean(pkg?.fixed_start_time);
+  };
+
+  const getScheduleDisplay = (b: Booking, currentDb: DatabaseSchema | null = db): string => {
+    const pkg = currentDb?.pakets?.find(p => p.id === b.paket_id);
+    if (pkg?.fixed_start_time && pkg?.fixed_end_time) {
+      return `${pkg.fixed_start_time} - ${pkg.fixed_end_time} WIB`;
+    }
+    const raw = b.start_time || b.scheduled_at;
+    if (raw) {
+      if (typeof raw === 'string' && raw.includes(':') && !raw.includes('T')) {
+        return `${raw.slice(0, 5)} WIB`;
+      }
+      try {
+        const dt = new Date(raw);
+        if (!isNaN(dt.getTime())) {
+          return `${dt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':')} WIB`;
+        }
+      } catch (_) {}
+    }
+    return 'Jam Tertentu';
+  };
+
+  const [openSchedId, setOpenSchedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!openSchedId) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.sched-popover-container')) {
+        setOpenSchedId(null);
+      }
+    };
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [openSchedId]);
+
+  const handleQuickApplySchedule = async (b: Booking, isSched: boolean, timeStr: string | null) => {
+    let schedIso: string | null = null;
+    if (isSched && timeStr) {
+      try {
+        const [hh, mm] = timeStr.split(':').map(Number);
+        const d = new Date();
+        d.setHours(hh || 0, mm || 0, 0, 0);
+        schedIso = d.toISOString();
+      } catch (_) {}
+    }
+
+    const prevDb = db;
+    // Optimistic UI update: langsung render di tabel 0ms tanpa nunggu network
+    setDb(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        bookings: prev.bookings.map(item => {
+          if (item.id === b.id) {
+            return {
+              ...item,
+              booking_type: isSched ? 'slot' : 'queue',
+              start_time: isSched ? schedIso : null,
+              scheduled_at: isSched ? schedIso : null,
+            };
+          }
+          return item;
+        })
+      };
+    });
+
+    setOpenSchedId(null);
+    setLoadingId(b.id);
+    try {
+      const res = await fetch(`/api/bookings/${b.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: 'edit_booking',
+          booking_type: isSched ? 'slot' : 'queue',
+          start_time: isSched ? schedIso : null,
+          scheduled_at: isSched ? schedIso : null,
+        })
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error || "Gagal mengubah jadwal booking");
+      }
+      await loadData();
+    } catch (err: any) {
+      setDb(prevDb);
+      alert(err?.message || "Gagal mengubah jadwal booking.");
+      await loadData();
+    } finally {
+      setLoadingId(null);
+    }
+  };
   const [isAlarmPlaying, setIsAlarmPlaying] = useState(false);
   const prevPendingCount = useRef<number>(0);
   const triggeredExpiredPcIds = useRef<Set<string>>(new Set());
@@ -112,6 +233,19 @@ export default function DataBookingPage() {
   const pcInputRef = useRef<HTMLInputElement | null>(null);
   const paketInputRef = useRef<HTMLInputElement | null>(null);
   const submitBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  const getNextUserNum = useCallback(() => {
+    const settingCounter = db?.settings?.user_counter || 80;
+    let maxNum = settingCounter;
+    db?.bookings?.forEach(b => {
+      const m = b.player_name?.match(/^User\s+(\d+)$/i);
+      if (m) {
+        const num = parseInt(m[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    });
+    return maxNum + 1;
+  }, [db?.settings?.user_counter, db?.bookings]);
 
   // Custom Confirm Modal State
   const [confirmState, setConfirmState] = useState<{
@@ -296,12 +430,18 @@ export default function DataBookingPage() {
 
   const handleAction = (id: string, action: 'approve' | 'reject' | 'complete', playerName?: string, pcName?: string) => {
     if (action === 'complete') {
+      const targetB = db?.bookings?.find(b => b.id === id);
+      const isSched = targetB ? isScheduledBooking(targetB) : false;
+      const schedTime = targetB ? getScheduleDisplay(targetB) : "";
+
       setConfirmState({
         isOpen: true,
-        title: "Pemain Masuk Main",
-        subtitle: (pcName || "Unit PC").toUpperCase(),
-        description: `Pemain ${playerName || 'pelanggan'} sudah di ${pcName || 'PC'}? Tandai booking selesai dan pemain mulai main.`,
-        confirmLabel: "Tandai Masuk",
+        title: isSched ? "Mulai Sesi Jam Tertentu Lebih Awal?" : "Pemain Masuk Main",
+        subtitle: isSched ? `${(pcName || "Unit PC").toUpperCase()} • ${schedTime}` : (pcName || "Unit PC").toUpperCase(),
+        description: isSched
+          ? `Booking pemain ${playerName || 'pelanggan'} terjadwal untuk ${schedTime}. Pemain sudah datang dan ingin mulai main sekarang?`
+          : `Pemain ${playerName || 'pelanggan'} sudah di ${pcName || 'PC'}? Tandai booking selesai dan pemain mulai main.`,
+        confirmLabel: isSched ? "Tandai Masuk Sekarang" : "Tandai Masuk",
         confirmVariant: "primary",
         onConfirm: () => executeAction(id, 'complete')
       });
@@ -327,6 +467,13 @@ export default function DataBookingPage() {
     const pcName = db?.pcs?.find(p => p.id === b.pc_id)?.name || "";
     setManualData({ playerName: b.player_name, pcId: b.pc_id, searchPc: pcName });
     setSelectedPaket(b.paket_id);
+    const isSched = isScheduledBooking(b);
+    setManualIsScheduled(isSched);
+    if (b.start_time || b.scheduled_at) {
+      setManualScheduleTime(getDefaultScheduleTime(b));
+    } else {
+      setManualScheduleTime("");
+    }
     setShowManual(true);
   };
 
@@ -373,7 +520,7 @@ export default function DataBookingPage() {
     // Auto-generate name if left empty
     let finalPlayerName = manualData.playerName.trim();
     if (!finalPlayerName) {
-      const nextNum = (db?.settings?.user_counter || 80) + 1;
+      const nextNum = getNextUserNum();
       finalPlayerName = `User ${nextNum}`;
     }
 
@@ -397,6 +544,20 @@ export default function DataBookingPage() {
       finalPaketId = createdPaket.id;
     }
 
+    const chosenPkt = db?.pakets?.find(p => p.id === finalPaketId);
+    const isFixedPkt = Boolean(chosenPkt?.fixed_start_time);
+    const isSched = isFixedPkt || manualIsScheduled;
+    const schedStartTime = chosenPkt?.fixed_start_time || (manualIsScheduled ? manualScheduleTime : null);
+    let schedIso: string | null = null;
+    if (schedStartTime) {
+      try {
+        const [hh, mm] = schedStartTime.split(':').map(Number);
+        const d = new Date();
+        d.setHours(hh || 0, mm || 0, 0, 0);
+        schedIso = d.toISOString();
+      } catch (_) {}
+    }
+
     // Optimistic UI for manual booking: show in table instantly
     if (!editBookingId) {
       const tempId = `GC-TEMP-${Date.now().toString().slice(-4)}`;
@@ -406,9 +567,23 @@ export default function DataBookingPage() {
         paket_id: finalPaketId,
         player_name: finalPlayerName,
         status: 'active',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        booking_type: isSched ? 'slot' : 'queue',
+        start_time: isSched ? schedIso : null,
+        scheduled_at: isSched ? schedIso : null,
       };
-      setDb(prev => prev ? ({ ...prev, bookings: [newBooking, ...prev.bookings] }) : prev);
+      const userMatch = finalPlayerName.match(/^User\s+(\d+)$/i);
+      const usedNum = userMatch ? parseInt(userMatch[1], 10) : 0;
+      setDb(prev => {
+        if (!prev) return prev;
+        const currentCounter = prev.settings?.user_counter || 80;
+        const newCounter = usedNum > currentCounter ? usedNum : currentCounter;
+        return {
+          ...prev,
+          bookings: [newBooking, ...prev.bookings],
+          settings: prev.settings ? { ...prev.settings, user_counter: newCounter } : prev.settings
+        };
+      });
     }
 
     setShowManual(false);
@@ -416,35 +591,51 @@ export default function DataBookingPage() {
     setManualData({ playerName: "", pcId: "", searchPc: "" });
     setSearchPaket("");
     setSelectedPaket(null);
+    setManualIsScheduled(false);
+    setManualScheduleTime("");
 
     setLoadingId("manual-loading");
     try {
       if (editBookingId) {
-        await fetch(`/api/bookings/${editBookingId}`, {
+        const res = await fetch(`/api/bookings/${editBookingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: 'edit_booking',
             pc_id: finalPcId,
             player_name: finalPlayerName,
-            paket_id: finalPaketId
+            paket_id: finalPaketId,
+            booking_type: isSched ? 'slot' : 'queue',
+            start_time: isSched ? schedIso : null,
+            scheduled_at: isSched ? schedIso : null,
           })
         });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error || "Gagal mengubah antrean");
+        }
       } else {
-        await fetch("/api/bookings", {
+        const res = await fetch("/api/bookings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             pc_id: finalPcId,
             paket_id: finalPaketId,
             player_name: finalPlayerName,
-            is_admin_manual: true
+            is_admin_manual: true,
+            booking_type: isSched ? 'slot' : 'queue',
+            start_time: isSched ? schedIso : null,
+            scheduled_at: isSched ? schedIso : null,
           })
         });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error || "Gagal menambah antrean");
+        }
       }
       await loadData();
-    } catch (err) {
-      alert("Gagal menyimpan antrean.");
+    } catch (err: any) {
+      alert(err?.message || "Gagal menyimpan antrean.");
       await loadData();
     } finally {
       setLoadingId(null);
@@ -481,95 +672,684 @@ export default function DataBookingPage() {
   const allBookings = db.bookings || [];
   const pendingCount = allBookings.filter(b => b.status === "pending").length;
   const activeCount = allBookings.filter(b => b.status === "active").length;
+  const filteredBookings = allBookings
+    .filter(b => {
+      if (filterTab === 'pending' && b.status !== 'pending') return false;
+      if (filterTab === 'active' && b.status !== 'active') return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchName = b.player_name.toLowerCase().includes(q);
+        const matchPc = b.pc_id.toLowerCase().includes(q) || (db.pcs.find(p => p.id === b.pc_id)?.name.toLowerCase().includes(q));
+        return matchName || matchPc;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // PRIORITAS UTAMA SISTEM:
+      // 1. Antrean Langsung / Main Sekarang SELALU DI ATAS
+      // 2. Booking Jam Tertentu (Scheduled / Slot) SELALU DI BAWAH
+      const aSched = isScheduledBooking(a, db);
+      const bSched = isScheduledBooking(b, db);
+      if (!aSched && bSched) return -1;
+      if (aSched && !bSched) return 1;
 
-  const filteredBookings = allBookings.filter(b => {
-    if (filterTab === 'pending' && b.status !== 'pending') return false;
-    if (filterTab === 'active' && b.status !== 'active') return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchName = b.player_name.toLowerCase().includes(q);
-      const matchPc = b.pc_id.toLowerCase().includes(q) || (db.pcs.find(p => p.id === b.pc_id)?.name.toLowerCase().includes(q));
-      return matchName || matchPc;
-    }
-    return true;
-  });
+      if (aSched && bSched) {
+        const aTime = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0;
+        const bTime = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0;
+        if (aTime && bTime && aTime !== bTime) return aTime - bTime;
+      }
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    });
+
+  const renderBookingRow = (b: Booking) => {
+    const isSched = isScheduledBooking(b, db);
+    const pc = db.pcs.find(p => p.id === b.pc_id);
+    const pkg = db.pakets.find(p => p.id === b.paket_id);
+    const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
+    const isPending = b.status === "pending";
+    const now = Date.now();
+    const diff = pc?.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+    const isExpired = !isPending && pc?.expected_empty_time && diff <= 0;
+    const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
+
+    const pkgTitle = pkg?.name || (b.paket_id?.startsWith('custom-') ? 'Kustom' : 'Tarif Langsung');
+
+    const pcDirectBookings = allBookings
+      .filter(item => item.pc_id === b.pc_id && !isScheduledBooking(item, db))
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const queueIndex = pcDirectBookings.findIndex(item => item.id === b.id);
+    const isLayered = !isSched && queueIndex > 0;
+    const prevPlayerName = isLayered ? pcDirectBookings[queueIndex - 1]?.player_name : null;
+
+    const cardBorderClass = isExpired
+      ? "border-red-500/50 group-hover:border-red-500/80"
+      : isWarning
+      ? "border-amber-500/40 group-hover:border-amber-500/70"
+      : isPending
+      ? "border-amber-500/30 group-hover:border-amber-500/50"
+      : "border-white/5 group-hover:border-white/20";
+
+    return (
+      <motion.tr
+        key={b.id}
+        animate={isExpired ? {
+          backgroundColor: ["rgba(239, 68, 68, 0.08)", "rgba(239, 68, 68, 0.22)", "rgba(239, 68, 68, 0.08)"],
+        } : {}}
+        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+        className={`transition-all shadow-md group ${openSchedId === b.id ? 'relative z-50' : 'relative z-10'} ${
+          isExpired 
+            ? "bg-[#1d1214]" 
+            : isWarning 
+            ? "bg-[#1c1712] hover:bg-[#231b14]" 
+            : isPending
+            ? "bg-[#14151a] hover:bg-[#181a21]"
+            : "bg-[#111215] hover:bg-[#16171d]"
+        }`}
+      >
+        {/* 1. TARGET PC */}
+        <td className={`py-2.5 xl:py-3 pl-5 pr-3 rounded-l-xl border-y border-l transition ${cardBorderClass}`}>
+          <div className="flex flex-col items-start gap-0.5">
+            <div className="flex items-center gap-2">
+              <Monitor size={15} className="text-nvidia-green shrink-0" />
+              <span className="font-bold text-xs sm:text-sm text-white tracking-wide">
+                {(pc?.name || b.pc_id).toUpperCase()}
+              </span>
+            </div>
+            {isLayered && (
+              <span className="text-[11px] font-semibold text-zinc-300 inline-flex items-center gap-1">
+                <Clock size={11} className="shrink-0 text-zinc-400" />
+                Antre setelah {prevPlayerName}
+              </span>
+            )}
+          </div>
+        </td>
+
+        {/* 2. PAKET & TARIF */}
+        <td className={`py-2.5 xl:py-3 px-3 border-y transition ${cardBorderClass}`}>
+          <div className="flex flex-col">
+            <span className="font-bold text-white text-xs tracking-tight flex items-center gap-1.5">
+              <span>{pkgTitle}</span>
+              {pkg?.fixed_start_time && (
+                <span className="text-[10px] text-white px-1.5 py-0.2 rounded bg-white/10 border border-white/20 font-mono">
+                  {pkg.fixed_start_time} - {pkg.fixed_end_time}
+                </span>
+              )}
+            </span>
+            <span className="text-xs font-bold tabular-nums mt-0.5 text-zinc-300">
+              Rp {resolvedPrice.toLocaleString("id-ID")}
+            </span>
+          </div>
+        </td>
+
+        {/* 3. PEMAIN */}
+        <td className={`py-2.5 xl:py-3 px-3 border-y transition ${cardBorderClass}`}>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md border flex items-center justify-center text-white text-xs font-bold shrink-0 bg-surface-soft border-hairline/60">
+              {b.player_name.slice(0, 1).toUpperCase()}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-white text-xs xl:text-sm leading-tight truncate">
+                {b.player_name}
+              </span>
+              {b.member_id && (
+                <span className="text-[10px] text-nvidia-green font-semibold uppercase tracking-wider">
+                  Member
+                </span>
+              )}
+            </div>
+          </div>
+        </td>
+
+        {/* 4. STATUS BOOKING */}
+        <td className={`py-2.5 xl:py-3 px-3 border-y transition ${cardBorderClass}`}>
+          <div className="flex flex-col gap-0.5 items-start">
+            {isPending ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-bold tracking-wide">
+                <Clock size={11} className="animate-spin" /> Menunggu Konfirmasi
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-white text-[11px] font-bold tracking-wide">
+                <Hourglass size={11} /> Menunggu Giliran
+              </span>
+            )}
+            <span className="text-[11px] text-zinc-400 pl-0.5 font-medium">
+              {b.ss_bukti ? 'QRIS DANA' : 'Kasir Tunai'}
+            </span>
+          </div>
+        </td>
+
+        {/* 5. WAKTU BOOKING */}
+        <td className={`py-2.5 xl:py-3 px-3 border-y transition text-xs font-bold tabular-nums text-zinc-300 ${cardBorderClass}`}>
+          {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} <span className="text-zinc-400 text-[11px] font-normal">WIB</span>
+        </td>
+
+        {/* 6. JAM MAIN (1-KLIK INSTAN POPOVER) */}
+        <td className={`py-2.5 xl:py-3 px-3 border-y transition ${cardBorderClass}`}>
+          <div className="relative inline-block sched-popover-container">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (openSchedId === b.id) {
+                  setOpenSchedId(null);
+                } else {
+                  setOpenSchedId(b.id);
+                  setPopoverTime(getDefaultScheduleTime(b));
+                }
+              }}
+              className={`px-2.5 py-1 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer ${
+                isSched
+                  ? "bg-white/10 hover:bg-white/20 border-white/30 text-white shadow-[0_0_12px_rgba(255,255,255,0.06)]"
+                  : "bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/60 hover:text-white"
+              }`}
+              title="Klik untuk langsung ganti jadwal main"
+            >
+              {isSched ? (
+                <>
+                  <Clock size={11} className="text-zinc-400 shrink-0" />
+                  <span className="tabular-nums font-mono text-[11px]">{getScheduleDisplay(b, db)}</span>
+                  <ChevronDown size={10} className="opacity-60 shrink-0" />
+                </>
+              ) : (
+                <>
+                  <Zap size={11} className="text-nvidia-green shrink-0" />
+                  <span>Langsung</span>
+                  <ChevronDown size={10} className="opacity-40 shrink-0" />
+                </>
+              )}
+            </button>
+
+            {/* Clean Popover */}
+            {openSchedId === b.id && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="absolute left-0 top-full mt-2 z-[100] w-64 bg-[#121318] border border-white/15 rounded-xl p-3 shadow-[0_20px_50px_rgba(0,0,0,0.95)] space-y-2.5 text-left animate-in fade-in zoom-in-95 duration-100"
+              >
+                <div className="flex items-center justify-between text-xs font-bold text-white/50 uppercase tracking-wider">
+                  <span>Atur Jam Main</span>
+                  <button
+                    type="button"
+                    onClick={() => setOpenSchedId(null)}
+                    className="p-1 text-white/40 hover:text-white rounded-md transition"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickApplySchedule(b, false, null)}
+                    className={`w-full py-1.5 px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-between ${
+                      !isSched
+                        ? "bg-nvidia-green text-black shadow-sm"
+                        : "bg-white/[0.04] hover:bg-white/[0.08] text-white/80 border border-white/5"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Zap size={12} className={!isSched ? "text-black" : "text-nvidia-green"} />
+                      <span>Langsung Main</span>
+                    </span>
+                    {!isSched && <Check size={12} className="text-black" />}
+                  </button>
+
+                  <div className="pt-2 border-t border-white/[0.08] space-y-1.5">
+                    <label className="text-[11px] font-semibold text-white/60 block">
+                      Jadwal Jam Main
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="time"
+                        value={popoverTime}
+                        onChange={(e) => setPopoverTime(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && popoverTime) {
+                            handleQuickApplySchedule(b, true, popoverTime);
+                          }
+                        }}
+                        className="flex-1 bg-[#181920] border border-white/15 focus:border-nvidia-green text-white font-mono text-xs font-bold px-2.5 py-1.5 rounded-lg outline-none transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (popoverTime) handleQuickApplySchedule(b, true, popoverTime);
+                        }}
+                        className="px-3 py-1.5 bg-nvidia-green hover:bg-[#88d600] text-black text-xs font-bold rounded-lg transition shadow-sm cursor-pointer"
+                      >
+                        Simpan
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </td>
+
+        {/* 7. AKSI */}
+        <td className={`py-2.5 xl:py-3 pr-5 pl-3 text-right rounded-r-xl border-y border-r transition ${cardBorderClass}`}>
+          <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+            {isPending ? (
+              <>
+                {b.ss_bukti ? (
+                  <button
+                    onClick={() => showBukti(b.id, b.ss_bukti)}
+                    className="h-8 px-2.5 bg-surface-soft hover:bg-white/10 border border-hairline/60 text-white/80 hover:text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
+                  >
+                    <ImageIcon size={13} /> Bukti
+                  </button>
+                ) : (
+                  <span className="h-8 px-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-medium rounded-lg inline-flex items-center gap-1">
+                    <Banknote size={12} /> Tagih Tunai
+                  </span>
+                )}
+                <button
+                  disabled={loadingId === b.id}
+                  onClick={() => handleAction(b.id, 'approve')}
+                  className="h-8 px-3 bg-nvidia-green hover:bg-[#88d600] text-black font-bold text-xs rounded-lg transition shadow-sm flex items-center gap-1.5"
+                >
+                  <Check size={13} /> Konfirmasi
+                </button>
+                <button
+                  disabled={loadingId === b.id}
+                  onClick={() => handleAction(b.id, 'reject')}
+                  className="h-8 px-2.5 bg-error/10 hover:bg-error/20 text-error border border-error/30 rounded-lg text-xs font-semibold transition"
+                >
+                  Batal
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleEditClick(b)}
+                  className="w-8 h-8 flex items-center justify-center bg-surface-soft hover:bg-white/10 text-white/60 hover:text-white border border-hairline/60 rounded-lg transition"
+                  title="Ubah Data Booking"
+                >
+                  <Pencil size={13} />
+                </button>
+
+                <button
+                  disabled={loadingId === b.id}
+                  onClick={() => handleDelete(b.id, b.player_name)}
+                  className="w-8 h-8 flex items-center justify-center bg-surface-soft hover:bg-error/20 text-white/60 hover:text-error border border-hairline/60 rounded-lg transition"
+                  title="Hapus Antrean"
+                >
+                  <Trash2 size={13} />
+                </button>
+
+                {isLayered ? (
+                  <button
+                    disabled
+                    className="h-8 px-3 font-bold text-xs rounded-lg bg-surface-soft/90 text-white/40 border border-hairline/60 cursor-not-allowed flex items-center gap-1.5 shrink-0 transition"
+                    title={`Nunggu ${prevPlayerName} mulai main`}
+                  >
+                    <Lock size={12} className="shrink-0 text-white/40" />
+                    Lapis ke {queueIndex + 1}
+                  </button>
+                ) : (
+                  <button
+                    disabled={loadingId === b.id}
+                    onClick={() => handleAction(b.id, 'complete', b.player_name, pc?.name)}
+                    className={`h-8 px-3.5 font-bold text-xs rounded-lg transition flex items-center gap-1.5 shrink-0 shadow-sm ${
+                      isSched
+                        ? "bg-white hover:bg-zinc-200 text-black font-bold shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                        : "bg-nvidia-green hover:bg-[#88d600] text-black"
+                    }`}
+                  >
+                    <Play size={12} className={isSched ? "fill-white" : "fill-black"} />
+                    <span>{isSched ? "Mulai Sesi" : "Tandai Masuk"}</span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </td>
+      </motion.tr>
+    );
+  };
+
+  const renderMobileCard = (b: Booking) => {
+    const isSched = isScheduledBooking(b, db);
+    const pc = db.pcs.find(p => p.id === b.pc_id);
+    const pkg = db.pakets.find(p => p.id === b.paket_id);
+    const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
+    const isPending = b.status === "pending";
+    const now = Date.now();
+    const diff = pc?.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
+    const isExpired = !isPending && pc?.expected_empty_time && diff <= 0;
+    const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
+
+    const pkgTitle = pkg?.name || (b.paket_id?.startsWith('custom-') ? 'Kustom' : 'Tarif Langsung');
+
+    const pcDirectBookings = allBookings
+      .filter(item => item.pc_id === b.pc_id && !isScheduledBooking(item, db))
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const queueIndex = pcDirectBookings.findIndex(item => item.id === b.id);
+    const isLayered = !isSched && queueIndex > 0;
+    const prevPlayerName = isLayered ? pcDirectBookings[queueIndex - 1]?.player_name : null;
+
+    return (
+      <div
+        key={b.id}
+        className={`bg-surface border p-3 sm:p-3.5 rounded-xl shadow-lg relative overflow-hidden space-y-2.5 ${
+          isPending 
+            ? "border-amber-500/40" 
+            : isExpired 
+            ? "border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.2)]" 
+            : isWarning 
+            ? "border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]" 
+            : "border-hairline"
+        }`}
+      >
+        {/* Top Bar - High Visibility PC & Status */}
+        <div className="flex items-center justify-between gap-2 pb-1 border-b border-hairline/60">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-nvidia-green/15 border-nvidia-green/50 shadow-[0_0_12px_rgba(118,185,0,0.15)]">
+            <Monitor size={14} className="text-nvidia-green stroke-[2.5]" />
+            <span className="font-bold text-xs sm:text-sm text-white tracking-wider">
+              {(pc?.name || b.pc_id).toUpperCase()}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase tracking-wider ${b.ss_bukti ? 'bg-nvidia-green/15 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'}`}>
+              {b.ss_bukti ? 'QRIS' : 'KASIR'}
+            </span>
+            {isPending ? (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+                <Clock size={10} className="animate-spin" /> Verifikasi
+              </span>
+            ) : (
+              <div className="relative sched-popover-container">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (openSchedId === b.id) {
+                      setOpenSchedId(null);
+                    } else {
+                      setOpenSchedId(b.id);
+                      setPopoverTime(getDefaultScheduleTime(b));
+                    }
+                  }}
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 ${
+                    isSched
+                      ? "bg-white/10 border border-white/20 text-white"
+                      : "bg-surface-soft border border-hairline/60 text-white/60"
+                  }`}
+                  title="Atur Jam Main"
+                >
+                  {isSched ? <Clock size={10} className="text-zinc-400" /> : <Zap size={10} className="text-nvidia-green" />}
+                  <span>{isSched ? getScheduleDisplay(b, db) : "Langsung"}</span>
+                  <ChevronDown size={9} className="opacity-50 ml-0.5" />
+                </button>
+
+                {openSchedId === b.id && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 top-full mt-2 z-50 w-60 bg-[#121318] border border-white/15 rounded-xl p-2.5 shadow-2xl space-y-2 text-left animate-in fade-in zoom-in-95 duration-100"
+                  >
+                    <div className="flex items-center justify-between text-[11px] font-bold text-white/50 uppercase tracking-wider">
+                      <span>Set Jam Main</span>
+                      <button
+                        type="button"
+                        onClick={() => setOpenSchedId(null)}
+                        className="p-1 text-white/40 hover:text-white"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleQuickApplySchedule(b, false, null)}
+                      className={`w-full py-1.5 px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-between ${
+                        !isSched ? "bg-nvidia-green text-black" : "bg-white/5 text-white/70"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Zap size={12} />
+                        <span>Langsung Main</span>
+                      </span>
+                      {!isSched && <Check size={12} />}
+                    </button>
+
+                    <div className="pt-2 border-t border-white/[0.08] space-y-1.5">
+                      <label className="text-[11px] font-semibold text-white/60 block">
+                        Jadwal Jam Main
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={popoverTime}
+                          onChange={(e) => setPopoverTime(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && popoverTime) {
+                              handleQuickApplySchedule(b, true, popoverTime);
+                            }
+                          }}
+                          className="flex-1 bg-[#181920] border border-white/15 focus:border-nvidia-green text-white font-mono text-xs font-bold px-2.5 py-1.5 rounded-lg outline-none transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (popoverTime) handleQuickApplySchedule(b, true, popoverTime);
+                          }}
+                          className="px-3 py-1.5 bg-nvidia-green hover:bg-[#88d600] text-black text-xs font-bold rounded-lg transition shadow-sm cursor-pointer"
+                        >
+                          Simpan
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Player & Highlighted Paket Box */}
+        <div className="grid grid-cols-2 gap-2 bg-surface-dark p-2.5 sm:p-3 rounded-lg border border-hairline text-xs">
+          <div className="flex flex-col justify-center">
+            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Pemain & Booking</span>
+            <div className="flex items-center gap-2">
+              <div className={`w-5 h-5 rounded border flex items-center justify-center text-[10px] font-bold ${
+                isSched ? "bg-white/[0.04] border-white/20 text-white" : "bg-surface border-hairline text-zinc-200"
+              }`}>
+                {b.player_name.slice(0, 1).toUpperCase()}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-white text-xs truncate">{b.player_name}</span>
+                {b.member_id && (
+                  <span className="text-[9px] text-nvidia-green font-semibold uppercase tracking-wider">Member</span>
+                )}
+                <span className={`text-[11px] font-semibold ${isSched ? "text-white" : "text-nvidia-green"}`}>{pkgTitle}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenSchedId(openSchedId === b.id ? null : b.id);
+              }}
+              className={`text-[11px] font-semibold mt-1 flex items-center gap-1 text-left ${isSched ? "text-zinc-300" : "text-zinc-400"}`}
+            >
+              {isSched ? <Clock size={10} className="text-zinc-400" /> : <Zap size={10} className="text-nvidia-green" />}
+              <span>Jam Main: {isSched ? getScheduleDisplay(b, db) : "Langsung"}</span>
+            </button>
+          </div>
+
+          <div className="flex flex-col justify-center text-right px-2.5 py-1.5 rounded-lg bg-surface border border-hairline/60">
+            <span className="text-[11px] text-zinc-300 font-bold uppercase tracking-wider flex items-center justify-end gap-1 mb-0.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${isSched ? "bg-white" : "bg-nvidia-green"}`}></span>
+              {pkgTitle}
+            </span>
+            <span className={`font-bold text-sm tabular-nums ${isSched ? "text-white" : "text-nvidia-green"}`}>
+              Rp {resolvedPrice.toLocaleString("id-ID")}
+            </span>
+            {isLayered && (
+              <span className="text-[11px] text-zinc-300 font-semibold flex items-center justify-end gap-1 mt-0.5">
+                <Clock size={9} className="shrink-0" />
+                Antre setelah {prevPlayerName}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Actions */}
+        {isPending ? (
+          <div className="flex gap-1.5 pt-0.5">
+            {b.ss_bukti ? (
+              <button
+                onClick={() => showBukti(b.id, b.ss_bukti)}
+                className="flex-1 h-9 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
+              >
+                <ImageIcon size={13} /> Bukti
+              </button>
+            ) : (
+              <div className="flex-1 h-9 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1">
+                <Banknote size={12} /> Bayar Tunai
+              </div>
+            )}
+            <button
+              disabled={loadingId === b.id}
+              onClick={() => handleAction(b.id, 'approve')}
+              className="flex-1 h-9 bg-nvidia-green text-black font-bold rounded-lg text-xs uppercase shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center justify-center gap-1.5"
+            >
+              <Check size={13} /> Konfirmasi
+            </button>
+            <button
+              disabled={loadingId === b.id}
+              onClick={() => handleAction(b.id, 'reject')}
+              className="h-9 px-3 bg-error/10 text-error border border-error/30 rounded-lg text-xs font-bold"
+            >
+              Batal
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-1.5 pt-0.5">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleEditClick(b)}
+                className="flex-1 h-8 bg-surface-dark hover:bg-white/10 text-white/70 hover:text-white border border-hairline/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+              >
+                <Pencil size={12} /> Ubah
+              </button>
+              <button
+                disabled={loadingId === b.id}
+                onClick={() => handleDelete(b.id, b.player_name)}
+                className="flex-1 h-8 bg-surface-dark hover:bg-error/20 text-white/60 hover:text-error border border-hairline/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+              >
+                <Trash2 size={12} /> Hapus
+              </button>
+            </div>
+
+            {isLayered ? (
+              <button
+                disabled
+                className="w-full h-9 font-bold rounded-lg text-xs bg-surface-dark text-white/40 border border-hairline/60 cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                <Lock size={12} className="shrink-0 text-white/40" />
+                Lapis ke {queueIndex + 1} • Nunggu {prevPlayerName}
+              </button>
+            ) : (
+              <button
+                disabled={loadingId === b.id}
+                onClick={() => handleAction(b.id, 'complete', b.player_name, pc?.name)}
+                className={`w-full h-9 font-bold rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 shadow-sm ${
+                  isSched
+                    ? "bg-white hover:bg-zinc-200 text-black font-bold shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                    : "bg-nvidia-green hover:bg-[#88d600] text-black"
+                }`}
+              >
+                <Play size={12} className={isSched ? "fill-white" : "fill-black"} />
+                <span>{isSched ? "Mulai Sesi" : "Tandai Masuk"}</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <PinGuard>
-      <div className="min-h-screen bg-surface-dark p-4 md:p-8 xl:p-10 pt-16 md:pt-8 text-white space-y-6 pb-32">
-        <div className="w-full max-w-6xl 2xl:max-w-[1360px] mx-auto space-y-6">
+      <div className="min-h-screen bg-surface-dark p-3 sm:p-5 md:p-6 pt-14 md:pt-6 text-white space-y-5 pb-28">
+        <div className="w-full max-w-6xl 2xl:max-w-[1360px] mx-auto space-y-4 sm:space-y-5">
           
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4 xl:pb-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green shrink-0">
-                <Database size={32} />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-hairline pb-3 sm:pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-nvidia-green/10 border border-nvidia-green/30 rounded-lg text-nvidia-green shrink-0">
+                <Database size={22} className="sm:w-6 sm:h-6" />
               </div>
               <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white">
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white">
                     Antrean Booking PC
                   </h1>
-                  <span className="relative flex h-3 w-3">
+                  <span className="relative flex h-2.5 w-2.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-nvidia-green"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-nvidia-green"></span>
                   </span>
                 </div>
-                <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
+                <p className="text-xs text-white/50 tracking-tight mt-0.5">
                   Pantau antrean booking PC, konfirmasi pembayaran, dan panggil pemain saat giliran main tiba
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5">
               {isAlarmPlaying && (
                 <button
                   onClick={handleStopAlarm}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition animate-bounce shadow-[0_0_20px_rgba(239,68,68,0.5)]"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition animate-bounce shadow-[0_0_15px_rgba(239,68,68,0.5)]"
                 >
-                  <VolumeX size={16} />
+                  <VolumeX size={14} />
                   Matikan Alarm 10 Detik
                 </button>
               )}
               <button
                 onClick={loadData}
-                className="p-2.5 bg-surface hover:bg-white/10 border border-hairline rounded-lg text-white/70 hover:text-white transition"
+                className="p-2 bg-surface hover:bg-white/10 border border-hairline rounded-lg text-white/70 hover:text-white transition"
                 title="Segarkan Data"
               >
-                <RotateCw size={18} />
+                <RotateCw size={16} />
               </button>
             </div>
           </div>
 
-          {/* Action Toolbar: Tambah Booking + Filter Tabs + Search Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2.5 xl:gap-3">
+          {/* Action Toolbar: Tambah Booking + Filter Tabs + Category Pills + Search Bar */}
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               <button
                 onClick={() => {
                   setEditBookingId(null);
                   setManualData({ playerName: "", pcId: "", searchPc: "" });
                   setSearchPaket("");
                   setSelectedPaket(null);
+                  setManualIsScheduled(false);
+                  setManualScheduleTime("15:00");
                   setShowManual(true);
                 }}
-                className="flex items-center gap-2 px-4 xl:px-5 py-2.5 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs xl:text-sm uppercase tracking-wider rounded-xl transition shadow-[0_0_20px_rgba(118,185,0,0.25)] shrink-0 active:scale-95"
+                className="flex items-center gap-2 h-9 sm:h-10 px-3.5 sm:px-4 bg-nvidia-green text-black hover:bg-[#88d600] font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-[0_0_15px_rgba(118,185,0,0.25)] shrink-0 active:scale-95"
               >
-                <Plus size={16} className="stroke-[2.5]" />
+                <Plus size={15} className="stroke-[2.5]" />
                 <span>Tambah Booking</span>
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-black/20 text-black/80 rounded border border-black/20">F2</kbd>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.2 text-[10px] font-mono bg-black/20 text-black/80 rounded border border-black/20">F2</kbd>
               </button>
 
-              <div className="bg-surface border border-hairline/80 p-1 xl:p-1.5 rounded-xl flex items-center gap-1 xl:gap-2 overflow-x-auto shrink-0 shadow-inner">
+              {/* Status Filter Tabs */}
+              <div className="bg-surface border border-hairline/80 p-1 rounded-lg flex items-center gap-1 overflow-x-auto shrink-0 shadow-inner">
                 <button
                   onClick={() => setFilterTab('all')}
-                  className={`px-3.5 xl:px-4 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-semibold tracking-wide transition flex items-center gap-2 shrink-0 ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-semibold tracking-wide transition flex items-center gap-1.5 shrink-0 ${
                     filterTab === 'all'
                       ? "bg-white/10 text-white border border-white/15 shadow-sm"
                       : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"
                   }`}
                 >
                   <span>Semua Antrean</span>
-                  <span className={`px-1.5 xl:px-2 py-0.2 rounded-md tabular-nums font-bold text-[10px] xl:text-xs ${
+                  <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
                     filterTab === 'all' ? "bg-white/20 text-white" : "bg-white/5 text-white/40"
                   }`}>
                     {allBookings.length}
@@ -577,7 +1357,7 @@ export default function DataBookingPage() {
                 </button>
                 <button
                   onClick={() => setFilterTab('pending')}
-                  className={`px-3.5 xl:px-4 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-semibold tracking-wide transition flex items-center gap-2 shrink-0 ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-semibold tracking-wide transition flex items-center gap-1.5 shrink-0 ${
                     filterTab === 'pending'
                       ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm"
                       : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"
@@ -585,7 +1365,7 @@ export default function DataBookingPage() {
                 >
                   <span className={`w-1.5 h-1.5 rounded-full bg-amber-400 ${pendingCount > 0 ? "animate-pulse" : ""}`}></span>
                   <span>Menunggu Verifikasi</span>
-                  <span className={`px-1.5 xl:px-2 py-0.2 rounded-md tabular-nums font-bold text-[10px] xl:text-xs ${
+                  <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
                     filterTab === 'pending' ? "bg-amber-400/20 text-amber-300" : "bg-white/5 text-white/40"
                   }`}>
                     {pendingCount}
@@ -593,7 +1373,7 @@ export default function DataBookingPage() {
                 </button>
                 <button
                   onClick={() => setFilterTab('active')}
-                  className={`px-3.5 xl:px-4 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-semibold tracking-wide transition flex items-center gap-2 shrink-0 ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-semibold tracking-wide transition flex items-center gap-1.5 shrink-0 ${
                     filterTab === 'active'
                       ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm"
                       : "text-white/50 hover:text-white hover:bg-white/5 border border-transparent"
@@ -601,240 +1381,49 @@ export default function DataBookingPage() {
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                   <span>Antrean Aktif</span>
-                  <span className={`px-1.5 xl:px-2 py-0.2 rounded-md tabular-nums font-bold text-[10px] xl:text-xs ${
+                  <span className={`px-1.5 py-0.2 rounded font-bold text-[10px] ${
                     filterTab === 'active' ? "bg-emerald-400/20 text-emerald-300" : "bg-white/5 text-white/40"
                   }`}>
                     {activeCount}
                   </span>
                 </button>
               </div>
+
             </div>
 
-            <div className="relative w-full sm:w-64 xl:w-80">
+            <div className="relative w-full sm:w-60 xl:w-72">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Cari pemain atau PC..."
-                className="w-full bg-surface border border-hairline p-2.5 xl:p-3 pl-9 xl:pl-10 rounded-lg text-xs xl:text-sm text-white placeholder:text-white/40 focus:border-nvidia-green outline-none"
+                className="w-full h-9 sm:h-10 bg-surface border border-hairline px-3 pl-8 sm:pl-9 rounded-lg text-xs text-white placeholder:text-white/40 focus:border-nvidia-green outline-none"
               />
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+              <Search size={14} className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-white/40" />
             </div>
           </div>
 
           {/* Desktop Card-Rows View */}
-          <div className="hidden lg:block overflow-x-auto custom-scrollbar">
-            <table className="w-full min-w-[980px] text-left text-xs whitespace-nowrap border-separate border-spacing-y-3">
+          <div className="hidden lg:block overflow-visible min-h-[520px] pb-44">
+            <table className="w-full min-w-[1020px] text-left text-xs whitespace-nowrap border-separate border-spacing-y-3">
               <thead>
                 <tr className="text-white/40 text-[11px] xl:text-xs uppercase tracking-wider font-bold">
-                  <th className="pb-1 pl-6 pr-4 font-bold text-white/60 w-[24%]">Target PC</th>
-                  <th className="pb-1 px-4 font-bold text-white/60 w-[18%]">Paket / Tarif</th>
-                  <th className="pb-1 px-4 font-bold text-white/60 w-[18%]">Pemain</th>
-                  <th className="pb-1 px-4 font-bold text-white/60 w-[15%]">Status Booking</th>
+                  <th className="pb-1 pl-6 pr-4 font-bold text-white/60 w-[20%]">Target PC</th>
+                  <th className="pb-1 px-4 font-bold text-white/60 w-[15%]">Paket / Tarif</th>
+                  <th className="pb-1 px-4 font-bold text-white/60 w-[15%]">Pemain</th>
+                  <th className="pb-1 px-4 font-bold text-white/60 w-[14%]">Status Booking</th>
                   <th className="pb-1 px-4 font-bold text-white/60 w-[11%]">Waktu Booking</th>
-                  <th className="pb-1 pr-6 pl-4 text-right font-bold text-white/60 w-[14%]">Aksi</th>
+                  <th className="pb-1 px-4 font-bold text-white/60 w-[12%]">Jam Main</th>
+                  <th className="pb-1 pr-6 pl-4 text-right font-bold text-white/60 w-[13%]">Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredBookings.map((b) => {
-                  const pc = db.pcs.find(p => p.id === b.pc_id);
-                  const pkg = db.pakets.find(p => p.id === b.paket_id);
-                  const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
-                  const isPending = b.status === "pending";
-                  const now = Date.now();
-                  const diff = pc?.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
-                  const isExpired = !isPending && pc?.expected_empty_time && diff <= 0;
-                  const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
-                  const mins = Math.max(0, Math.floor(diff / 60000));
-
-                  const pkgTitle = pkg?.name || (b.paket_id?.startsWith('custom-') ? 'Kustom' : 'Tarif Langsung');
-
-                  // Hitung antrean untuk PC ini berdasarkan urutan waktu booking (FIFO)
-                  const pcBookings = allBookings
-                    .filter(item => item.pc_id === b.pc_id)
-                    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-                  const queueIndex = pcBookings.findIndex(item => item.id === b.id);
-                  const isLayered = queueIndex > 0;
-                  const prevPlayerName = isLayered ? pcBookings[queueIndex - 1]?.player_name : null;
-
-                  const cardBorderClass = isExpired
-                    ? "border-red-500/50 group-hover:border-red-500/80"
-                    : isWarning
-                    ? "border-amber-500/40 group-hover:border-amber-500/70"
-                    : isPending
-                    ? "border-amber-500/30 group-hover:border-amber-500/50"
-                    : "border-white/5 group-hover:border-white/20";
-
-                  return (
-                    <motion.tr
-                      key={b.id}
-                      animate={isExpired ? {
-                        backgroundColor: ["rgba(239, 68, 68, 0.08)", "rgba(239, 68, 68, 0.22)", "rgba(239, 68, 68, 0.08)"],
-                      } : {}}
-                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                      className={`transition-all shadow-md group ${
-                        isExpired 
-                          ? "bg-[#1d1214]" 
-                          : isWarning 
-                          ? "bg-[#1c1712] hover:bg-[#231b14]" 
-                          : isPending
-                          ? "bg-[#14151a] hover:bg-[#181a21]"
-                          : "bg-[#111215] hover:bg-[#16171d]"
-                      }`}
-                    >
-                      {/* 1. TARGET PC */}
-                      <td className={`py-4 xl:py-5 pl-6 pr-4 rounded-l-2xl border-y border-l transition ${cardBorderClass}`}>
-                        <div className="flex flex-col items-start gap-1">
-                          <div className="flex items-center gap-2">
-                            <Monitor size={16} className="text-nvidia-green shrink-0" />
-                            <span className="font-bold text-sm xl:text-base text-white tracking-wide">
-                              {(pc?.name || b.pc_id).toUpperCase()}
-                            </span>
-                          </div>
-                          {isLayered && (
-                            <span className="text-xs font-semibold text-cyan-400/90 inline-flex items-center gap-1.5">
-                              <Clock size={12} className="shrink-0 text-cyan-400" />
-                              Antre setelah {prevPlayerName}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* 2. PAKET & TARIF */}
-                      <td className={`py-4 xl:py-5 px-4 border-y transition ${cardBorderClass}`}>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-white text-xs xl:text-sm tracking-tight">
-                            {pkgTitle}
-                          </span>
-                          <span className="text-xs xl:text-sm text-zinc-300 font-bold tabular-nums mt-0.5">
-                            Rp {resolvedPrice.toLocaleString("id-ID")}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* 3. PEMAIN */}
-                      <td className={`py-4 xl:py-5 px-4 border-y transition ${cardBorderClass}`}>
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-6 h-6 xl:w-7 xl:h-7 rounded-lg bg-surface-soft border border-hairline/60 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                            {b.player_name.slice(0, 1).toUpperCase()}
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-white text-xs xl:text-sm leading-tight truncate">
-                              {b.player_name}
-                            </span>
-                            {b.member_id && (
-                              <span className="text-[10px] text-nvidia-green font-semibold uppercase tracking-wider">
-                                Member
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* 4. STATUS ANTREAN */}
-                      <td className={`py-4 xl:py-5 px-4 border-y transition ${cardBorderClass}`}>
-                        <div className="flex flex-col gap-1 items-start">
-                          {isPending ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold tracking-wide">
-                              <Clock size={12} className="animate-spin" /> Menunggu Konfirmasi
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-bold tracking-wide">
-                              <Hourglass size={12} /> Menunggu Giliran
-                            </span>
-                          )}
-                          <span className="text-xs text-zinc-400 pl-0.5 font-medium">
-                            {b.ss_bukti ? 'QRIS DANA' : 'Kasir Tunai'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* 5. WAKTU */}
-                      <td className={`py-4 xl:py-5 px-4 border-y transition font-bold text-zinc-200 text-xs xl:text-sm tabular-nums ${cardBorderClass}`}>
-                        {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} <span className="text-zinc-400 text-xs font-normal">WIB</span>
-                      </td>
-
-                      {/* 6. AKSI */}
-                      <td className={`py-4 xl:py-5 pr-6 pl-4 text-right rounded-r-2xl border-y border-r transition ${cardBorderClass}`}>
-                        <div className="flex items-center justify-end gap-2">
-                          {isPending ? (
-                            <>
-                              {b.ss_bukti ? (
-                                <button
-                                  onClick={() => showBukti(b.id, b.ss_bukti)}
-                                  className="px-2.5 xl:px-3 py-1.5 xl:py-2 bg-surface-soft hover:bg-white/10 border border-hairline/60 text-white/80 hover:text-white rounded-lg text-xs xl:text-sm font-semibold transition flex items-center gap-1.5"
-                                >
-                                  <ImageIcon size={14} /> Bukti
-                                </button>
-                              ) : (
-                                <span className="px-2.5 xl:px-3 py-1.5 xl:py-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] xl:text-xs font-medium rounded-lg inline-flex items-center gap-1.5">
-                                  <Banknote size={13} /> Tagih Tunai
-                                </span>
-                              )}
-                              <button
-                                disabled={loadingId === b.id}
-                                onClick={() => handleAction(b.id, 'approve')}
-                                className="px-3.5 xl:px-4 py-1.5 xl:py-2 bg-nvidia-green hover:bg-[#88d600] text-black font-bold text-xs xl:text-sm rounded-lg transition shadow-sm flex items-center gap-1.5"
-                              >
-                                <Check size={14} /> Konfirmasi
-                              </button>
-                              <button
-                                disabled={loadingId === b.id}
-                                onClick={() => handleAction(b.id, 'reject')}
-                                className="px-2.5 xl:px-3 py-1.5 xl:py-2 bg-error/10 hover:bg-error/20 text-error border border-error/30 rounded-lg text-xs xl:text-sm font-semibold transition"
-                              >
-                                Batal
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => handleEditClick(b)}
-                                className="p-2 xl:p-2.5 bg-surface-soft hover:bg-white/10 text-white/60 hover:text-white border border-hairline/60 rounded-lg transition"
-                                title="Ubah Data Booking"
-                              >
-                                <Pencil size={14} />
-                              </button>
-
-                              <button
-                                disabled={loadingId === b.id}
-                                onClick={() => handleDelete(b.id, b.player_name)}
-                                className="p-2 xl:p-2.5 bg-surface-soft hover:bg-error/20 text-white/60 hover:text-error border border-hairline/60 rounded-lg transition"
-                                title="Hapus Antrean"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-
-                              {isLayered ? (
-                                <button
-                                  disabled
-                                  className="px-3.5 xl:px-4 py-2 xl:py-2.5 font-bold text-xs xl:text-sm rounded-lg bg-surface-soft/90 text-white/40 border border-hairline/60 cursor-not-allowed flex items-center gap-1.5 shrink-0 transition"
-                                  title={`Nunggu ${prevPlayerName} mulai main`}
-                                >
-                                  <Lock size={13} className="shrink-0 text-white/40" />
-                                  Lapis ke {queueIndex + 1}
-                                </button>
-                              ) : (
-                                <button
-                                  disabled={loadingId === b.id}
-                                  onClick={() => handleAction(b.id, 'complete', b.player_name, pc?.name)}
-                                  className="px-4 xl:px-5 py-2 xl:py-2.5 font-bold text-xs xl:text-sm rounded-lg transition flex items-center gap-1.5 shrink-0 bg-nvidia-green hover:bg-[#88d600] text-black shadow-sm"
-                                >
-                                  <Play size={13} className="fill-black" /> Tandai Masuk
-                                </button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
+                {filteredBookings.map((b) => renderBookingRow(b))}
 
                 {filteredBookings.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-16 text-center text-white/30 text-xs uppercase tracking-widest font-bold bg-[#111215] rounded-2xl border border-white/5">
-                      Tidak ada data antrean dalam kategori ini.
+                    <td colSpan={7} className="py-16 text-center text-white/30 text-xs uppercase tracking-widest font-bold bg-[#111215] rounded-2xl border border-white/5">
+                      Tidak ada data antrean.
                     </td>
                   </tr>
                 )}
@@ -843,174 +1432,8 @@ export default function DataBookingPage() {
           </div>
 
           {/* Advanced Mobile Cards View */}
-          <div className="lg:hidden grid grid-cols-1 gap-4">
-            {filteredBookings.map((b) => {
-              const pc = db.pcs.find(p => p.id === b.pc_id);
-              const pkg = db.pakets.find(p => p.id === b.paket_id);
-              const resolvedPrice = pkg?.price || (b.paket_id?.startsWith('custom-') ? parseInt(b.paket_id.replace('custom-', '')) : 0);
-              const isPending = b.status === "pending";
-              const now = Date.now();
-              const diff = pc?.expected_empty_time ? new Date(pc.expected_empty_time).getTime() - now : 0;
-              const isExpired = !isPending && pc?.expected_empty_time && diff <= 0;
-              const isWarning = !isPending && pc?.expected_empty_time && diff > 0 && diff <= 10 * 60 * 1000;
-              const mins = Math.max(0, Math.floor(diff / 60000));
-
-              const pkgTitle = pkg?.name || (b.paket_id?.startsWith('custom-') ? 'Kustom' : 'Tarif Langsung');
-
-              // Hitung antrean untuk PC ini berdasarkan urutan waktu booking (FIFO)
-              const pcBookings = allBookings
-                .filter(item => item.pc_id === b.pc_id)
-                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-              const queueIndex = pcBookings.findIndex(item => item.id === b.id);
-              const isLayered = queueIndex > 0;
-              const prevPlayerName = isLayered ? pcBookings[queueIndex - 1]?.player_name : null;
-
-              return (
-                <div
-                  key={b.id}
-                  className={`bg-surface border p-4 rounded-xl shadow-lg relative overflow-hidden space-y-3 ${
-                    isPending 
-                      ? "border-amber-500/40" 
-                      : isExpired 
-                      ? "border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.2)]" 
-                      : isWarning 
-                      ? "border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]" 
-                      : "border-hairline"
-                  }`}
-                >
-                  {/* Top Bar - High Visibility PC & Status */}
-                  <div className="flex items-center justify-between gap-2 pb-1 border-b border-hairline/60">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-nvidia-green/15 border-2 border-nvidia-green/50 shadow-[0_0_12px_rgba(118,185,0,0.15)]">
-                      <Monitor size={16} className="text-nvidia-green stroke-[2.5]" />
-                      <span className="font-bold text-sm md:text-base text-white tracking-wider">
-                        {(pc?.name || b.pc_id).toUpperCase()}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${b.ss_bukti ? 'bg-nvidia-green/15 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'}`}>
-                        {b.ss_bukti ? 'QRIS' : 'KASIR'}
-                      </span>
-                      {isPending ? (
-                        <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                          <Clock size={11} className="animate-spin" /> Verifikasi
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
-                          <Hourglass size={11} /> Menunggu Giliran
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Player & Highlighted Paket Box */}
-                  <div className="grid grid-cols-2 gap-2.5 bg-surface-dark p-3.5 rounded-xl border border-hairline text-xs">
-                    <div className="flex flex-col justify-center">
-                      <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Pemain & Booking</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-surface border border-hairline flex items-center justify-center text-zinc-200 text-xs font-bold">
-                          {b.player_name.slice(0, 1).toUpperCase()}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-bold text-white text-sm truncate">{b.player_name}</span>
-                          {b.member_id && (
-                            <span className="text-[10px] text-nvidia-green font-semibold uppercase tracking-wider">Member</span>
-                          )}
-                          <span className="text-xs text-nvidia-green font-semibold">{pkgTitle}</span>
-                        </div>
-                      </div>
-                      <span className="text-xs text-zinc-400 mt-1 tabular-nums">
-                        {new Date(b.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })} WIB
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col justify-center text-right px-3 py-2 rounded-lg bg-surface border border-hairline/60">
-                      <span className="text-xs text-zinc-300 font-bold uppercase tracking-wider flex items-center justify-end gap-1 mb-0.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-nvidia-green"></span>
-                        {pkgTitle}
-                      </span>
-                      <span className="font-bold text-base text-nvidia-green tabular-nums">
-                        Rp {resolvedPrice.toLocaleString("id-ID")}
-                      </span>
-                      {isLayered && (
-                        <span className="text-xs text-cyan-400 font-semibold flex items-center justify-end gap-1 mt-1">
-                          <Clock size={10} className="shrink-0" />
-                          Antre setelah {prevPlayerName}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Mobile Actions */}
-                  {isPending ? (
-                    <div className="flex gap-2 pt-1">
-                      {b.ss_bukti ? (
-                        <button
-                          onClick={() => showBukti(b.id, b.ss_bukti)}
-                          className="flex-1 py-2.5 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
-                        >
-                          <ImageIcon size={14} /> Bukti
-                        </button>
-                      ) : (
-                        <div className="flex-1 py-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1">
-                          <Banknote size={13} /> Bayar Tunai
-                        </div>
-                      )}
-                      <button
-                        disabled={loadingId === b.id}
-                        onClick={() => handleAction(b.id, 'approve')}
-                        className="flex-1 py-2.5 bg-nvidia-green text-black font-bold rounded-lg text-xs uppercase shadow-[0_0_15px_rgba(118,185,0,0.3)] flex items-center justify-center gap-1.5"
-                      >
-                        <Check size={14} /> Konfirmasi
-                      </button>
-                      <button
-                        disabled={loadingId === b.id}
-                        onClick={() => handleAction(b.id, 'reject')}
-                        className="p-2.5 bg-error/10 text-error border border-error/30 rounded-lg text-xs font-bold"
-                      >
-                        Batal
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 pt-1">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditClick(b)}
-                          className="flex-1 py-2 bg-surface-dark hover:bg-white/10 text-white/70 hover:text-white border border-hairline/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition"
-                        >
-                          <Pencil size={13} /> Ubah
-                        </button>
-                        <button
-                          disabled={loadingId === b.id}
-                          onClick={() => handleDelete(b.id, b.player_name)}
-                          className="flex-1 py-2 bg-surface-dark hover:bg-error/20 text-white/60 hover:text-error border border-hairline/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition"
-                        >
-                          <Trash2 size={13} /> Hapus
-                        </button>
-                      </div>
-
-                      {isLayered ? (
-                        <button
-                          disabled
-                          className="w-full px-4 py-2.5 font-bold rounded-lg text-xs bg-surface-dark text-white/40 border border-hairline/60 cursor-not-allowed flex items-center justify-center gap-1.5"
-                        >
-                          <Lock size={12} className="shrink-0 text-white/40" />
-                          Lapis ke {queueIndex + 1} • Nunggu {prevPlayerName}
-                        </button>
-                      ) : (
-                        <button
-                          disabled={loadingId === b.id}
-                          onClick={() => handleAction(b.id, 'complete', b.player_name, pc?.name)}
-                          className="w-full px-4 py-2.5 font-bold rounded-lg text-xs uppercase transition flex items-center justify-center gap-1.5 bg-nvidia-green hover:bg-[#88d600] text-black shadow-sm"
-                        >
-                          <Play size={13} className="fill-black" /> Tandai Masuk
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          <div className="lg:hidden flex flex-col gap-4">
+            {filteredBookings.map((b) => renderMobileCard(b))}
 
             {filteredBookings.length === 0 && (
               <div className="p-8 text-center text-white/30 text-xs uppercase tracking-widest font-bold bg-surface border border-hairline rounded-xl">
@@ -1077,17 +1500,17 @@ export default function DataBookingPage() {
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 sm:p-8 overflow-y-auto space-y-6 custom-scrollbar">
+                <div className="p-4 sm:p-6 overflow-y-auto space-y-4 custom-scrollbar">
                   {/* Baris 1: Nama Pemain & Unit PC (2 Kolom Lebar) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                     {/* Nama Pemain */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-1.5">
                         <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
-                          <User size={14} className="text-nvidia-green" />
+                          <User size={13} className="text-nvidia-green" />
                           1. Nama Pemain
                         </label>
-                        <span className="text-[11px] text-white/40 font-mono">Enter auto-ID</span>
+                        <span className="text-[10px] text-white/40 font-mono">Enter auto-ID</span>
                       </div>
                       <div className="relative">
                         <input
@@ -1099,7 +1522,7 @@ export default function DataBookingPage() {
                             if (e.key === "Enter" || e.key === "Tab") {
                               e.preventDefault();
                               if (!manualData.playerName.trim()) {
-                                const nextNum = (db?.settings?.user_counter || 80) + 1;
+                                const nextNum = getNextUserNum();
                                 setManualData(prev => ({ ...prev, playerName: `User ${nextNum}` }));
                               }
                               setTimeout(() => {
@@ -1107,26 +1530,26 @@ export default function DataBookingPage() {
                               }, 10);
                             }
                           }}
-                          placeholder={`Contoh User ${(db?.settings?.user_counter || 80) + 1} atau lewati langsung`}
-                          className="w-full h-12 bg-[#15161a] border border-white/10 px-4 rounded-xl text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-2 focus:ring-nvidia-green/30 outline-none transition"
+                          placeholder={`Contoh User ${getNextUserNum()} atau lewati langsung`}
+                          className="w-full h-9 sm:h-10 bg-[#15161a] border border-white/10 px-3.5 rounded-lg text-xs sm:text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/30 outline-none transition"
                         />
                       </div>
                     </div>
 
                     {/* Unit PC */}
                     <div className="relative">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-1.5">
                         <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
-                          <Monitor size={14} className="text-nvidia-green" />
+                          <Monitor size={13} className="text-nvidia-green" />
                           2. Pilih Unit PC
                         </label>
                         {manualData.pcId ? (
                           <span className="text-[11px] text-nvidia-green font-semibold flex items-center gap-1">
-                            <CheckCircle2 size={13} />
-                            PC Terpilih: {manualData.searchPc}
+                            <CheckCircle2 size={12} />
+                            PC: {manualData.searchPc}
                           </span>
                         ) : (
-                          <span className="text-[11px] text-white/40 font-mono">Ketik nama unit</span>
+                          <span className="text-[10px] text-white/40 font-mono">Ketik nama unit</span>
                         )}
                       </div>
                       <input
@@ -1161,10 +1584,10 @@ export default function DataBookingPage() {
                         }}
                         onFocus={() => setShowPcList(true)}
                         placeholder="Ketik nama PC contoh MOYA atau TOM..."
-                        className="w-full h-12 bg-[#15161a] border border-white/10 px-4 rounded-xl text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-2 focus:ring-nvidia-green/30 outline-none transition"
+                        className="w-full h-9 sm:h-10 bg-[#15161a] border border-white/10 px-3.5 rounded-lg text-xs sm:text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/30 outline-none transition"
                       />
                       {showPcList && (
-                        <div className="absolute z-[150] left-0 right-0 top-full mt-2 bg-[#191a20] border border-white/15 max-h-56 overflow-y-auto rounded-2xl shadow-2xl divide-y divide-white/[0.06] custom-scrollbar">
+                        <div className="absolute z-[150] left-0 right-0 top-full mt-1.5 bg-[#191a20] border border-white/15 max-h-52 overflow-y-auto rounded-xl shadow-2xl divide-y divide-white/[0.06] custom-scrollbar">
                           {db?.pcs?.filter(p => p.name.toLowerCase().includes(manualData.searchPc.toLowerCase()) || p.id.toLowerCase().includes(manualData.searchPc.toLowerCase())).map(pc => {
                             const isOccupied = pc.status === "occupied" || (pc.expected_empty_time && new Date(pc.expected_empty_time).getTime() > Date.now());
                             const isSelected = manualData.pcId === pc.id || manualData.searchPc.toLowerCase() === pc.name.toLowerCase();
@@ -1177,19 +1600,19 @@ export default function DataBookingPage() {
                                   setShowPcList(false);
                                   paketInputRef.current?.focus();
                                 }}
-                                className={`w-full text-left px-4 py-3 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
+                                className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between transition hover:bg-white/[0.08] ${
                                   isSelected ? "bg-nvidia-green/20 text-nvidia-green font-bold" : "text-white"
                                 }`}
                               >
-                                <div className="flex items-center gap-3">
-                                  <span className="font-bold text-sm">{pc.name}</span>
-                                  <span className={`text-[11px] px-2.5 py-0.5 rounded-md font-semibold ${
+                                <div className="flex items-center gap-2.5">
+                                  <span className="font-bold text-xs sm:text-sm">{pc.name}</span>
+                                  <span className={`text-[10px] px-2 py-0.2 rounded font-semibold ${
                                     isOccupied ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                                   }`}>
                                     {isOccupied ? "Sedang Main" : "Kosong"}
                                   </span>
                                 </div>
-                                <span className="text-[11px] text-white/40 uppercase font-mono">Pilih (Enter ↵)</span>
+                                <span className="text-[10px] text-white/40 uppercase font-mono">Pilih (Enter ↵)</span>
                               </button>
                             );
                           })}
@@ -1197,6 +1620,88 @@ export default function DataBookingPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Waktu Mulai Main (Langsung vs Jam Tertentu) */}
+                  {(() => {
+                    const chosenPkt = db?.pakets?.find(p => p.id === selectedPaket);
+                    const isFixedPkt = Boolean(chosenPkt?.fixed_start_time);
+
+                    return (
+                      <div className="p-3 sm:p-3.5 rounded-2xl bg-[#14151a] border border-white/[0.08] space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                            <Clock size={14} className="text-nvidia-green" />
+                            <span>Waktu Mulai Main</span>
+                          </label>
+                          {isFixedPkt ? (
+                            <span className="text-[11px] font-bold text-white bg-white/10 border border-white/20 px-2.5 py-0.5 rounded-md flex items-center gap-1.5">
+                              <Moon size={11} /> Jadwal Terkunci Otomatis
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-white/40">
+                              {manualIsScheduled ? `Dijadwalkan jam ${manualScheduleTime} WIB` : "Langsung masuk antrean aktif"}
+                            </span>
+                          )}
+                        </div>
+
+                        {isFixedPkt ? (
+                          <div className="p-3 rounded-xl bg-white/[0.04] border border-white/15 text-xs text-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Clock size={14} className="text-zinc-400 shrink-0" />
+                              <span>Paket {chosenPkt?.name} berjalan pada jam khusus</span>
+                            </div>
+                            <span className="font-bold tabular-nums text-white bg-white/10 px-2.5 py-1 rounded-lg border border-white/20">
+                              {chosenPkt?.fixed_start_time} - {chosenPkt?.fixed_end_time} WIB
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <div className="grid grid-cols-2 gap-2 flex-1">
+                              <button
+                                type="button"
+                                onClick={() => setManualIsScheduled(false)}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+                                  !manualIsScheduled
+                                    ? "bg-nvidia-green text-black shadow-sm"
+                                    : "bg-surface border border-hairline text-white/60 hover:text-white"
+                                }`}
+                              >
+                                <Zap size={14} />
+                                <span>Langsung Main</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setManualIsScheduled(true);
+                                  if (!manualScheduleTime) setManualScheduleTime(getDefaultScheduleTime());
+                                }}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+                                  manualIsScheduled
+                                    ? "bg-white text-black shadow-sm"
+                                    : "bg-surface border border-hairline text-white/60 hover:text-white"
+                                }`}
+                              >
+                                <Clock size={14} />
+                                <span>Jam Tertentu</span>
+                              </button>
+                            </div>
+
+                            {manualIsScheduled && (
+                              <div className="flex items-center gap-2">
+                                <label className="text-xs text-white/50 font-medium">Jam:</label>
+                                <input
+                                  type="time"
+                                  value={manualScheduleTime || getDefaultScheduleTime()}
+                                  onChange={e => setManualScheduleTime(e.target.value)}
+                                  className="bg-[#181920] border border-white/15 focus:border-nvidia-green text-white font-mono text-sm font-bold px-3 py-2 rounded-xl outline-none transition"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Baris 2: Pilihan Paket Billing (Logis, Kompak, Tanpa Redundansi) */}
                   {(() => {
@@ -1294,11 +1799,11 @@ export default function DataBookingPage() {
                               <span className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0" />
                             )}
                             <div className="min-w-0">
-                              <div className="text-xs font-bold text-white truncate">
+                              <div className="text-xs font-bold text-white break-words">
                                 {pkg.meta.displayName}
                               </div>
-                              <div className="text-[11px] text-white/50 font-medium flex items-center gap-1">
-                                <Clock size={11} className="text-white/40 shrink-0" />
+                              <div className="text-xs text-zinc-300 font-medium flex items-center gap-1">
+                                <Clock size={12} className="text-zinc-400 shrink-0" />
                                 <span>{pkg.meta.duration}</span>
                               </div>
                             </div>
@@ -1366,21 +1871,21 @@ export default function DataBookingPage() {
                               }
                             }}
                             placeholder="Cari paket atau ketik nominal (contoh: 5000, 2 jam, malam, 10000)..."
-                            className="w-full h-11 bg-[#15161a] border border-white/10 pl-10 pr-9 rounded-xl text-xs sm:text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
+                            className="w-full h-9 sm:h-10 bg-[#15161a] border border-white/10 pl-9 pr-8 rounded-lg text-xs sm:text-sm text-white placeholder:text-white/35 focus:border-nvidia-green focus:ring-1 focus:ring-nvidia-green/40 outline-none transition"
                           />
                           {searchPaket && (
                             <button
                               type="button"
                               onClick={() => setSearchPaket("")}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white p-1"
                             >
-                              <X size={14} />
+                              <X size={13} />
                             </button>
                           )}
                         </div>
 
                         {/* List Paket Terkelompok: 1. Jam Reguler -> 2. Uang Pas -> 3. Spesial & Malam */}
-                        <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1.5 custom-scrollbar">
+                        <div className="max-h-[300px] overflow-y-auto space-y-3 pr-1.5 custom-scrollbar">
                           {keyboardList.length === 0 ? (
                             <div className="py-8 text-center bg-white/[0.02] border border-white/[0.06] rounded-xl">
                               <p className="text-xs text-white/50 font-semibold">Tidak ada paket yang cocok.</p>
@@ -1428,7 +1933,7 @@ export default function DataBookingPage() {
 
                               {filteredSpesial.length > 0 && (
                                 <div>
-                                  <div className="text-[11px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                                  <div className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
                                     <Moon size={12} className="shrink-0" />
                                     <span>Spesial & Malam</span>
                                     <span className="text-white/40 font-normal">({filteredSpesial.length})</span>
@@ -1459,43 +1964,49 @@ export default function DataBookingPage() {
                   const selectedPaketMeta = selectedPaketObj ? getPaketMeta(selectedPaketObj) : null;
 
                   return (
-                    <div className="px-6 sm:px-8 py-5 border-t border-white/[0.08] bg-[#0c0d0f] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="px-4 sm:px-6 py-3 sm:py-3.5 border-t border-white/[0.08] bg-[#0c0d0f] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       {/* Ringkasan Pilihan */}
                       <div className="min-w-0">
                         {selectedPaketObj ? (
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0">
-                              <CheckCircle2 size={18} />
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-nvidia-green/15 border border-nvidia-green/30 flex items-center justify-center text-nvidia-green shrink-0">
+                              <CheckCircle2 size={16} />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-sm font-bold text-white truncate flex items-center gap-2">
-                                <span>{selectedPaketMeta?.displayName || selectedPaketObj.name}</span>
-                                <span className="text-nvidia-green font-black tabular-nums">
+                              <div className="text-xs sm:text-sm font-bold text-white flex items-center justify-between gap-2 flex-wrap">
+                                <span className="break-words">{selectedPaketMeta?.displayName || selectedPaketObj.name}</span>
+                                <span className="text-nvidia-green font-black tabular-nums shrink-0">
                                   Rp {selectedPaketObj.price.toLocaleString("id-ID")}
                                 </span>
                               </div>
-                              <p className="text-xs text-white/60 truncate mt-0.5">
-                                {selectedPaketMeta?.duration} • PC: <span className="text-white font-semibold">{manualData.searchPc || "Belum dipilih"}</span>
+                              <p className="text-[11px] text-zinc-300 font-medium leading-relaxed mt-0.5">
+                                {selectedPaketMeta?.duration} • {
+                                  selectedPaketObj.fixed_start_time
+                                    ? `Sesi ${selectedPaketObj.fixed_start_time} - ${selectedPaketObj.fixed_end_time} WIB`
+                                    : manualIsScheduled
+                                    ? `Mulai Jam ${manualScheduleTime} WIB`
+                                    : 'Langsung Main'
+                                } • PC: <span className="text-white font-semibold">{manualData.searchPc || "Belum dipilih"}</span>
                               </p>
                             </div>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-white/40 text-xs">
-                            <Clock size={16} />
+                            <Clock size={15} />
                             <span>Pilih paket billing di atas atau ketik nominal untuk lanjut</span>
                           </div>
                         )}
                       </div>
 
                       {/* Tombol Aksi */}
-                      <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2.5 shrink-0">
                         <button
                           type="button"
                           onClick={() => {
                             setShowManual(false);
                             setEditBookingId(null);
                           }}
-                          className="px-5 py-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold uppercase tracking-wider text-white/70 transition"
+                          className="h-9 sm:h-10 px-4 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-xs font-bold uppercase tracking-wider text-white/70 transition"
                         >
                           Batal (ESC)
                         </button>
@@ -1510,17 +2021,17 @@ export default function DataBookingPage() {
                             }
                           }}
                           disabled={loadingId === 'manual-loading' || (!selectedPaket && !manualData.searchPc)}
-                          className="px-7 py-3 rounded-xl bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 disabled:hover:bg-nvidia-green text-black font-black text-xs uppercase tracking-wider transition shadow-[0_0_25px_rgba(118,185,0,0.35)] active:scale-95 flex items-center gap-2.5"
+                          className="h-9 sm:h-10 px-5 rounded-lg bg-nvidia-green hover:bg-[#88d600] disabled:opacity-40 disabled:hover:bg-nvidia-green text-black font-bold text-xs uppercase tracking-wider transition shadow-[0_0_20px_rgba(118,185,0,0.3)] active:scale-95 flex items-center gap-2"
                         >
                           {loadingId === 'manual-loading' ? (
                             <>
-                              <RotateCw size={15} className="animate-spin" />
+                              <RotateCw size={14} className="animate-spin" />
                               <span>Menyimpan...</span>
                             </>
                           ) : (
                             <>
                               <span>{editBookingId ? 'Simpan Perubahan' : 'Simpan & Main'}</span>
-                              <span className="text-[11px] font-mono opacity-70">↵</span>
+                              <span className="text-[10px] font-mono opacity-70">↵</span>
                             </>
                           )}
                         </button>
@@ -1534,55 +2045,70 @@ export default function DataBookingPage() {
 
         </AnimatePresence>
 
-        {/* Custom Confirm Modal Mengikuti Design System */}
+        {/* Custom Confirm Modal Mengikuti Design System Polished */}
         <AnimatePresence>
           {confirmState.isOpen && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[130] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+              className="fixed inset-0 z-[130] flex items-center justify-center bg-black/85 backdrop-blur-md p-4"
               onClick={closeConfirm}
             >
               <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
                 onClick={e => e.stopPropagation()}
-                className="bg-[#121316] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4"
+                className="bg-[#121316] border border-white/15 rounded-xl p-4 sm:p-5 max-w-[360px] w-full shadow-[0_0_40px_rgba(0,0,0,0.8)] space-y-3"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    {confirmState.subtitle && (
-                      <span className="text-[10px] font-bold tracking-wider text-nvidia-green uppercase bg-nvidia-green/10 border border-nvidia-green/20 px-2 py-0.5 rounded-full">
-                        {confirmState.subtitle}
-                      </span>
-                    )}
-                    <h3 className="text-base font-bold text-white uppercase tracking-tight mt-1">
-                      {confirmState.title}
-                    </h3>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                      confirmState.confirmVariant === 'danger'
+                        ? 'bg-red-500/15 border border-red-500/30 text-red-400'
+                        : 'bg-nvidia-green/15 border border-nvidia-green/30 text-nvidia-green'
+                    }`}>
+                      {confirmState.confirmVariant === 'danger' ? (
+                        <AlertTriangle size={15} />
+                      ) : (
+                        <CheckCircle2 size={15} />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      {confirmState.subtitle && (
+                        <span className="text-[9px] font-bold tracking-wider text-nvidia-green uppercase bg-nvidia-green/10 border border-nvidia-green/20 px-2 py-0.5 rounded inline-block mb-1">
+                          {confirmState.subtitle}
+                        </span>
+                      )}
+                      <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-tight leading-snug">
+                        {confirmState.title}
+                      </h3>
+                    </div>
                   </div>
                   <button
                     onClick={closeConfirm}
-                    className="text-white/40 hover:text-white p-1 rounded transition"
+                    className="w-6 h-6 rounded-md bg-white/5 hover:bg-white/10 text-white/50 hover:text-white border border-white/10 flex items-center justify-center transition shrink-0"
                   >
-                    <X size={18} />
+                    <X size={13} />
                   </button>
                 </div>
 
-                <p className="text-xs text-white/70 leading-relaxed">
+                <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-xs text-zinc-300 leading-relaxed">
                   {confirmState.description}
-                </p>
+                </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-[11px] text-white/50">
-                    Enter konfirmasi - Esc batal
-                  </span>
+                <div className="flex items-center justify-between pt-1.5 border-t border-white/[0.06]">
+                  <div className="flex items-center gap-1.5 text-[9px] text-zinc-400">
+                    <span className="flex items-center gap-1"><kbd className="px-1 py-0.2 bg-white/10 rounded font-semibold text-zinc-300">Enter</kbd> Ya</span>
+                    <span className="flex items-center gap-1"><kbd className="px-1 py-0.2 bg-white/10 rounded font-semibold text-zinc-300">Esc</kbd> Batal</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={closeConfirm}
-                      className="px-4 py-2 bg-surface-dark border border-hairline hover:bg-white/10 rounded-lg text-xs font-bold uppercase text-white/60 transition"
+                      className="h-8 px-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-lg text-xs font-bold uppercase text-zinc-300 hover:text-white transition"
                     >
                       Batal
                     </button>
@@ -1594,10 +2120,10 @@ export default function DataBookingPage() {
                         closeConfirm();
                         action();
                       }}
-                      className={`px-5 py-2 rounded-lg text-xs font-bold uppercase transition focus:ring-2 focus:outline-none ${
+                      className={`h-8 px-3.5 rounded-lg text-xs font-bold uppercase transition focus:ring-2 focus:outline-none shadow-sm ${
                         confirmState.confirmVariant === 'danger'
-                          ? 'bg-red-600 hover:bg-red-500 text-white focus:ring-red-500/50'
-                          : 'bg-nvidia-green hover:bg-[#88d600] text-black focus:ring-nvidia-green/50'
+                          ? 'bg-red-600 hover:bg-red-500 text-white focus:ring-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.3)]'
+                          : 'bg-nvidia-green hover:bg-[#88d600] text-black focus:ring-nvidia-green/50 shadow-[0_0_12px_rgba(118,185,0,0.3)]'
                       }`}
                     >
                       {confirmState.confirmLabel}

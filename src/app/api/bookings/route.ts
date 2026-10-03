@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { pc_id, paket_id, player_name, ss_bukti, is_admin_manual, member_id } = body;
+    const { pc_id, paket_id, player_name, ss_bukti, is_admin_manual, member_id, booking_type, scheduled_at, start_time } = body;
     
     // 2. Guard: Admin Manual Auth Enforcement
     if (is_admin_manual && !isAdmin) {
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     if (!pc) return NextResponse.json({ error: 'PC tidak ditemukan' }, { status: 404 });
 
     // 5. Paket Exist Check
-    const { data: paket } = await supabaseAdmin.from('pakets').select('id').eq('id', paket_id).single();
+    const { data: paket } = await supabaseAdmin.from('pakets').select('id, name, fixed_start_time, fixed_end_time').eq('id', paket_id).single();
     if (!paket) return NextResponse.json({ error: 'Paket tidak ditemukan' }, { status: 404 });
     
     // 6. Player Name Sanitization (Hapus tag HTML, strip spasi, batasi 30 karakter)
@@ -85,6 +85,8 @@ export async function POST(req: Request) {
       finalPlayerName = finalPlayerName.substring(0, 30);
     }
 
+    const userMatch = finalPlayerName.match(/^User\s+(\d+)$/i);
+
     if (!finalPlayerName) {
       if (!is_admin_manual) {
         return NextResponse.json({ error: 'Nama pemain wajib diisi!' }, { status: 400 });
@@ -92,13 +94,68 @@ export async function POST(req: Request) {
       
       // Auto counter generator untuk kasir manual
       const { data: settings } = await supabaseAdmin.from('settings').select('*').limit(1).single();
-      const currentCounter = settings?.user_counter || 1;
-      finalPlayerName = `User ${currentCounter}`;
+      let currentCounter = typeof settings?.user_counter === 'number' ? settings.user_counter : 80;
 
-      await supabaseAdmin.from('settings').update({ user_counter: currentCounter + 1 }).eq('id', settings?.id || 1);
+      // Self-healing: periksa booking terbaru yang menggunakan format User <N>
+      const { data: recentUserBookings } = await supabaseAdmin
+        .from('bookings')
+        .select('player_name')
+        .ilike('player_name', 'User %')
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+      if (recentUserBookings && recentUserBookings.length > 0) {
+        for (const b of recentUserBookings) {
+          const m = b.player_name?.match(/^User\s+(\d+)$/i);
+          if (m) {
+            const num = parseInt(m[1], 10);
+            if (num > currentCounter) {
+              currentCounter = num;
+            }
+          }
+        }
+      }
+
+      const nextCounter = currentCounter + 1;
+      finalPlayerName = `User ${nextCounter}`;
+
+      await supabaseAdmin.from('settings').update({ user_counter: nextCounter }).eq('id', settings?.id || 1);
+    } else if (is_admin_manual && userMatch) {
+      // Jika kasir manual mengirimkan nama User <N> (dari autofill client), pastikan counter database ikut maju
+      const usedNum = parseInt(userMatch[1], 10);
+      const { data: settings } = await supabaseAdmin.from('settings').select('*').limit(1).single();
+      const currentCounter = typeof settings?.user_counter === 'number' ? settings.user_counter : 80;
+      if (usedNum >= currentCounter) {
+        await supabaseAdmin.from('settings').update({ user_counter: usedNum }).eq('id', settings?.id || 1);
+      }
     }
 
-    // 7. Insert Booking Payload (Format: GC + 4 angka unik, contoh: GC1001)
+    // 7. Deteksi Booking Jam Tertentu (Fixed Paket atau Pilihan Waktu Khusus)
+    const isFixedPaket = Boolean(paket.fixed_start_time);
+    const isExplicitScheduled = booking_type === 'scheduled' || Boolean(scheduled_at) || Boolean(start_time);
+    const isScheduled = isFixedPaket || isExplicitScheduled;
+
+    let resolvedStartTime: string | null = null;
+    let resolvedScheduledAt: string | null = null;
+
+    if (isScheduled) {
+      resolvedStartTime = start_time || paket.fixed_start_time || null;
+      if (scheduled_at) {
+        resolvedScheduledAt = scheduled_at;
+      } else if (resolvedStartTime) {
+        // Buat timestamp ISO untuk jadwal hari ini
+        try {
+          const [hh, mm] = resolvedStartTime.split(':').map(Number);
+          const schedDate = new Date();
+          schedDate.setHours(hh || 0, mm || 0, 0, 0);
+          resolvedScheduledAt = schedDate.toISOString();
+        } catch (_) {
+          resolvedScheduledAt = null;
+        }
+      }
+    }
+
+    // 8. Insert Booking Payload (Format: GC + 4 angka unik, contoh: GC1001)
     let bookingId = `GC${Math.floor(1000 + Math.random() * 9000)}`;
     for (let i = 0; i < 8; i++) {
       const candidate = `GC${Math.floor(1000 + Math.random() * 9000)}`;
@@ -109,15 +166,40 @@ export async function POST(req: Request) {
       }
     }
 
-    const newBooking = {
+    let initialStatus = 'pending';
+    if (is_admin_manual) {
+      const { data: activeExisting } = await supabaseAdmin
+        .from('bookings')
+        .select('id, booking_type, scheduled_at, start_time')
+        .eq('pc_id', pc_id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!activeExisting) {
+        initialStatus = 'active';
+      } else {
+        const isExistingScheduled = activeExisting.booking_type === 'slot' || activeExisting.booking_type === 'scheduled' || Boolean(activeExisting.scheduled_at || activeExisting.start_time);
+        if (!isScheduled && isExistingScheduled) {
+          await supabaseAdmin.from('bookings').update({ status: 'pending' }).eq('id', activeExisting.id);
+          initialStatus = 'active';
+        } else {
+          initialStatus = 'pending';
+        }
+      }
+    }
+
+    const newBooking: any = {
       id: bookingId,
       pc_id,
       paket_id,
       player_name: finalPlayerName,
-      status: is_admin_manual ? 'active' : 'pending',
+      status: initialStatus,
       created_at: new Date().toISOString(),
       ss_bukti: ss_bukti || null,
-      member_id: member_id || null
+      member_id: member_id || null,
+      booking_type: isScheduled ? 'slot' : 'queue',
+      scheduled_at: resolvedScheduledAt,
+      start_time: resolvedScheduledAt
     };
 
     const { error: insertError } = await supabaseAdmin.from('bookings').insert(newBooking);
@@ -126,17 +208,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: insertError.message || 'Gagal menyimpan data booking' }, { status: 500 });
     }
 
+    const scheduleLabel = resolvedStartTime ? ` [Jadwal Jam: ${resolvedStartTime} WIB]` : '';
     if (is_admin_manual) {
       await logActivity(req, {
         action: 'Input Booking Kasir',
         target: pc_id,
-        details: `Pemain: ${finalPlayerName} dimasukkan manual oleh kasir`
+        details: `Pemain: ${finalPlayerName} dimasukkan manual oleh kasir${scheduleLabel}`
       });
     } else {
       await logActivity(null, {
-        action: 'Booking Online Masuk',
+        action: isScheduled ? 'Booking Terjadwal Masuk' : 'Booking Online Masuk',
         target: pc_id,
-        details: `Pemain: ${finalPlayerName} booking lewat web publik`,
+        details: `Pemain: ${finalPlayerName} booking lewat web publik${scheduleLabel}`,
         actor: 'Pelanggan Online',
         role: 'publik'
       });

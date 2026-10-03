@@ -156,31 +156,31 @@ export default function StokKasirPage() {
   });
 
   return (
-    <div className="min-h-screen bg-surface-dark p-4 md:p-8 pt-16 md:pt-8 text-white space-y-6 pb-32">
-      <div className="max-w-[1400px] 2xl:max-w-[1720px] mx-auto space-y-6">
+    <div className="min-h-screen bg-surface-dark p-3 sm:p-5 md:p-6 pt-14 md:pt-6 text-white space-y-4 sm:space-y-5 pb-28">
+      <div className="max-w-[1400px] 2xl:max-w-[1720px] mx-auto space-y-4 sm:space-y-5">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hairline pb-4 xl:pb-6">
-          <div className="flex items-center gap-3 xl:gap-4">
-            <div className="p-3 bg-nvidia-green/10 border border-nvidia-green/30 rounded-xl text-nvidia-green shrink-0">
-              <Package size={32} />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-hairline pb-3 sm:pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 sm:p-2.5 bg-nvidia-green/10 border border-nvidia-green/30 rounded-lg text-nvidia-green shrink-0">
+              <Package size={22} className="sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl 2xl:text-4xl font-bold uppercase tracking-tight text-white flex items-center gap-3">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold uppercase tracking-tight text-white flex items-center gap-2.5">
                 Master Data Stok Kasir
               </h1>
-              <p className="text-xs xl:text-sm text-white/50 tracking-tight mt-1">
+              <p className="text-xs text-white/50 tracking-tight mt-0.5">
                 Manajemen inventaris makanan, minuman, dan item kasir warnet
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 self-start md:self-auto w-full md:w-auto">
+          <div className="flex items-center gap-2.5 self-start md:self-auto w-full md:w-auto">
             <input
               type="text"
               placeholder="Cari item stok kasir..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-surface border border-hairline px-3.5 xl:px-4 py-2 xl:py-2.5 rounded-xl text-xs xl:text-sm text-white placeholder:text-white/40 focus:border-nvidia-green outline-none w-full md:w-64 xl:w-80 shadow-inner"
+              className="bg-surface border border-hairline px-3 h-9 sm:h-10 rounded-lg text-xs text-white placeholder:text-white/40 focus:border-nvidia-green outline-none w-full md:w-60 xl:w-72 shadow-inner"
             />
           </div>
         </div>

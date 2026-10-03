@@ -1149,7 +1149,7 @@ export default function MemberPage() {
                   <div className="text-lg sm:text-xl font-black text-white truncate tracking-tight pt-0.5">
                     {favoritePaket}
                   </div>
-                  <p className="text-xs text-zinc-400 font-medium truncate">
+                  <p className="text-xs text-zinc-400 font-medium leading-relaxed">
                     Pilihan paket main yang paling rutin lu ambil
                   </p>
                 </motion.div>
@@ -1173,10 +1173,10 @@ export default function MemberPage() {
                       {currentTier.title}
                     </span>
                   </div>
-                  <div className="text-base sm:text-lg font-bold text-white tracking-tight pt-0.5 truncate">
+                  <div className="text-base sm:text-lg font-bold text-white tracking-tight pt-0.5 break-words">
                     {currentTier.perks?.[0] || "Akses standard billing"}
                   </div>
-                  <p className="text-xs text-zinc-400 font-medium truncate">
+                  <p className="text-xs text-zinc-400 font-medium leading-relaxed">
                     Hak istimewa aktif member pangkat {currentTier.name}
                   </p>
                 </motion.div>
@@ -1379,7 +1379,7 @@ export default function MemberPage() {
                                     <span className="text-[10px] hidden sm:inline">Terbuka</span>
                                   </span>
                                 ) : (
-                                  <span className="text-zinc-500 text-[10px] font-bold uppercase">
+                                  <span className="text-zinc-400 text-xs font-bold uppercase">
                                     Terkunci
                                   </span>
                                 )}
@@ -1821,11 +1821,11 @@ export default function MemberPage() {
                       {/* Info Masa Aktif & Biaya Awal */}
                       <div className="pt-2 border-t border-white/10 grid grid-cols-2 gap-2 text-xs">
                         <div>
-                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">Biaya Login (Startup)</span>
-                          <span className="text-white font-mono font-bold">Rp 2.000 / Sesi</span>
+                          <span className="text-[10px] text-zinc-300 uppercase font-bold block">Biaya Login Sesi</span>
+                          <span className="text-white font-mono font-bold">Rp 2.000 per Sesi</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[10px] text-zinc-500 uppercase font-bold block">Masa Aktif Akun</span>
+                          <span className="text-[10px] text-zinc-300 uppercase font-bold block">Masa Aktif Akun</span>
                           <span className="text-nvidia-green font-mono font-bold">30 Hari Perpanjangan</span>
                         </div>
                       </div>
@@ -1849,7 +1849,7 @@ export default function MemberPage() {
                     <span className="font-bold text-zinc-400 uppercase tracking-wider text-[11px]">
                       Tingkatan Pangkat Gamer
                     </span>
-                    <span className="text-[11px] text-zinc-500 font-medium">Akumulasi EXP Sesi Main</span>
+                    <span className="text-xs text-zinc-300 font-medium">Akumulasi EXP Sesi Main</span>
                   </div>
 
                   <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
@@ -1864,13 +1864,13 @@ export default function MemberPage() {
                               : "bg-zinc-950/60 border-white/10"
                           }`}
                         >
-                          <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${rank.badgeText}`}>
+                          <div className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider ${rank.badgeText}`}>
                             {rank.name}
                           </div>
-                          <div className="text-[10px] sm:text-xs font-bold text-white mt-0.5 truncate">
+                          <div className="text-[10px] sm:text-xs font-bold text-white mt-0.5 break-words leading-tight">
                             {rank.title}
                           </div>
-                          <div className="text-[9px] font-mono text-zinc-400 mt-1 truncate">
+                          <div className="text-[10px] font-mono text-zinc-300 mt-1">
                             {tierLabels[idx]}
                           </div>
                         </div>
@@ -1918,7 +1918,7 @@ export default function MemberPage() {
                           <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
                             Masuk Portal Member
                           </h3>
-                          <p className="text-xs text-zinc-400 font-medium truncate">
+                          <p className="text-xs text-zinc-300 font-medium">
                             Gunakan email atau username terdaftar lu
                           </p>
                         </motion.div>
@@ -1930,7 +1930,7 @@ export default function MemberPage() {
                           <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
                             Registrasi Member
                           </h3>
-                          <p className="text-xs text-zinc-400 font-medium truncate">
+                          <p className="text-xs text-zinc-300 font-medium">
                             Aktivasi akun untuk billing workstation warnet
                           </p>
                         </motion.div>
