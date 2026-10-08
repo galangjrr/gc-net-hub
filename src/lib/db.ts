@@ -104,7 +104,8 @@ const DEFAULT_INVENTORY: InventoryItem[] = [
   { id: "inv-9", name: "Royal Gelas", price: 500, stock: 48, category: "drink" }
 ];
 
-export async function getDB(options?: { includeLogs?: boolean }): Promise<DatabaseSchema> {
+// includeLogs and includeRevenue are admin-only: /api/data is public and cached at the edge.
+export async function getDB(options?: { includeLogs?: boolean; includeRevenue?: boolean }): Promise<DatabaseSchema> {
   const shouldFetchLogs = options?.includeLogs ?? false;
 
   const [
@@ -146,9 +147,12 @@ export async function getDB(options?: { includeLogs?: boolean }): Promise<Databa
     }
   });
 
-  const effectiveSettings = settings 
-    ? { ...settings, user_counter: effectiveUserCounter } 
-    : { id: 1, user_counter: effectiveUserCounter, daily_pdf_revenue: 0 };
+  const { daily_pdf_revenue, ...publicSettings } = settings ?? { id: 1, daily_pdf_revenue: 0 };
+  const effectiveSettings = {
+    ...publicSettings,
+    user_counter: effectiveUserCounter,
+    ...(options?.includeRevenue ? { daily_pdf_revenue } : {}),
+  };
 
   const isScheduled = (b: any) => {
     if (b.booking_type === 'slot' || b.booking_type === 'scheduled') return true;

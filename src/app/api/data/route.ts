@@ -11,11 +11,14 @@ export async function GET(req: Request) {
     const includeLogs = url.searchParams.get("includeLogs") === "true";
     const isAdmin = isAdminRequest(req);
 
-    const db = await getDB({ includeLogs: includeLogs && isAdmin });
+    const db = await getDB({ includeLogs: includeLogs && isAdmin, includeRevenue: isAdmin });
 
+    // The edge cache does not vary by cookie: anything an admin page asks for must never be cached,
+    // or an admin gets the public copy and the public could get the admin one.
+    const publicCache = !isAdmin && !includeLogs;
     return NextResponse.json(db, {
       headers: {
-        'Cache-Control': isAdmin ? 'no-store, max-age=0' : 'public, s-maxage=2, stale-while-revalidate=5',
+        'Cache-Control': publicCache ? 'public, s-maxage=2, stale-while-revalidate=5' : 'private, no-store, max-age=0',
       },
     });
   } catch (error) {
