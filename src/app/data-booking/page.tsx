@@ -325,11 +325,18 @@ export default function DataBookingPage() {
     return () => clearTimeout(handler);
   }, [searchPaket]);
 
+  const dbRef = useRef(db);
+  useEffect(() => { dbRef.current = db; }, [db]);
+  const loadSeq = useRef(0);
+
   const loadData = async () => {
+    const seq = ++loadSeq.current;
     try {
       const res = await fetch("/api/data", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
+        // a newer load started meanwhile (poll vs after-action re-sync): drop this stale response
+        if (seq !== loadSeq.current) return;
         setDb(data);
 
         // Sound effect on new pending booking
@@ -352,10 +359,11 @@ export default function DataBookingPage() {
 
     // Fast 1-second ticker to check countdown expiry and trigger 10s buzzer alarm
     const timerTicker = setInterval(() => {
-      if (!db?.pcs) return;
+      const pcs = dbRef.current?.pcs;
+      if (!pcs) return;
       const now = Date.now();
-      
-      db.pcs.forEach((pc: PC) => {
+
+      pcs.forEach((pc: PC) => {
         if (pc?.expected_empty_time) {
           const expTime = new Date(pc.expected_empty_time).getTime();
           // If expired within the last 20 seconds and haven't triggered yet
@@ -379,7 +387,7 @@ export default function DataBookingPage() {
       clearInterval(interval);
       clearInterval(timerTicker);
     };
-  }, [db]);
+  }, []);
 
   const executeAction = async (id: string, action: 'approve' | 'reject' | 'complete', reason = '') => {
     setLoadingId(id);
