@@ -9,10 +9,23 @@ import {
   ChevronDown, ArrowRight, Sparkles 
 } from "lucide-react";
 import type { PC } from "@/lib/db";
+import { waitLabel } from "@/lib/booking-rules";
 
 interface PCCarouselProps {
   pcs: PC[];
+  /** pcWaitMinutes per PC id: null = maintenance, 0 = free, n = minutes until a new booking can start. */
+  waits?: Record<string, number | null>;
+  /** Billing feed is down, so wait times may be wrong. */
+  stale?: boolean;
   onSelectPc?: (pcId: string) => void;
+}
+
+function pcStatus(wait: number | null | undefined, stale: boolean) {
+  if (wait === undefined) return null;
+  if (wait === null) return { label: "Maintenance", tone: "border-red-500/50 text-red-400 bg-red-500/10" };
+  if (stale) return { label: "Status tidak live", tone: "border-amber-500/50 text-amber-400 bg-amber-500/10" };
+  if (wait <= 0) return { label: "Kosong", tone: "border-nvidia-green/60 text-nvidia-green bg-nvidia-green/10" };
+  return { label: waitLabel(wait), tone: "border-amber-500/50 text-amber-300 bg-amber-500/10" };
 }
 
 const THEMES = [
@@ -74,7 +87,7 @@ const THEMES = [
   }
 ];
 
-export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
+export default function PCCarousel({ pcs, waits = {}, stale = false, onSelectPc }: PCCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showSpecs, setShowSpecs] = useState(false);
   const [expandedAbility, setExpandedAbility] = useState<string | null>(null);
@@ -110,6 +123,18 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
   const activeTheme = THEMES[currentIndex % THEMES.length];
   const activePc = pcs[currentIndex];
   const s = activePc?.specs || { cpu: "-", gpu: "-", monitor: "-", keyboard: "-", mouse: "-", headset: "-" };
+  const activeWait = activePc ? waits[activePc.id] : undefined;
+  const activeStatus = pcStatus(activeWait, stale);
+  const canBook = Boolean(onSelectPc && activePc) && activeWait !== null;
+  const shortName = activePc?.name ? activePc.name.split(' - ')[0] : 'PC';
+  // Busy PC still books: the player joins its queue, checkout shows the wait.
+  const bookLabel = activeWait === null ? "Lagi Maintenance" : activeWait && activeWait > 0 && !stale ? `Antre ${shortName}` : `Booking ${shortName}`;
+  const book = () => {
+    if (!canBook) return;
+    setShowSpecs(false);
+    setExpandedAbility(null);
+    onSelectPc!(activePc.id);
+  };
 
   const getSpecMeta = (title: string) => {
     switch (title) {
@@ -341,6 +366,16 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                       {pc.name}
                     </motion.div>
 
+                    {/* Live status from billing watcher */}
+                    {(() => {
+                      const st = pcStatus(waits[pc.id], stale);
+                      return st && (
+                        <span className={`absolute -top-3 left-1/2 -translate-x-1/2 z-30 whitespace-nowrap px-2.5 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wider bg-black ${st.tone}`}>
+                          {st.label}
+                        </span>
+                      );
+                    })()}
+
                     {/* SCAN ABILITIES Action Button */}
                     <AnimatePresence mode="wait">
                       {isActive && (
@@ -559,6 +594,26 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
         </AnimatePresence>
       </div>
 
+      {/* Booking shortcut for the active PC: checkout opens with it preselected (?pc=) */}
+      {onSelectPc && activePc && !(isMobile && showSpecs) && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 w-max max-w-[calc(100%-32px)]">
+          {activeStatus && (
+            <span className={`hidden sm:inline-block px-2.5 py-2 rounded-lg border text-[11px] font-bold uppercase tracking-wider ${activeStatus.tone}`}>
+              {activeStatus.label}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={book}
+            disabled={!canBook}
+            className="py-2.5 px-5 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center gap-2 whitespace-nowrap bg-nvidia-green hover:bg-white active:scale-95 text-black shadow-[0_0_20px_rgba(118,185,0,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:bg-zinc-800 disabled:text-zinc-500 disabled:shadow-none disabled:cursor-not-allowed disabled:active:scale-100"
+          >
+            <span>{bookLabel}</span>
+            {canBook && <ArrowRight size={14} className="shrink-0" />}
+          </button>
+        </div>
+      )}
+
       {/* Mobile Dedicated Cyberpunk Spec HUD Sheet */}
       <AnimatePresence>
         {isMobile && showSpecs && (
@@ -753,16 +808,13 @@ export default function PCCarousel({ pcs, onSelectPc }: PCCarouselProps) {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowSpecs(false);
-                  setExpandedAbility(null);
-                  if (onSelectPc && activePc) {
-                    onSelectPc(activePc.id);
-                  }
+                  book();
                 }}
-                className="flex-1 py-2.5 px-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition bg-nvidia-green hover:bg-white active:scale-95 text-black flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.35)] whitespace-nowrap"
+                disabled={!canBook}
+                className="flex-1 py-2.5 px-3.5 rounded-xl font-black text-xs uppercase tracking-wider transition bg-nvidia-green hover:bg-white active:scale-95 text-black flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(118,185,0,0.35)] whitespace-nowrap disabled:bg-zinc-800 disabled:text-zinc-500 disabled:shadow-none disabled:cursor-not-allowed"
               >
-                <span>Booking {activePc?.name ? activePc.name.split(' - ')[0] : 'PC'}</span>
-                <ArrowRight size={14} className="shrink-0" />
+                <span>{bookLabel}</span>
+                {canBook && <ArrowRight size={14} className="shrink-0" />}
               </button>
             </div>
           </motion.div>

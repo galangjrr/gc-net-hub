@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Banknote, Check, Clock, Loader2, Monitor, QrCode, RotateCw, WifiOff } from "lucide-react";
 import type { DatabaseSchema, Paket } from "@/lib/db";
 import { customPaketFor, CUSTOM_MIN_PRICE, CUSTOM_MAX_PRICE } from "@/lib/paket";
-import { pcWaitMinutes, billingStale } from "@/lib/booking-rules";
+import { pcWaitMinutes, billingStale, waitLabel } from "@/lib/booking-rules";
 import { supabase } from "@/lib/supabase";
 import { memberFetch } from "@/lib/member-fetch";
 
@@ -22,13 +22,6 @@ function durationLabel(p: Pick<Paket, "duration_minutes" | "fixed_start_time" | 
   const h = Math.floor(m / 60);
   const r = m % 60;
   return [h ? `${h} Jam` : "", r ? `${r} Menit` : ""].filter(Boolean).join(" ") || "-";
-}
-
-function waitLabel(wait: number | null): string {
-  if (wait === null) return "Maintenance";
-  if (wait <= 0) return "Kosong";
-  if (wait < 60) return `Kosong ±${wait} mnt lagi`;
-  return `Kosong ±${Math.floor(wait / 60)} jam${wait % 60 ? ` ${wait % 60} mnt` : ""} lagi`;
 }
 
 function groupOf(p: Paket): Group {

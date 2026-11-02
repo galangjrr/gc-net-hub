@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { DatabaseSchema, PC, Paket } from "@/lib/db";
+import { pcWaitMinutes, billingStale } from "@/lib/booking-rules";
 import { supabase } from "@/lib/supabase";
 import { memberFetch } from "@/lib/member-fetch";
 import PCCarousel from "@/components/pc-carousel";
@@ -827,7 +828,9 @@ export default function Home() {
 
           {mounted && (
             <PCCarousel 
-              pcs={db.pcs || []} 
+              pcs={db.pcs || []}
+              waits={Object.fromEntries((db.pcs || []).map((pc) => [pc.id, pcWaitMinutes(pc, db.bookings || [], db.pakets || [], now)]))}
+              stale={billingStale(db.settings?.pc_synced_at, now)}
               onSelectPc={(pcId) => router.push(`/booking?pc=${encodeURIComponent(pcId)}`)}
             />
           )}

@@ -73,6 +73,14 @@ export function pcWaitMinutes(pc: PcLike, bookings: QueuedLike[], pakets: PaketL
   return wait;
 }
 
+/** Player-facing label for a pcWaitMinutes result. */
+export function waitLabel(wait: number | null): string {
+  if (wait === null) return "Maintenance";
+  if (wait <= 0) return "Kosong";
+  if (wait < 60) return `Kosong ±${wait} mnt lagi`;
+  return `Kosong ±${Math.floor(wait / 60)} jam${wait % 60 ? ` ${wait % 60} mnt` : ""} lagi`;
+}
+
 // GBilling watcher freshness. syncedAt null means billing integration is not in use (manual timers),
 // so that is never "stale". A present-but-old stamp means the watcher or internet is down.
 export const BILLING_STALE_MS = 120_000;
