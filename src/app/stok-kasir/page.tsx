@@ -28,7 +28,7 @@ export default function StokKasirPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 10000);
+    const interval = setInterval(() => { if (!document.hidden) loadData(); }, 60000);
     return () => clearInterval(interval);
   }, []);
 

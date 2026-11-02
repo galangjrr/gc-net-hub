@@ -44,7 +44,7 @@
 - **Control Sizing (Buttons & Inputs):**
   - Small / Inline Button: `h-7 px-2.5 text-[11px]`
   - Standard Button: `h-9 sm:h-10 px-4 text-xs sm:text-sm font-bold`
-  - Input / Select Field: `h-9 sm:h-10 px-3 text-xs sm:text-sm`
+  - Input / Select Field: `h-10 sm:h-10 px-3 text-base sm:text-sm`. Mobile inputs stay at 16px: iOS Safari zooms the whole page into any input under 16px and does not zoom back out.
   - Touch Target on Mobile: Minimum 40px hit area with margin.
 - **Radius System:**
   - Cards & Modals: `rounded-xl` (12px)

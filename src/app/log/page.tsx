@@ -91,7 +91,7 @@ export default function ActivityLogPage() {
     loadLogs();
 
     // logs hold revenue and player names, so they are not readable with the public key: poll the staff API instead of realtime
-    const interval = setInterval(loadLogs, 15000);
+    const interval = setInterval(() => { if (!document.hidden) loadLogs(); }, 60000);
     return () => clearInterval(interval);
   }, [filterPeriod, customDate, selectedOperator]);
 

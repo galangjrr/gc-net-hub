@@ -58,3 +58,12 @@ AGENTS.md
 generate_sql.js
 audit_report.md
 implementation_plan.md
+# Supabase backups hold password hashes and member data
+supabase-backup/
+
+# Playwright MCP screenshots and logs
+.playwright-mcp/
+
+# GBilling watcher build artifact + real config (has token)
+scripts/GCWatcher.exe
+scripts/GCWatcher.config.json
