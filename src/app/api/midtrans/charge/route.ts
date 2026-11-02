@@ -1,19 +1,24 @@
 /**
- * POST /api/midtrans/snap  { booking_id }
- * Opens a Snap payment for an unpaid booking. The amount comes from the booking's paket in the
- * database, never from the browser, and the order expires together with the booking.
+ * POST /api/midtrans/charge  { booking_id, method }  method: qris | gopay | shopeepay
+ * Core API charge for an unpaid booking, so the booking page draws its own QR / e-wallet UI.
+ * Amount comes from the booking's paket in the DB, never the browser.
  */
 
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { createSnapTransaction, makeOrderId } from "@/lib/midtrans";
+import { chargeCore, makeOrderId, type ChargeMethod } from "@/lib/midtrans";
 import { unpaidExpiresAt } from "@/lib/booking-rules";
+
+const METHODS: ChargeMethod[] = ["qris", "gopay", "shopeepay"];
 
 export async function POST(req: Request) {
   try {
-    const { booking_id } = await req.json().catch(() => ({}));
+    const { booking_id, method } = await req.json().catch(() => ({}));
     if (typeof booking_id !== "string" || !/^GC\d{4}$/.test(booking_id)) {
       return NextResponse.json({ error: "Kode booking tidak valid." }, { status: 400 });
+    }
+    if (!METHODS.includes(method)) {
+      return NextResponse.json({ error: "Metode bayar tidak dikenal." }, { status: 400 });
     }
 
     const { data: booking } = await supabaseAdmin
@@ -38,19 +43,20 @@ export async function POST(req: Request) {
     }
 
     const orderId = makeOrderId(booking.id);
-    const snap = await createSnapTransaction({
+    const charged = await chargeCore({
       orderId,
       amount,
       itemId: paket.id,
       itemName: paket.name,
       customerName: booking.player_name,
       customerEmail: booking.customer_email,
-      finishUrl: `${new URL(req.url).origin}/booking/${booking.id}`,
+      method,
+      callbackUrl: `${new URL(req.url).origin}/booking/${booking.id}`,
       expiryMinutes: minutesLeft,
     });
-    return NextResponse.json({ token: snap.token, order_id: orderId, amount });
+    return NextResponse.json({ order_id: orderId, method, amount, ...charged });
   } catch (err) {
-    console.error("[Midtrans Snap] Error:", err);
+    console.error("[Midtrans Charge] Error:", err);
     return NextResponse.json({ error: "Gagal membuka pembayaran online. Coba lagi atau bayar tunai ke OP." }, { status: 502 });
   }
 }

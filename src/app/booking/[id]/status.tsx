@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Script from "next/script";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Banknote, Check, CheckCircle2, Clock, Copy, Gamepad2, Hourglass, Loader2, QrCode, RotateCw, SearchX, WifiOff } from "lucide-react";
+import { Banknote, Check, CheckCircle2, ChevronLeft, Clock, Copy, Gamepad2, Hourglass, Loader2, QrCode, RotateCw, SearchX, Smartphone, Wallet, WifiOff } from "lucide-react";
 
 type BookingView = {
   id: string;
@@ -22,28 +21,29 @@ type BookingView = {
   queue_position: number | null;
 };
 
-type SnapCallbacks = { onSuccess?: () => void; onPending?: () => void; onError?: () => void; onClose?: () => void };
-type SnapApi = { embed: (token: string, opts: SnapCallbacks & { embedId: string }) => void };
+type Method = "qris" | "gopay" | "shopeepay";
+type Charge = { method: Method; orderId: string; qrImageUrl: string | null; deeplinkUrl: string | null };
 
-const CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
-const SNAP_SRC = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true"
-  ? "https://app.midtrans.com/snap/snap.js"
-  : "https://app.sandbox.midtrans.com/snap/snap.js";
+const ONLINE_ENABLED = Boolean(process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY);
 const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
 const orderKey = (id: string) => `gc-order-${id}`;
+
+const METHODS: { key: Method; label: string; hint: string; icon: typeof QrCode }[] = [
+  { key: "qris", label: "QRIS", hint: "Scan pakai e-wallet / m-banking apa aja", icon: QrCode },
+  { key: "gopay", label: "GoPay", hint: "Langsung buka aplikasi GoPay", icon: Wallet },
+  { key: "shopeepay", label: "ShopeePay", hint: "Langsung buka aplikasi ShopeePay", icon: Wallet },
+];
 
 function readOrder(id: string): string | null {
   try { return sessionStorage.getItem(orderKey(id)); } catch { return null; }
 }
 function saveOrder(id: string, orderId: string) {
-  try { sessionStorage.setItem(orderKey(id), orderId); } catch { /* private mode: the finish redirect still carries order_id */ }
+  try { sessionStorage.setItem(orderKey(id), orderId); } catch { /* private mode: status still polled from state */ }
 }
-
 function clock(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
-
 function scheduleLabel(b: BookingView): string | null {
   const iso = b.scheduled_at || b.start_time;
   if (!iso || (b.booking_type !== "slot" && b.booking_type !== "scheduled")) return null;
@@ -69,11 +69,12 @@ export default function BookingStatus() {
   const [booking, setBooking] = useState<BookingView | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "notfound" | "error">("loading");
   const [now, setNow] = useState(() => Date.now());
-  const [snapReady, setSnapReady] = useState(false);
-  const [paying, setPaying] = useState<"idle" | "opening" | "open" | "checking">("idle");
+  const [charge, setCharge] = useState<Charge | null>(null);
+  const [charging, setCharging] = useState<Method | null>(null);
+  const [checking, setChecking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const autoPayDone = useRef(false);
+  const cleared = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -87,7 +88,6 @@ export default function BookingStatus() {
     }
   }, [id]);
 
-  // Asks Midtrans through our server whether the last order settled, then refreshes the booking.
   const checkPaid = useCallback(async (orderId: string | null) => {
     if (orderId) {
       try {
@@ -96,87 +96,78 @@ export default function BookingStatus() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ order_id: orderId }),
         });
-      } catch { /* the booking reload below shows whatever state we have */ }
+      } catch { /* the reload below shows whatever state we have */ }
     }
     await load();
   }, [load]);
 
-  // After the Snap widget reports back: show a spinner while the server confirms with Midtrans.
-  const confirmPayment = useCallback(async (orderId: string) => {
-    setPaying("checking");
-    await checkPaid(orderId);
-    setPaying("idle");
-  }, [checkPaid]);
-
-  // First load. Coming back from Snap's finish redirect brings order_id in the URL.
+  // First load; a settled order may be remembered from before (refresh / app return).
   useEffect(() => {
-    const fromRedirect = params.get("order_id");
-    if (fromRedirect) saveOrder(id, fromRedirect);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- checkPaid() only sets state after its fetches resolve
-    checkPaid(fromRedirect || readOrder(id));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- checkPaid only sets state after its fetches resolve
+    checkPaid(readOrder(id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Back from the GoPay / ShopeePay app: the tab becomes visible again, check right away.
+  // Drop ?pay from the URL (came from checkout's "Bayar Sekarang"); methods are already shown.
+  useEffect(() => {
+    if (!cleared.current && params.get("pay")) {
+      cleared.current = true;
+      router.replace(`/booking/${id}`, { scroll: false });
+    }
+  }, [params, id, router]);
+
+  // Back from a GoPay/ShopeePay app: tab visible again, check immediately.
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState !== "visible") return;
-      checkPaid(booking?.payment_status === "unpaid" ? readOrder(id) : null);
+      if (document.visibilityState === "visible" && booking?.payment_status === "unpaid") checkPaid(readOrder(id));
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [booking?.payment_status, checkPaid, id]);
 
-  // Keep the page live: OP may take the cash, the queue moves.
+  // Live: countdown each second, booking reload every 15s.
   useEffect(() => {
     const t = setInterval(() => { if (!document.hidden) load(); }, 15000);
     const tick = setInterval(() => setNow(Date.now()), 1000);
     return () => { clearInterval(t); clearInterval(tick); };
   }, [load]);
 
-  const startPay = useCallback(async () => {
-    const snap = (window as unknown as { snap?: SnapApi }).snap;
-    if (!snap) return setNotice("Halaman pembayaran belum siap. Tunggu sebentar lalu coba lagi.");
+  // While a QR/charge is open, poll settlement every 4s so the page flips to "Lunas" on its own.
+  useEffect(() => {
+    if (!charge || booking?.payment_status !== "unpaid") return;
+    const t = setInterval(async () => {
+      setChecking(true);
+      await checkPaid(charge.orderId);
+      setChecking(false);
+    }, 4000);
+    return () => clearInterval(t);
+  }, [charge, booking?.payment_status, checkPaid]);
+
+  const startCharge = useCallback(async (method: Method) => {
     setNotice(null);
-    setPaying("opening");
+    setCharging(method);
     try {
-      const res = await fetch("/api/midtrans/snap", {
+      const res = await fetch("/api/midtrans/charge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking_id: id }),
+        body: JSON.stringify({ booking_id: id, method }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.token) {
-        setPaying("idle");
-        setNotice(data?.error || "Pembayaran online gagal dibuka. Coba lagi, atau bayar tunai ke OP.");
+      if (!res.ok || !data.order_id) {
+        setCharging(null);
+        setNotice(data?.error || "Pembayaran gagal dibuka. Coba lagi, atau bayar tunai ke OP.");
         if (res.status === 409 || res.status === 410) load();
         return;
       }
       saveOrder(id, data.order_id);
-      setPaying("open");
-      snap.embed(data.token, {
-        embedId: "snap-embed",
-        onSuccess: () => confirmPayment(data.order_id),
-        onPending: () => setNotice("Selesaikan pembayaran di aplikasi lu. Halaman ini otomatis berubah begitu lunas."),
-        onError: () => {
-          setPaying("idle");
-          setNotice("Pembayaran gagal. Coba lagi, atau bayar tunai ke OP.");
-        },
-        onClose: () => confirmPayment(data.order_id),
-      });
+      setCharge({ method, orderId: data.order_id, qrImageUrl: data.qrImageUrl ?? null, deeplinkUrl: data.deeplinkUrl ?? null });
+      setCharging(null);
+      if ((method === "gopay" || method === "shopeepay") && data.deeplinkUrl) window.location.href = data.deeplinkUrl;
     } catch {
-      setPaying("idle");
+      setCharging(null);
       setNotice("Koneksi putus pas buka pembayaran. Coba lagi.");
     }
-  }, [id, confirmPayment, load]);
-
-  // Arriving from checkout with "Bayar Sekarang": open the payment once, then drop ?pay from the URL.
-  useEffect(() => {
-    if (autoPayDone.current || params.get("pay") !== "1" || !snapReady || booking?.payment_status !== "unpaid") return;
-    autoPayDone.current = true;
-    router.replace(`/booking/${id}`, { scroll: false });
-    startPay();
-  }, [params, snapReady, booking?.payment_status, id, router, startPay]);
+  }, [id, load]);
 
   const copyCode = async () => {
     try {
@@ -217,10 +208,6 @@ export default function BookingStatus() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 sm:py-10">
-      {CLIENT_KEY && unpaid && (
-        <Script src={SNAP_SRC} data-client-key={CLIENT_KEY} strategy="afterInteractive" onReady={() => setSnapReady(true)} />
-      )}
-
       {/* Booking code, the thing the player shows OP */}
       <div className="text-center">
         <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Kode booking</p>
@@ -264,27 +251,85 @@ export default function BookingStatus() {
       </div>
 
       {/* Payment */}
-      {unpaid && !expired && (
+      {unpaid && !expired && ONLINE_ENABLED && (
         <div className="mt-4">
-          {CLIENT_KEY && paying !== "open" && (
-            <button
-              onClick={startPay}
-              disabled={!snapReady || paying !== "idle"}
-              className="h-11 w-full rounded-lg bg-nvidia-green text-black text-sm font-bold inline-flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {paying === "idle" && snapReady ? <QrCode size={16} /> : <Loader2 size={16} className="animate-spin" />}
-              {paying === "checking" ? "Ngecek pembayaran..." : `Bayar ${rupiah(booking.price)} pakai QRIS / GoPay / ShopeePay`}
-            </button>
+          {!charge ? (
+            <>
+              <p className="text-sm font-bold mb-2">Pilih cara bayar</p>
+              <div className="space-y-2">
+                {METHODS.map((m) => (
+                  <button
+                    key={m.key}
+                    onClick={() => startCharge(m.key)}
+                    disabled={charging !== null}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.1] bg-white/[0.03] hover:border-nvidia-green/60 hover:bg-nvidia-green/[0.06] transition text-left disabled:opacity-50"
+                  >
+                    <span className="w-9 h-9 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
+                      {charging === m.key ? <Loader2 size={16} className="animate-spin text-nvidia-green" /> : <m.icon size={16} className="text-nvidia-green" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold">{m.label}</span>
+                      <span className="block text-[11px] text-zinc-400">{m.hint}</span>
+                    </span>
+                    <span className="ml-auto text-zinc-500 text-sm">›</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-4">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <button onClick={() => { setCharge(null); setNotice(null); }} className="text-xs font-bold text-zinc-400 hover:text-white inline-flex items-center gap-1">
+                  <ChevronLeft size={14} /> Ganti metode
+                </button>
+                <span className="text-[11px] font-bold tabular-nums text-amber-400 inline-flex items-center gap-1"><Clock size={12} /> {clock(msLeft)}</span>
+              </div>
+
+              {charge.qrImageUrl && (
+                <div className="flex flex-col items-center">
+                  {/* QR must sit on light bg to scan; a small white tile reads as intentional on the dark page */}
+                  <div className="bg-white p-3 rounded-xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={charge.qrImageUrl} alt={`QR ${charge.method}`} width={200} height={200} className="w-44 h-44 sm:w-52 sm:h-52" />
+                  </div>
+                  <p className="mt-3 text-[12px] text-zinc-400 text-center">
+                    Scan pakai {charge.method === "qris" ? "e-wallet atau m-banking" : "aplikasi " + charge.method}. Bayar dari HP yang sama? Simpan QR ini lalu pilih scan dari galeri.
+                  </p>
+                </div>
+              )}
+
+              {charge.deeplinkUrl && (
+                <a
+                  href={charge.deeplinkUrl}
+                  className="mt-3 h-11 w-full rounded-lg bg-nvidia-green text-black text-sm font-bold inline-flex items-center justify-center gap-2"
+                >
+                  <Smartphone size={16} /> Buka aplikasi {charge.method === "gopay" ? "GoPay" : "ShopeePay"}
+                </a>
+              )}
+
+              {!charge.qrImageUrl && !charge.deeplinkUrl && (
+                <p className="text-sm text-zinc-400">Lanjutkan pembayaran di aplikasi {charge.method}.</p>
+              )}
+
+              <p className="mt-3 pt-3 border-t border-white/[0.08] text-[12px] text-zinc-400 inline-flex items-center gap-2">
+                {checking ? <Loader2 size={13} className="animate-spin" /> : <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green" /></span>}
+                Nunggu pembayaran, halaman berubah otomatis begitu lunas.
+              </p>
+            </div>
           )}
-          <div id="snap-embed" className={paying === "open" ? "mt-2 min-h-[520px] rounded-xl overflow-hidden bg-white" : "hidden"} />
-          {paying === "open" && (
-            <p className="text-[11px] text-zinc-400 mt-2">Bayar dari HP yang sama? Simpan gambar QR, lalu di aplikasi bank atau e-wallet pilih scan dari galeri.</p>
-          )}
+
           <p className="mt-3 text-[12px] text-zinc-400 flex gap-2">
             <Banknote size={14} className="shrink-0 text-amber-400 mt-px" />
             Atau datang ke OP, tunjukkan kode {booking.id}, dan bayar tunai.
           </p>
         </div>
+      )}
+
+      {unpaid && !expired && !ONLINE_ENABLED && (
+        <p className="mt-4 text-[12px] text-zinc-400 flex gap-2">
+          <Banknote size={14} className="shrink-0 text-amber-400 mt-px" />
+          Datang ke OP, tunjukkan kode {booking.id}, dan bayar tunai untuk dapat nomor antrean.
+        </p>
       )}
 
       {notice && <p role="alert" className="mt-4 text-sm text-amber-400">{notice}</p>}

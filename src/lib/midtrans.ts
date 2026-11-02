@@ -104,6 +104,59 @@ export async function createSnapTransaction(params: {
   return { token: data.token, redirect_url: data.redirect_url };
 }
 
+export type ChargeMethod = "qris" | "gopay" | "shopeepay";
+
+/**
+ * Core API charge, so the booking page renders its own dark payment UI (QR / e-wallet deeplink)
+ * instead of Midtrans' white Snap widget. Amount still comes from the caller (the DB paket).
+ */
+export async function chargeCore(params: {
+  orderId: string;
+  amount: number;
+  itemId: string;
+  itemName: string;
+  customerName: string;
+  customerEmail?: string | null;
+  method: ChargeMethod;
+  callbackUrl: string;
+  expiryMinutes: number;
+}): Promise<{ qrImageUrl: string | null; deeplinkUrl: string | null; qrString: string | null; expiryTime: string | null }> {
+  const base = isSandbox() ? "https://api.sandbox.midtrans.com" : "https://api.midtrans.com";
+  const body: Record<string, unknown> = {
+    payment_type: params.method,
+    transaction_details: { order_id: params.orderId, gross_amount: params.amount },
+    item_details: [{ id: params.itemId, name: params.itemName.slice(0, 50), price: params.amount, quantity: 1 }],
+    customer_details: {
+      first_name: params.customerName.slice(0, 50),
+      ...(params.customerEmail ? { email: params.customerEmail } : {}),
+    },
+    custom_expiry: { expiry_duration: params.expiryMinutes, unit: "minute" },
+  };
+  if (params.method === "qris") body.qris = { acquirer: "gopay" };
+  if (params.method === "gopay") body.gopay = { enable_callback: true, callback_url: params.callbackUrl };
+  if (params.method === "shopeepay") body.shopeepay = { callback_url: params.callbackUrl };
+
+  const res = await fetch(`${base}/v2/charge`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: authHeader() },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  // 201 = created, 200 = already exists (same order charged twice). Both carry the actions.
+  if (!res.ok || (data.status_code !== "201" && data.status_code !== "200")) {
+    console.error("[Midtrans] Charge error:", res.status, JSON.stringify(data));
+    throw new Error("Gagal membuka pembayaran Midtrans.");
+  }
+  const actions: Array<{ name?: string; url?: string }> = Array.isArray(data.actions) ? data.actions : [];
+  const action = (name: string) => actions.find((a) => a.name === name)?.url ?? null;
+  return {
+    qrImageUrl: action("generate-qr-code"),
+    deeplinkUrl: action("deeplink-redirect"),
+    qrString: typeof data.qr_string === "string" ? data.qr_string : null,
+    expiryTime: typeof data.expiry_time === "string" ? data.expiry_time : null,
+  };
+}
+
 /**
  * Asks Midtrans for the order's real status and marks the booking paid when it settled.
  * Safe to call any number of times: the update only flips unpaid to paid.
