@@ -1,3 +1,4 @@
+import { inQueue, isExpired, queueTime } from './booking-rules';
 import { supabaseAdmin } from './supabase';
 
 
@@ -52,18 +53,13 @@ export type Booking = {
   player_name: string;
   status: 'pending' | 'active';
   created_at: string; // ISO String
-  ss_bukti?: string; // URL or base64 if needed
   member_id?: string;
-  payment_method?: 'qris' | 'kasir';
+  payment_status?: 'paid' | 'unpaid';
+  payment_method?: 'online' | 'kasir';
+  paid_at?: string | null;
   booking_type?: 'queue' | 'scheduled' | 'slot';
   scheduled_at?: string | null;
   start_time?: string | null;
-  dana_partner_ref?: string;
-  dana_reference_no?: string;
-  dana_qr_content?: string;
-  dana_payment_verified?: boolean;
-  dana_paid_at?: string;
-  dana_paid_amount?: number;
 };
 
 export type LogEntry = {
@@ -104,8 +100,9 @@ const DEFAULT_INVENTORY: InventoryItem[] = [
   { id: "inv-9", name: "Royal Gelas", price: 500, stock: 48, category: "drink" }
 ];
 
-// includeLogs and includeRevenue are admin-only: /api/data is public and cached at the edge.
-export async function getDB(options?: { includeLogs?: boolean; includeRevenue?: boolean }): Promise<DatabaseSchema> {
+// includeLogs, includeRevenue and includeUnpaid are admin-only: /api/data is public and cached at the edge.
+// The public only sees bookings that hold a queue spot; OP also sees unpaid ones waiting at the kasir.
+export async function getDB(options?: { includeLogs?: boolean; includeRevenue?: boolean; includeUnpaid?: boolean }): Promise<DatabaseSchema> {
   const shouldFetchLogs = options?.includeLogs ?? false;
 
   const [
@@ -116,11 +113,11 @@ export async function getDB(options?: { includeLogs?: boolean; includeRevenue?: 
     bookingsRes,
     logsRes
   ] = await Promise.all([
-    supabaseAdmin.from('settings').select('id, user_counter, daily_pdf_revenue').limit(1).maybeSingle(),
+    supabaseAdmin.from('settings').select('id, user_counter, daily_pdf_revenue, pc_synced_at').limit(1).maybeSingle(),
     supabaseAdmin.from('inventory').select('id, name, price, stock, category').neq('category', 'staff_account'),
     supabaseAdmin.from('pcs').select('id, name, status, expected_empty_time, image, specs').order('id', { ascending: true }),
     supabaseAdmin.from('pakets').select('id, name, price, duration_minutes, fixed_start_time, fixed_end_time, days, is_custom').order('price', { ascending: true }),
-    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at, ss_bukti, member_id, booking_type, scheduled_at, start_time').order('created_at', { ascending: false }).limit(60),
+    supabaseAdmin.from('bookings').select('id, pc_id, paket_id, player_name, status, created_at, payment_status, payment_method, paid_at, member_id, booking_type, scheduled_at, start_time').order('created_at', { ascending: false }).limit(60),
     shouldFetchLogs 
       ? supabaseAdmin.from('logs').select('*').order('end_time', { ascending: false }).limit(200)
       : Promise.resolve({ data: [] })
@@ -130,7 +127,9 @@ export async function getDB(options?: { includeLogs?: boolean; includeRevenue?: 
   const inventory = inventoryRes.data;
   const pcs = pcsRes.data;
   const pakets = paketsRes.data;
-  const bookings = bookingsRes.data;
+  const bookings = (bookingsRes.data || []).filter((b) =>
+    !isExpired(b) && (options?.includeUnpaid || inQueue(b))
+  );
   const logs = logsRes.data;
 
   // Hitung user_counter efektif agar selalu sinkron dengan User <N> tertinggi yang ada
@@ -215,7 +214,7 @@ export async function getDB(options?: { includeLogs?: boolean; includeRevenue?: 
       const bTime = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0;
       if (aTime && bTime && aTime !== bTime) return aTime - bTime;
     }
-    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    return queueTime(a) - queueTime(b);
   });
 
   return {

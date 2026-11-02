@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const includeLogs = url.searchParams.get("includeLogs") === "true";
     const isAdmin = isAdminRequest(req);
 
-    const db = await getDB({ includeLogs: includeLogs && isAdmin, includeRevenue: isAdmin });
+    const db = await getDB({ includeLogs: includeLogs && isAdmin, includeRevenue: isAdmin, includeUnpaid: isAdmin });
 
     // The edge cache does not vary by cookie: anything an admin page asks for must never be cached,
     // or an admin gets the public copy and the public could get the admin one.

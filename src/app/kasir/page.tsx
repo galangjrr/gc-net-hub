@@ -49,7 +49,7 @@ export default function KasirPage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(() => { if (!document.hidden) loadData(); }, 30000);
     return () => clearInterval(interval);
   }, []);
 

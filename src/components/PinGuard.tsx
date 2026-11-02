@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Lock, Check } from "lucide-react";
 
+const isPublicPath = (p: string) =>
+  p === "/" || p === "/specs" || p === "/member" || p === "/booking" || p.startsWith("/booking/");
+
 export default function PinGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [unlocked, setUnlocked] = useState(false);
@@ -16,7 +19,7 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Halaman publik bebas akses tanpa perlu periksa sesi OP
-    if (pathname === "/" || pathname === "/specs" || pathname === "/member") {
+    if (isPublicPath(pathname)) {
       setCheckingAuth(false);
       return;
     }
@@ -70,7 +73,7 @@ export default function PinGuard({ children }: { children: React.ReactNode }) {
   };
 
   // Halaman publik langsung render
-  if (pathname === "/" || pathname === "/specs" || pathname === "/member") {
+  if (isPublicPath(pathname)) {
     return <>{children}</>;
   }
 

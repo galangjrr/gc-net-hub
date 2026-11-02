@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Database, CheckCircle2, AlertTriangle, Clock, XCircle, Image as ImageIcon, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X, Volume2, VolumeX, Banknote, Lock, Moon, Zap, ChevronDown } from "lucide-react";
+import { Database, CheckCircle2, AlertTriangle, Clock, XCircle, Plus, Search, Monitor, Sparkles, RotateCw, Pencil, Check, Trash2, Hourglass, User, Play, X, Volume2, VolumeX, Banknote, Lock, Moon, Zap, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import useSound from "use-sound";
 import type { DatabaseSchema, Booking, PC, Paket } from "@/lib/db";
@@ -160,7 +160,6 @@ export default function DataBookingPage() {
   const [showManual, setShowManual] = useState(false);
   const [manualData, setManualData] = useState({ playerName: "", pcId: "", searchPc: "" });
   const [showPcList, setShowPcList] = useState(false);
-  const [buktiImage, setBuktiImage] = useState<string | null>(null);
   const [searchPaket, setSearchPaket] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPaket, setSelectedPaket] = useState<string | null>(null);
@@ -325,11 +324,18 @@ export default function DataBookingPage() {
     return () => clearTimeout(handler);
   }, [searchPaket]);
 
+  const dbRef = useRef(db);
+  useEffect(() => { dbRef.current = db; }, [db]);
+  const loadSeq = useRef(0);
+
   const loadData = async () => {
+    const seq = ++loadSeq.current;
     try {
       const res = await fetch("/api/data", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
+        // a newer load started meanwhile (poll vs after-action re-sync): drop this stale response
+        if (seq !== loadSeq.current) return;
         setDb(data);
 
         // Sound effect on new pending booking
@@ -348,14 +354,15 @@ export default function DataBookingPage() {
   useEffect(() => {
     loadData();
     // bookings are not readable with the public key (no realtime on them), so new bookings arrive through this poll
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 10000);
 
     // Fast 1-second ticker to check countdown expiry and trigger 10s buzzer alarm
     const timerTicker = setInterval(() => {
-      if (!db?.pcs) return;
+      const pcs = dbRef.current?.pcs;
+      if (!pcs) return;
       const now = Date.now();
-      
-      db.pcs.forEach((pc: PC) => {
+
+      pcs.forEach((pc: PC) => {
         if (pc?.expected_empty_time) {
           const expTime = new Date(pc.expected_empty_time).getTime();
           // If expired within the last 20 seconds and haven't triggered yet
@@ -379,9 +386,9 @@ export default function DataBookingPage() {
       clearInterval(interval);
       clearInterval(timerTicker);
     };
-  }, [db]);
+  }, []);
 
-  const executeAction = async (id: string, action: 'approve' | 'reject' | 'complete', reason = '') => {
+  const executeAction = async (id: string, action: 'approve' | 'reject' | 'complete' | 'mark_paid', reason = '') => {
     setLoadingId(id);
     const prevDb = db;
 
@@ -406,7 +413,15 @@ export default function DataBookingPage() {
         if (!prev) return prev;
         return {
           ...prev,
-          bookings: prev.bookings.map(b => b.id === id ? { ...b, status: 'active' } : b)
+          bookings: prev.bookings.map(b => b.id === id ? { ...b, status: 'active', payment_status: 'paid' } : b)
+        };
+      });
+    } else if (action === 'mark_paid') {
+      setDb(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bookings: prev.bookings.map(b => b.id === id ? { ...b, payment_status: 'paid', payment_method: 'kasir', paid_at: new Date().toISOString() } : b)
         };
       });
     }
@@ -428,7 +443,7 @@ export default function DataBookingPage() {
     }
   };
 
-  const handleAction = (id: string, action: 'approve' | 'reject' | 'complete', playerName?: string, pcName?: string) => {
+  const handleAction = (id: string, action: 'approve' | 'reject' | 'complete' | 'mark_paid', playerName?: string, pcName?: string) => {
     if (action === 'complete') {
       const targetB = db?.bookings?.find(b => b.id === id);
       const isSched = targetB ? isScheduledBooking(targetB) : false;
@@ -444,6 +459,16 @@ export default function DataBookingPage() {
         confirmLabel: isSched ? "Tandai Masuk Sekarang" : "Tandai Masuk",
         confirmVariant: "primary",
         onConfirm: () => executeAction(id, 'complete')
+      });
+    } else if (action === 'mark_paid') {
+      setConfirmState({
+        isOpen: true,
+        title: "Terima Bayar Tunai",
+        subtitle: (pcName || "Unit PC").toUpperCase(),
+        description: `Uang dari ${playerName || 'pemain'} sudah diterima? Booking masuk antrean mulai sekarang.`,
+        confirmLabel: "Sudah Diterima",
+        confirmVariant: "primary",
+        onConfirm: () => executeAction(id, 'mark_paid')
       });
     } else if (action === 'approve') {
       setConfirmState({
@@ -642,31 +667,6 @@ export default function DataBookingPage() {
     }
   };
 
-  const showBukti = async (bookingId: string, directSs?: string) => {
-    if (directSs) {
-      setBuktiImage(directSs);
-      return;
-    }
-    setLoadingId(bookingId);
-    try {
-      const res = await fetch(`/api/bookings/${bookingId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.ss_bukti) {
-          setBuktiImage(data.ss_bukti);
-        } else {
-          alert("Pemain tidak melampirkan screenshot bukti transfer.");
-        }
-      } else {
-        alert("Bukti pembayaran tidak ditemukan.");
-      }
-    } catch (_) {
-      alert("Gagal memuat bukti pembayaran.");
-    } finally {
-      setLoadingId(null);
-    }
-  };
-
   if (!db) return <div className="p-8 tracking-tight text-white/50 uppercase text-xs animate-pulse">MEMUAT DATA ANTREAN...</div>;
 
   const allBookings = db.bookings || [];
@@ -813,7 +813,7 @@ export default function DataBookingPage() {
               </span>
             )}
             <span className="text-[11px] text-zinc-400 pl-0.5 font-medium">
-              {b.ss_bukti ? 'QRIS DANA' : 'Kasir Tunai'}
+              {b.payment_status !== 'paid' ? 'Belum Bayar, tunggu di kasir' : b.payment_method === 'online' ? 'Lunas Online' : 'Lunas Tunai'}
             </span>
           </div>
         </td>
@@ -931,17 +931,14 @@ export default function DataBookingPage() {
           <div className="flex items-center justify-end gap-1.5 sm:gap-2">
             {isPending ? (
               <>
-                {b.ss_bukti ? (
+                {b.payment_status !== 'paid' && (
                   <button
-                    onClick={() => showBukti(b.id, b.ss_bukti)}
-                    className="h-8 px-2.5 bg-surface-soft hover:bg-white/10 border border-hairline/60 text-white/80 hover:text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
+                    disabled={loadingId === b.id}
+                    onClick={() => handleAction(b.id, 'mark_paid', b.player_name)}
+                    className="h-8 px-2.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-bold rounded-lg transition inline-flex items-center gap-1.5"
                   >
-                    <ImageIcon size={13} /> Bukti
+                    <Banknote size={13} /> Terima Bayar
                   </button>
-                ) : (
-                  <span className="h-8 px-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-medium rounded-lg inline-flex items-center gap-1">
-                    <Banknote size={12} /> Tagih Tunai
-                  </span>
                 )}
                 <button
                   disabled={loadingId === b.id}
@@ -1051,8 +1048,8 @@ export default function DataBookingPage() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase tracking-wider ${b.ss_bukti ? 'bg-nvidia-green/15 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'}`}>
-              {b.ss_bukti ? 'QRIS' : 'KASIR'}
+            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase tracking-wider ${b.payment_status === 'paid' ? 'bg-nvidia-green/15 text-nvidia-green border border-nvidia-green/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'}`}>
+              {b.payment_status === 'paid' ? 'LUNAS' : 'BELUM BAYAR'}
             </span>
             {isPending ? (
               <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
@@ -1198,17 +1195,14 @@ export default function DataBookingPage() {
         {/* Mobile Actions */}
         {isPending ? (
           <div className="flex gap-1.5 pt-0.5">
-            {b.ss_bukti ? (
+            {b.payment_status !== 'paid' && (
               <button
-                onClick={() => showBukti(b.id, b.ss_bukti)}
-                className="flex-1 h-9 bg-surface-dark border border-hairline text-white/70 hover:text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
+                disabled={loadingId === b.id}
+                onClick={() => handleAction(b.id, 'mark_paid', b.player_name)}
+                className="flex-1 h-9 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-1"
               >
-                <ImageIcon size={13} /> Bukti
+                <Banknote size={13} /> Terima Bayar
               </button>
-            ) : (
-              <div className="flex-1 h-9 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1">
-                <Banknote size={12} /> Bayar Tunai
-              </div>
             )}
             <button
               disabled={loadingId === b.id}
@@ -2135,31 +2129,6 @@ export default function DataBookingPage() {
           )}
         </AnimatePresence>
 
-        {/* Modal Bukti Transfer */}
-        <AnimatePresence>
-          {buktiImage && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 p-4"
-            >
-              <div className="relative max-w-lg w-full flex flex-col items-center justify-center space-y-4">
-                <button
-                  onClick={() => setBuktiImage(null)}
-                  className="self-end px-3 py-1.5 bg-surface border border-hairline text-white hover:text-error text-xs font-bold uppercase rounded flex items-center gap-1.5 transition"
-                >
-                  <X size={14} /> Tutup
-                </button>
-                <img
-                  src={buktiImage}
-                  alt="Bukti Transfer"
-                  className="max-w-full max-h-[80vh] object-contain border border-nvidia-green/40 rounded-xl shadow-2xl"
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
       </div>
     </PinGuard>

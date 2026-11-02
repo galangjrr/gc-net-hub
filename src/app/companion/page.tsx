@@ -24,10 +24,8 @@ export default function CompanionPage() {
 
   const loadData = async () => {
     try {
-      const res = await fetch(`/api/data?t=${Date.now()}`, { 
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" }
-      });
+      // no cache-buster: every companion PC shares the 2s edge cache of /api/data instead of each hitting Supabase
+      const res = await fetch("/api/data", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setDb(data);
@@ -38,7 +36,7 @@ export default function CompanionPage() {
   useEffect(() => {
     loadData();
     // bookings are not readable with the public key, so booking changes arrive through this poll
-    const interval = setInterval(loadData, 2500);
+    const interval = setInterval(() => { if (!document.hidden) loadData(); }, 15000);
 
     const channel = supabase
       .channel("companion-realtime-pcs")

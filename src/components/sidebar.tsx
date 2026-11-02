@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, Menu, X, LogOut, Lock, ShieldCheck, Smartphone, User, History, Users } from "lucide-react";
+import { ShoppingCart, Database, TrendingUp, Monitor, Package, Sliders, Menu, X, LogOut, Lock, ShieldCheck, Smartphone, User, History, Users, Ticket } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "@/lib/supabase";
 
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/admin/members", label: "Kelola Member", icon: Users, admin: true },
   { href: "/admin/accounts", label: "Akun Staf", icon: ShieldCheck, admin: true },
   { href: "/", label: "Portal Depan", icon: Monitor, admin: false },
+  { href: "/booking", label: "Booking PC", icon: Ticket, admin: false },
   { href: "/member", label: "Area Member", icon: User, admin: false },
 ];
 
@@ -98,11 +99,12 @@ export default function Sidebar() {
 
     // Polling interval: hanya fetch antrean jika sesi kasir aktif
     const interval = setInterval(async () => {
+      if (document.hidden) return;
       const authed = await checkAuth();
       if (authed) {
         fetchPending();
       }
-    }, 20000);
+    }, 30000);
 
     return () => {
       clearInterval(interval);

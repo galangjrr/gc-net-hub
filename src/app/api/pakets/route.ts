@@ -5,11 +5,11 @@ import { logActivity } from '@/lib/activity-log';
 
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
-    // Only standard catalog packages require admin authentication. Custom on-the-fly packages are permitted for bookings.
-    if (!data.is_custom && !isAdminRequest(req)) {
+    // Admin only. Public custom pakets are created by POST /api/bookings from a validated price.
+    if (!isAdminRequest(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const data = await req.json();
     if (data.is_custom) {
       const { data: existing } = await supabaseAdmin
         .from('pakets')
