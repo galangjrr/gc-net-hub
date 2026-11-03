@@ -188,9 +188,12 @@ export async function syncOrderPayment(orderId: string): Promise<{ paid: boolean
     return { paid: false, status: "booking_missing" };
   }
 
-  // Backup check: the paid amount must match the booking's paket price.
+  // Backup check: the paid amount must be the paket's online price.
+  // The plain paket price is still accepted for orders charged before online pricing existed (they expire within 15 min).
+  const { onlinePrice } = await import("@/lib/paket");
   const paket = Array.isArray(booking.pakets) ? booking.pakets[0] : booking.pakets;
-  if (!amountMatches(status.gross_amount, paket?.price)) {
+  const price = Number(paket?.price);
+  if (!amountMatches(status.gross_amount, onlinePrice(price)) && !amountMatches(status.gross_amount, price)) {
     console.error("[Midtrans] Paid amount does not match paket price:", orderId, status.gross_amount, paket?.price);
     return { paid: false, status: "amount_mismatch" };
   }

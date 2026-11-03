@@ -38,6 +38,14 @@ export function durationLabel(p: Pick<Paket, "duration_minutes" | "fixed_start_t
 
 export const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
 
+/**
+ * GC Net's online (Midtrans) price: the paket price plus 0,7% rounded up to the next Rp100,
+ * so it stays a round number (Rp4.000 -> Rp4.100, Rp15.000 -> Rp15.200). Cash at the kasir pays the paket price.
+ */
+export function onlinePrice(price: number): number {
+  return price + Math.ceil((price * 7) / 100000) * 100;
+}
+
 /** Length of a fixed-time paket's window in minutes, wrapping past midnight (22:00-04:00 = 360). */
 export function fixedWindowMinutes(p: Pick<Paket, "fixed_start_time" | "fixed_end_time">): number {
   if (!p.fixed_start_time || !p.fixed_end_time) return 0;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { rupiah, onlinePrice } from "@/lib/paket";
 import { Banknote, Check, CheckCircle2, ChevronLeft, Clock, Copy, Gamepad2, Hourglass, Loader2, QrCode, RotateCw, SearchX, Smartphone, Wallet, WifiOff } from "lucide-react";
 
 type BookingView = {
@@ -25,7 +26,6 @@ type Method = "qris" | "gopay" | "shopeepay";
 type Charge = { method: Method; orderId: string; qrImageUrl: string | null; deeplinkUrl: string | null };
 
 const ONLINE_ENABLED = Boolean(process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY);
-const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
 const orderKey = (id: string) => `gc-order-${id}`;
 
 const METHODS: { key: Method; label: string; hint: string; icon: typeof QrCode }[] = [
@@ -246,7 +246,8 @@ export default function BookingStatus() {
           <dt className="text-zinc-400">Nickname</dt><dd className="text-right font-bold truncate">{booking.player_name}</dd>
           <dt className="text-zinc-400">PC</dt><dd className="text-right font-bold">{booking.pc_name}</dd>
           <dt className="text-zinc-400">Paket</dt><dd className="text-right font-bold truncate">{booking.paket_name}</dd>
-          <dt className="text-zinc-400">Total</dt><dd className="text-right font-extrabold tabular-nums">{rupiah(booking.price)}</dd>
+          <dt className="text-zinc-400">Total</dt>
+          <dd className="text-right font-extrabold tabular-nums">{rupiah(booking.payment_method === "online" ? onlinePrice(booking.price) : booking.price)}</dd>
         </dl>
       </div>
 

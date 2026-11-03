@@ -1,13 +1,14 @@
 /**
  * POST /api/midtrans/charge  { booking_id, method }  method: qris | gopay | shopeepay
  * Core API charge for an unpaid booking, so the booking page draws its own QR / e-wallet UI.
- * Amount comes from the booking's paket in the DB, never the browser.
+ * Amount comes from the booking's paket in the DB, never the browser, at GC Net's online price (onlinePrice).
  */
 
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { chargeCore, makeOrderId, type ChargeMethod } from "@/lib/midtrans";
 import { unpaidExpiresAt } from "@/lib/booking-rules";
+import { onlinePrice } from "@/lib/paket";
 
 const METHODS: ChargeMethod[] = ["qris", "gopay", "shopeepay"];
 
@@ -37,10 +38,11 @@ export async function POST(req: Request) {
     }
 
     const paket = Array.isArray(booking.pakets) ? booking.pakets[0] : booking.pakets;
-    const amount = Number(paket?.price);
-    if (!paket || !Number.isInteger(amount) || amount < 1) {
+    const price = Number(paket?.price);
+    if (!paket || !Number.isInteger(price) || price < 1) {
       return NextResponse.json({ error: "Harga paket tidak valid." }, { status: 400 });
     }
+    const amount = onlinePrice(price);
 
     const orderId = makeOrderId(booking.id);
     const charged = await chargeCore({

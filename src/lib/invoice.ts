@@ -100,12 +100,14 @@ export async function sendBookingInvoice(bookingId: string): Promise<void> {
 
     const pc = Array.isArray(b.pcs) ? b.pcs[0] : b.pcs;
     const paket = Array.isArray(b.pakets) ? b.pakets[0] : b.pakets;
+    const price = Number(paket?.price) || 0;
+    const { onlinePrice } = await import("@/lib/paket");
     const inv = buildInvoice({
       bookingId: b.id,
       playerName: b.player_name,
       pcName: pc?.name || "-",
       paketName: paket?.name || "-",
-      amount: Number(paket?.price) || 0,
+      amount: b.payment_method === "online" ? onlinePrice(price) : price,
       method: b.payment_method === "online" ? "online" : "kasir",
       paidAt: b.paid_at,
       statusUrl: `${siteUrl()}/booking/${b.id}`,
