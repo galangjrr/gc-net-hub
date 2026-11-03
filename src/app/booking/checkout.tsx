@@ -5,29 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Banknote, Check, Clock, Loader2, Monitor, QrCode, RotateCw, WifiOff } from "lucide-react";
 import type { DatabaseSchema, Paket } from "@/lib/db";
-import { customPaketFor, CUSTOM_MIN_PRICE, CUSTOM_MAX_PRICE } from "@/lib/paket";
+import { customPaketFor, CUSTOM_MIN_PRICE, CUSTOM_MAX_PRICE, PAKET_GROUPS, paketGroupOf as groupOf, groupPakets, durationLabel, rupiah, type PaketGroup as Group } from "@/lib/paket";
 import { pcWaitMinutes, billingStale, waitLabel } from "@/lib/booking-rules";
 import { supabase } from "@/lib/supabase";
 import { memberFetch } from "@/lib/member-fetch";
 
 type Db = Pick<DatabaseSchema, "pcs" | "pakets" | "bookings"> & { syncedAt?: string | null };
-type Group = "jam" | "nominal" | "malam";
-
 const ONLINE_ENABLED = Boolean(process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY);
-const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
-
-function durationLabel(p: Pick<Paket, "duration_minutes" | "fixed_start_time" | "fixed_end_time">): string {
-  if (p.fixed_start_time) return `${p.fixed_start_time} - ${p.fixed_end_time ?? "selesai"} WIB`;
-  const m = p.duration_minutes || 0;
-  const h = Math.floor(m / 60);
-  const r = m % 60;
-  return [h ? `${h} Jam` : "", r ? `${r} Menit` : ""].filter(Boolean).join(" ") || "-";
-}
-
-function groupOf(p: Paket): Group {
-  if (p.fixed_start_time) return "malam";
-  return p.name.endsWith(" Jam") ? "jam" : "nominal";
-}
 
 /** Today at HH:MM local time, as ISO. */
 function todayAt(hhmm: string): string {
@@ -108,14 +92,7 @@ export default function BookingCheckout() {
     return p ? { ...p, isCustom: false as const } : null;
   }, [paketParam, db]);
 
-  const groups = useMemo(() => {
-    const visible = (db?.pakets || []).filter((p) => !p.is_custom);
-    return {
-      jam: visible.filter((p) => groupOf(p) === "jam").sort((a, b) => (a.duration_minutes || 0) - (b.duration_minutes || 0)),
-      nominal: visible.filter((p) => groupOf(p) === "nominal").sort((a, b) => a.price - b.price),
-      malam: visible.filter((p) => groupOf(p) === "malam").sort((a, b) => a.price - b.price),
-    };
-  }, [db]);
+  const groups = useMemo(() => groupPakets(db?.pakets || []), [db]);
 
   // Until the player picks a tab, open the one holding the selected paket (after a refresh or back).
   const paketInUrl = db?.pakets.find((x) => x.id === paketParam);
@@ -233,11 +210,7 @@ export default function BookingCheckout() {
   }
   if (!db) return <CheckoutSkeleton />;
 
-  const tabs: { key: Group; label: string }[] = [
-    { key: "jam", label: "Per Jam" },
-    { key: "nominal", label: "Nominal" },
-    { key: "malam", label: "Paket Malam" },
-  ];
+  const tabs = PAKET_GROUPS;
   const customValid = customInput !== "" && customPaketFor(Number(customInput));
 
   return (

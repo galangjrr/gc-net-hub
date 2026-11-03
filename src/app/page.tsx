@@ -11,6 +11,8 @@ import { supabase } from "@/lib/supabase";
 import { memberFetch } from "@/lib/member-fetch";
 import PCCarousel from "@/components/pc-carousel";
 import GameIcons from "@/components/game-icons";
+import PriceList from "@/components/price-list";
+import DurationCalc from "@/components/duration-calc";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -134,6 +136,8 @@ export default function Home() {
           setActiveSection("showcase");
         } else if (antreanEl && antreanEl.getBoundingClientRect().top < innerHeight * 0.5) {
           setActiveSection("antrean");
+        } else if ((document.getElementById("harga")?.getBoundingClientRect().top ?? Infinity) < innerHeight * 0.5) {
+          setActiveSection("harga");
         } else {
           setActiveSection("home");
         }
@@ -187,17 +191,12 @@ export default function Home() {
 
   // ── Memoized computed data (avoid recompute on every polling render) ──
 
-  const scrollToAntrean = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const scrollToSection = (id: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    const elem = document.getElementById("antrean");
-    if (elem) elem.scrollIntoView({ behavior: "smooth" });
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
-
-  const scrollToShowcase = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const elem = document.getElementById("showcase");
-    if (elem) elem.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToAntrean = scrollToSection("antrean");
+  const scrollToShowcase = scrollToSection("showcase");
 
   const scrollToHome = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -276,6 +275,7 @@ export default function Home() {
         <div className="flex items-center gap-0 group-hover:gap-1 transition-all duration-500 relative">
           {[
             { id: "home", label: "HOME", fn: scrollToHome },
+            { id: "harga", label: "HARGA", fn: scrollToSection("harga") },
             { id: "antrean", label: "STATUS ANTREAN", fn: scrollToAntrean },
             { id: "booking", label: "BOOKING", href: "/booking" },
             { id: "showcase", label: "PC SHOWCASE", fn: scrollToShowcase }
@@ -584,6 +584,20 @@ export default function Home() {
         </div>
 
 
+      </section>
+
+      {/* ── Daftar Harga ── */}
+      <section id="harga" aria-labelledby="harga-title" className="relative z-20 py-8 md:py-14 border-b border-hairline bg-surface-dark/50 scroll-mt-16">
+        <div className="max-w-[1280px] w-full mx-auto px-4 sm:px-6">
+          <div className="text-center mb-6 md:mb-8">
+            <h2 id="harga-title" className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight uppercase mb-2">DAFTAR HARGA PAKET BILLING</h2>
+            <p className="text-xs sm:text-sm text-zinc-300 tracking-tight max-w-lg mx-auto">Pilih paket yang paling pas buat lu, klik buat langsung booking.</p>
+          </div>
+          <div className="flex flex-col gap-8">
+            <DurationCalc pakets={db.pakets || []} />
+            <PriceList pakets={db.pakets || []} isMobile={isMobile} />
+          </div>
+        </div>
       </section>
 
       {/* ── Live Antrean & Status Section ── */}
