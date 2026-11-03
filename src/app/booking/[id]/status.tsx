@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { rupiah, onlinePrice } from "@/lib/paket";
@@ -25,7 +26,15 @@ type BookingView = {
 type Method = "qris" | "gopay" | "shopeepay";
 type Charge = { method: Method; orderId: string; qrImageUrl: string | null; qrDownloadUrl: string | null; deeplinkUrl: string | null };
 
-const ONLINE_ENABLED = Boolean(process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY);
+const CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
+const ONLINE_ENABLED = Boolean(CLIENT_KEY);
+// shortcut: Midtrans hasn't opened Core API (/v2/charge, 402) for this merchant yet, so pay via the Snap popup.
+// Flip to false once they do to get the dark QRIS/GoPay picker below back.
+const PAY_WITH_SNAP = true;
+const SNAP_SRC = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true"
+  ? "https://app.midtrans.com/snap/snap.js"
+  : "https://app.sandbox.midtrans.com/snap/snap.js";
+type SnapApi = { pay: (token: string, opts: { onSuccess?: () => void; onPending?: () => void; onError?: () => void; onClose?: () => void }) => void };
 const orderKey = (id: string) => `gc-order-${id}`;
 
 const METHODS: { key: Method; label: string; hint: string; icon: typeof QrCode }[] = [
@@ -74,6 +83,9 @@ export default function BookingStatus() {
   const [checking, setChecking] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [snapReady, setSnapReady] = useState(false);
+  const [snapOrder, setSnapOrder] = useState<{ orderId: string; token: string } | null>(null);
+  const [snapOpening, setSnapOpening] = useState(false);
   const cleared = useRef(false);
 
   const load = useCallback(async () => {
@@ -133,15 +145,55 @@ export default function BookingStatus() {
   }, [load]);
 
   // While a QR/charge is open, poll settlement every 4s so the page flips to "Lunas" on its own.
+  const pollOrderId = charge?.orderId ?? snapOrder?.orderId ?? null;
   useEffect(() => {
-    if (!charge || booking?.payment_status !== "unpaid") return;
+    if (!pollOrderId || booking?.payment_status !== "unpaid") return;
     const t = setInterval(async () => {
       setChecking(true);
-      await checkPaid(charge.orderId);
+      await checkPaid(pollOrderId);
       setChecking(false);
     }, 4000);
     return () => clearInterval(t);
-  }, [charge, booking?.payment_status, checkPaid]);
+  }, [pollOrderId, booking?.payment_status, checkPaid]);
+
+  const openSnap = useCallback((order: { orderId: string; token: string }) => {
+    const snap = (window as unknown as { snap?: SnapApi }).snap;
+    if (!snap) return setNotice("Halaman pembayaran belum siap. Tunggu sebentar lalu coba lagi.");
+    snap.pay(order.token, {
+      onSuccess: () => checkPaid(order.orderId),
+      onPending: () => checkPaid(order.orderId),
+      onError: () => setNotice("Pembayaran gagal. Coba lagi, atau bayar tunai ke OP."),
+      onClose: () => checkPaid(order.orderId),
+    });
+  }, [checkPaid]);
+
+  const startSnap = useCallback(async () => {
+    // Snap tokens stay valid until the order expires, so reopening reuses the same order.
+    if (snapOrder) return openSnap(snapOrder);
+    setNotice(null);
+    setSnapOpening(true);
+    try {
+      const res = await fetch("/api/midtrans/snap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.token || !data.order_id) {
+        setNotice(data?.error || "Pembayaran gagal dibuka. Coba lagi, atau bayar tunai ke OP.");
+        if (res.status === 409 || res.status === 410) load();
+        return;
+      }
+      const order = { orderId: data.order_id as string, token: data.token as string };
+      saveOrder(id, order.orderId);
+      setSnapOrder(order);
+      openSnap(order);
+    } catch {
+      setNotice("Koneksi putus pas buka pembayaran. Coba lagi.");
+    } finally {
+      setSnapOpening(false);
+    }
+  }, [id, load, openSnap, snapOrder]);
 
   const startCharge = useCallback(async (method: Method) => {
     setNotice(null);
@@ -252,7 +304,28 @@ export default function BookingStatus() {
       </div>
 
       {/* Payment */}
-      {unpaid && !expired && ONLINE_ENABLED && (
+      {unpaid && !expired && ONLINE_ENABLED && PAY_WITH_SNAP && (
+        <div className="mt-4">
+          <Script src={SNAP_SRC} data-client-key={CLIENT_KEY} strategy="afterInteractive" onReady={() => setSnapReady(true)} />
+          <button
+            onClick={startSnap}
+            disabled={!snapReady || snapOpening}
+            className="h-12 w-full rounded-xl bg-nvidia-green text-black text-sm font-bold inline-flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {snapReady && !snapOpening ? <QrCode size={16} /> : <Loader2 size={16} className="animate-spin" />}
+            {snapOrder ? "Lanjut bayar" : "Bayar Online"} {rupiah(onlinePrice(booking.price))}
+          </button>
+          <p className="mt-2 text-[11px] text-zinc-400 text-center">QRIS (DANA, OVO, m-banking) atau GoPay, dipilih di halaman pembayaran Midtrans.</p>
+          {snapOrder && (
+            <p className="mt-3 text-[12px] text-zinc-400 inline-flex items-center gap-2">
+              {checking ? <Loader2 size={13} className="animate-spin" /> : <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green" /></span>}
+              Nunggu pembayaran, halaman berubah otomatis begitu lunas.
+            </p>
+          )}
+        </div>
+      )}
+
+      {unpaid && !expired && ONLINE_ENABLED && !PAY_WITH_SNAP && (
         <div className="mt-4">
           {!charge ? (
             <>
