@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { rupiah, onlinePrice } from "@/lib/paket";
-import { Banknote, Check, CheckCircle2, ChevronLeft, Clock, Copy, Gamepad2, Hourglass, Loader2, QrCode, RotateCw, SearchX, Smartphone, Wallet, WifiOff } from "lucide-react";
+import { Download, Banknote, Check, CheckCircle2, ChevronLeft, Clock, Copy, Gamepad2, Hourglass, Loader2, QrCode, RotateCw, SearchX, Smartphone, Wallet, WifiOff } from "lucide-react";
 
 type BookingView = {
   id: string;
@@ -23,13 +23,13 @@ type BookingView = {
 };
 
 type Method = "qris" | "gopay" | "shopeepay";
-type Charge = { method: Method; orderId: string; qrImageUrl: string | null; deeplinkUrl: string | null };
+type Charge = { method: Method; orderId: string; qrImageUrl: string | null; qrDownloadUrl: string | null; deeplinkUrl: string | null };
 
 const ONLINE_ENABLED = Boolean(process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY);
 const orderKey = (id: string) => `gc-order-${id}`;
 
 const METHODS: { key: Method; label: string; hint: string; icon: typeof QrCode }[] = [
-  { key: "qris", label: "QRIS", hint: "Scan pakai e-wallet / m-banking apa aja", icon: QrCode },
+  { key: "qris", label: "QRIS", hint: "DANA, OVO, LinkAja, m-banking", icon: QrCode },
   { key: "gopay", label: "GoPay", hint: "Langsung buka aplikasi GoPay", icon: Wallet },
   { key: "shopeepay", label: "ShopeePay", hint: "Langsung buka aplikasi ShopeePay", icon: Wallet },
 ];
@@ -160,7 +160,7 @@ export default function BookingStatus() {
         return;
       }
       saveOrder(id, data.order_id);
-      setCharge({ method, orderId: data.order_id, qrImageUrl: data.qrImageUrl ?? null, deeplinkUrl: data.deeplinkUrl ?? null });
+      setCharge({ method, orderId: data.order_id, qrImageUrl: data.qrImageUrl ?? null, qrDownloadUrl: data.qrDownloadUrl ?? null, deeplinkUrl: data.deeplinkUrl ?? null });
       setCharging(null);
       if ((method === "gopay" || method === "shopeepay") && data.deeplinkUrl) window.location.href = data.deeplinkUrl;
     } catch {
@@ -293,8 +293,19 @@ export default function BookingStatus() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={charge.qrImageUrl} alt={`QR ${charge.method}`} width={200} height={200} className="w-44 h-44 sm:w-52 sm:h-52" />
                   </div>
+                  {charge.qrDownloadUrl && (
+                    <a
+                      href={charge.qrDownloadUrl}
+                      download={`QRIS-GCNet-${booking.id}.png`}
+                      className="mt-3 h-11 w-full rounded-lg bg-nvidia-green text-black text-sm font-bold inline-flex items-center justify-center gap-2"
+                    >
+                      <Download size={16} /> Unduh QR
+                    </a>
+                  )}
                   <p className="mt-3 text-[12px] text-zinc-400 text-center">
-                    Scan pakai {charge.method === "qris" ? "e-wallet atau m-banking" : "aplikasi " + charge.method}. Bayar dari HP yang sama? Simpan QR ini lalu pilih scan dari galeri.
+                    {charge.method === "qris"
+                      ? "Bayar dari HP ini? Unduh QR, buka DANA, OVO, atau m-banking, pilih Scan, lalu ambil QR dari galeri."
+                      : `Scan pakai aplikasi ${charge.method}.`}
                   </p>
                 </div>
               )}

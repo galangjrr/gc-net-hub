@@ -6,7 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { chargeCore, makeOrderId, type ChargeMethod } from "@/lib/midtrans";
+import { chargeCore, makeOrderId, parseQrUrl, type ChargeMethod } from "@/lib/midtrans";
 import { unpaidExpiresAt } from "@/lib/booking-rules";
 import { onlinePrice } from "@/lib/paket";
 
@@ -56,7 +56,10 @@ export async function POST(req: Request) {
       callbackUrl: `${new URL(req.url).origin}/booking/${booking.id}`,
       expiryMinutes: minutesLeft,
     });
-    return NextResponse.json({ order_id: orderId, method, amount, ...charged });
+    // Same-origin download link for the QR (Midtrans' image has no CORS), see /api/midtrans/qr.
+    const qr = charged.qrImageUrl ? parseQrUrl(charged.qrImageUrl) : null;
+    const qrDownloadUrl = qr ? `/api/midtrans/qr?kind=${qr.kind}&tx=${qr.tx}&booking=${booking.id}` : null;
+    return NextResponse.json({ order_id: orderId, method, amount, qrDownloadUrl, ...charged });
   } catch (err) {
     console.error("[Midtrans Charge] Error:", err);
     return NextResponse.json({ error: "Gagal membuka pembayaran online. Coba lagi atau bayar tunai ke OP." }, { status: 502 });

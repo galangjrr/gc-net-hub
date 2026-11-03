@@ -53,6 +53,22 @@ export function isValidNotification(body: Record<string, unknown>): boolean {
   return expected.length === given.length && crypto.timingSafeEqual(expected, given);
 }
 
+const QR_PATH = /\/v2\/(qris|gopay)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/qr-code$/;
+
+/** Pulls { kind, tx } out of a Midtrans QR image URL, or null if it isn't one. */
+export function parseQrUrl(url: string): { kind: "qris" | "gopay"; tx: string } | null {
+  const m = QR_PATH.exec(url);
+  return m ? { kind: m[1] as "qris" | "gopay", tx: m[2] } : null;
+}
+
+/** Midtrans QR image URL rebuilt from validated parts, so the download proxy can never be pointed elsewhere. */
+export function qrImageUrl(kind: string, tx: string): string | null {
+  const parsed = parseQrUrl(`/v2/${kind}/${tx}/qr-code`);
+  if (!parsed) return null;
+  const base = isSandbox() ? "https://api.sandbox.midtrans.com" : "https://api.midtrans.com";
+  return `${base}/v2/${parsed.kind}/${parsed.tx}/qr-code`;
+}
+
 /** Midtrans sends gross_amount as a string like "10000.00". */
 export function amountMatches(grossAmount: unknown, price: unknown): boolean {
   const paid = Number(grossAmount);
