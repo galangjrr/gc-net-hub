@@ -80,7 +80,7 @@ export async function sendBookingInvoice(bookingId: string): Promise<void> {
 
     const { data: b } = await supabaseAdmin
       .from("bookings")
-      .select("id, player_name, payment_method, paid_at, customer_email, invoice_sent_at, pcs(name), pakets(name, price)")
+      .select("id, player_name, payment_method, paid_at, paid_amount, customer_email, invoice_sent_at, pcs(name), pakets(name, price)")
       .eq("id", bookingId)
       .maybeSingle();
     if (!b?.customer_email || !b.paid_at || b.invoice_sent_at) return;
@@ -107,7 +107,7 @@ export async function sendBookingInvoice(bookingId: string): Promise<void> {
       playerName: b.player_name,
       pcName: pc?.name || "-",
       paketName: paket?.name || "-",
-      amount: b.payment_method === "online" ? onlinePrice(price) : price,
+      amount: b.paid_amount ?? (b.payment_method === "online" ? onlinePrice(price) : price),
       method: b.payment_method === "online" ? "online" : "kasir",
       paidAt: b.paid_at,
       statusUrl: `${siteUrl()}/booking/${b.id}`,

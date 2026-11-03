@@ -90,6 +90,8 @@ export async function createSnapTransaction(params: {
   customerEmail?: string | null;
   finishUrl: string;
   expiryMinutes: number;
+  /** One Snap payment code; the amount is priced for it, so Snap must not offer the others. */
+  enabledPayment: "other_qris" | "gopay";
 }): Promise<{ token: string; redirect_url: string }> {
   const url = isSandbox()
     ? "https://app.sandbox.midtrans.com/snap/v1/transactions"
@@ -105,8 +107,7 @@ export async function createSnapTransaction(params: {
         first_name: params.customerName.slice(0, 50),
         ...(params.customerEmail ? { email: params.customerEmail } : {}),
       },
-      // Small amounts: QRIS and app e-wallets only. A flat-fee virtual account would eat a Rp4.000 booking.
-      enabled_payments: ["other_qris", "gopay", "shopeepay"],
+      enabled_payments: [params.enabledPayment],
       // The order is only payable for as long as the booking holds (see UNPAID_TTL_MS.online).
       expiry: { unit: "minutes", duration: params.expiryMinutes },
       callbacks: { finish: params.finishUrl },
@@ -204,13 +205,12 @@ export async function syncOrderPayment(orderId: string): Promise<{ paid: boolean
     return { paid: false, status: "booking_missing" };
   }
 
-  // Backup check: the paid amount must be the paket's online price.
-  // The plain paket price is still accepted for orders charged before online pricing existed (they expire within 15 min).
-  const { onlinePrice } = await import("@/lib/paket");
+  // Backup check: the paid amount must be one of the paket's online prices (see acceptedOnlineAmounts).
+  const { acceptedOnlineAmounts } = await import("@/lib/paket");
   const paket = Array.isArray(booking.pakets) ? booking.pakets[0] : booking.pakets;
   const price = Number(paket?.price);
-  if (!amountMatches(status.gross_amount, onlinePrice(price)) && !amountMatches(status.gross_amount, price)) {
-    console.error("[Midtrans] Paid amount does not match paket price:", orderId, status.gross_amount, paket?.price);
+  if (!acceptedOnlineAmounts(price).some((a) => amountMatches(status.gross_amount, a))) {
+    console.error("[Midtrans] Paid amount does not match online price:", orderId, status.payment_type, status.gross_amount, paket?.price);
     return { paid: false, status: "amount_mismatch" };
   }
 
@@ -218,7 +218,7 @@ export async function syncOrderPayment(orderId: string): Promise<{ paid: boolean
     // Paid late but still settled: the money arrived, so the booking counts, ordered by when it was paid.
     const { error } = await supabaseAdmin
       .from("bookings")
-      .update({ payment_status: "paid", payment_method: "online", paid_at: new Date().toISOString() })
+      .update({ payment_status: "paid", payment_method: "online", paid_at: new Date().toISOString(), paid_amount: Math.round(Number(status.gross_amount)) })
       .eq("id", booking.id)
       .eq("payment_status", "unpaid");
     if (error) throw new Error(`Gagal menandai booking lunas: ${error.message}`);

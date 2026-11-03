@@ -13,7 +13,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const { data: booking } = await supabaseAdmin
       .from('bookings')
-      .select('id, pc_id, paket_id, player_name, status, created_at, payment_status, payment_method, paid_at, booking_type, scheduled_at, start_time, pcs(name), pakets(name, price, duration_minutes)')
+      .select('id, pc_id, paket_id, player_name, status, created_at, payment_status, payment_method, paid_at, paid_amount, booking_type, scheduled_at, start_time, pcs(name), pakets(name, price, duration_minutes)')
       .eq('id', id)
       .maybeSingle();
     if (!booking || isExpired(booking)) {

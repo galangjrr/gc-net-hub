@@ -431,7 +431,7 @@ export default function BookingCheckout() {
             </div>
 
             <ul className="mt-5 space-y-1.5 text-[12px] text-zinc-400">
-              <li className="flex gap-2"><QrCode size={14} className="shrink-0 text-nvidia-green mt-px" /> Bayar online{selected ? ` ${rupiah(onlinePrice(selected.price))}` : ""}: lunas langsung dapet nomor antrean.</li>
+              <li className="flex gap-2"><QrCode size={14} className="shrink-0 text-nvidia-green mt-px" /> Bayar online{selected ? `: QRIS ${rupiah(onlinePrice(selected.price))}, GoPay ${rupiah(onlinePrice(selected.price, "gopay"))}` : ""}. Lunas langsung dapet nomor antrean.</li>
               <li className="flex gap-2"><Banknote size={14} className="shrink-0 text-amber-400 mt-px" /> Bayar di kasir: nomor antrean keluar pas OP terima uang. Booking hangus kalau 30 menit belum dibayar.</li>
             </ul>
           </>

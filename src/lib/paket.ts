@@ -38,12 +38,25 @@ export function durationLabel(p: Pick<Paket, "duration_minutes" | "fixed_start_t
 
 export const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
 
+/** Online payment channels and their Midtrans fee in permille (QRIS 0,7%, GoPay app 2%). */
+export const PAY_CHANNELS = { qris: 7, gopay: 20 } as const;
+export type PayChannel = keyof typeof PAY_CHANNELS;
+
 /**
- * GC Net's online (Midtrans) price: the paket price plus 0,7% rounded up to the next Rp100,
- * so it stays a round number (Rp4.000 -> Rp4.100, Rp15.000 -> Rp15.200). Cash at the kasir pays the paket price.
+ * Amounts a settled order may carry: any channel's online price, or the plain paket price for orders
+ * charged before online pricing. Not keyed by Midtrans payment_type: Snap's GoPay on desktop settles as
+ * payment_type "qris" at the GoPay price, so the channel can't be read back reliably.
  */
-export function onlinePrice(price: number): number {
-  return price + Math.ceil((price * 7) / 100000) * 100;
+export function acceptedOnlineAmounts(price: number): number[] {
+  return [price, ...(Object.keys(PAY_CHANNELS) as PayChannel[]).map((c) => onlinePrice(price, c))];
+}
+
+/**
+ * GC Net's online (Midtrans) price: the paket price plus the channel's fee rounded up to the next Rp100,
+ * so it stays a round number (QRIS Rp4.000 -> Rp4.100, GoPay Rp12.000 -> Rp12.300). Cash pays the paket price.
+ */
+export function onlinePrice(price: number, channel: PayChannel = "qris"): number {
+  return price + Math.ceil((price * PAY_CHANNELS[channel]) / 100000) * 100;
 }
 
 /** Length of a fixed-time paket's window in minutes, wrapping past midnight (22:00-04:00 = 360). */

@@ -1,6 +1,7 @@
 /**
- * POST /api/midtrans/snap  { booking_id }
- * Snap token for an unpaid booking; the browser opens it with snap.js (window.snap.pay).
+ * POST /api/midtrans/snap  { booking_id, channel }  channel: qris | gopay
+ * Snap token for an unpaid booking, locked to one channel because each is priced for its own fee;
+ * the browser opens it with snap.js (window.snap.pay).
  * Used while Midtrans hasn't opened Core API (/api/midtrans/charge) for this merchant.
  * Amount comes from the booking's paket in the DB at GC Net's online price, never the browser,
  * and the order expires together with the booking.
@@ -10,14 +11,18 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { createSnapTransaction, makeOrderId } from "@/lib/midtrans";
 import { unpaidExpiresAt } from "@/lib/booking-rules";
-import { onlinePrice } from "@/lib/paket";
+import { onlinePrice, PAY_CHANNELS, type PayChannel } from "@/lib/paket";
 
 export async function POST(req: Request) {
   try {
-    const { booking_id } = await req.json().catch(() => ({}));
+    const { booking_id, channel } = await req.json().catch(() => ({}));
     if (typeof booking_id !== "string" || !/^GC\d{4}$/.test(booking_id)) {
       return NextResponse.json({ error: "Kode booking tidak valid." }, { status: 400 });
     }
+    if (!Object.hasOwn(PAY_CHANNELS, channel)) {
+      return NextResponse.json({ error: "Metode bayar tidak dikenal." }, { status: 400 });
+    }
+    const payChannel = channel as PayChannel;
 
     const { data: booking } = await supabaseAdmin
       .from("bookings")
@@ -39,7 +44,7 @@ export async function POST(req: Request) {
     if (!paket || !Number.isInteger(price) || price < 1) {
       return NextResponse.json({ error: "Harga paket tidak valid." }, { status: 400 });
     }
-    const amount = onlinePrice(price);
+    const amount = onlinePrice(price, payChannel);
 
     const orderId = makeOrderId(booking.id);
     const snap = await createSnapTransaction({
@@ -51,8 +56,9 @@ export async function POST(req: Request) {
       customerEmail: booking.customer_email,
       finishUrl: `${new URL(req.url).origin}/booking/${booking.id}`,
       expiryMinutes: minutesLeft,
+      enabledPayment: payChannel === "qris" ? "other_qris" : "gopay",
     });
-    return NextResponse.json({ token: snap.token, order_id: orderId, amount });
+    return NextResponse.json({ token: snap.token, order_id: orderId, amount, channel: payChannel });
   } catch (err) {
     console.error("[Midtrans Snap] Error:", err);
     return NextResponse.json({ error: "Gagal membuka pembayaran online. Coba lagi atau bayar tunai ke OP." }, { status: 502 });

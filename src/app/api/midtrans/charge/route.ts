@@ -1,5 +1,5 @@
 /**
- * POST /api/midtrans/charge  { booking_id, method }  method: qris | gopay | shopeepay
+ * POST /api/midtrans/charge  { booking_id, method }  method: qris | gopay
  * Core API charge for an unpaid booking, so the booking page draws its own QR / e-wallet UI.
  * Amount comes from the booking's paket in the DB, never the browser, at GC Net's online price (onlinePrice).
  */
@@ -10,7 +10,8 @@ import { chargeCore, makeOrderId, parseQrUrl, type ChargeMethod } from "@/lib/mi
 import { unpaidExpiresAt } from "@/lib/booking-rules";
 import { onlinePrice } from "@/lib/paket";
 
-const METHODS: ChargeMethod[] = ["qris", "gopay", "shopeepay"];
+// ShopeePay comes back once Midtrans activates it and it has a price in PAY_CHANNELS.
+const METHODS: ChargeMethod[] = ["qris", "gopay"];
 
 export async function POST(req: Request) {
   try {
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     if (!paket || !Number.isInteger(price) || price < 1) {
       return NextResponse.json({ error: "Harga paket tidak valid." }, { status: 400 });
     }
-    const amount = onlinePrice(price);
+    const amount = onlinePrice(price, method === "gopay" ? "gopay" : "qris");
 
     const orderId = makeOrderId(booking.id);
     const charged = await chargeCore({

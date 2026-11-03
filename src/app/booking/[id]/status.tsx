@@ -4,7 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { rupiah, onlinePrice } from "@/lib/paket";
+import { rupiah, onlinePrice, type PayChannel } from "@/lib/paket";
 import { Download, Banknote, Check, CheckCircle2, ChevronLeft, Clock, Copy, Gamepad2, Hourglass, Loader2, QrCode, RotateCw, SearchX, Smartphone, Wallet, WifiOff } from "lucide-react";
 
 type BookingView = {
@@ -19,11 +19,13 @@ type BookingView = {
   pc_name: string;
   paket_name: string;
   price: number;
+  /** What was actually paid online (channel-priced); null for cash and older bookings. */
+  paid_amount: number | null;
   expires_at: number | null;
   queue_position: number | null;
 };
 
-type Method = "qris" | "gopay" | "shopeepay";
+type Method = PayChannel;
 type Charge = { method: Method; orderId: string; qrImageUrl: string | null; qrDownloadUrl: string | null; deeplinkUrl: string | null };
 
 const CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "";
@@ -39,9 +41,7 @@ const orderKey = (id: string) => `gc-order-${id}`;
 
 const METHODS: { key: Method; label: string; hint: string; icon: typeof QrCode }[] = [
   { key: "qris", label: "QRIS", hint: "DANA, OVO, LinkAja, m-banking", icon: QrCode },
-  { key: "gopay", label: "GoPay", hint: "Langsung buka aplikasi GoPay", icon: Wallet },
-  { key: "shopeepay", label: "ShopeePay", hint: "Langsung buka aplikasi ShopeePay", icon: Wallet },
-];
+  { key: "gopay", label: "GoPay", hint: "Langsung buka aplikasi GoPay", icon: Wallet },];
 
 function readOrder(id: string): string | null {
   try { return sessionStorage.getItem(orderKey(id)); } catch { return null; }
@@ -84,8 +84,8 @@ export default function BookingStatus() {
   const [notice, setNotice] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [snapReady, setSnapReady] = useState(false);
-  const [snapOrder, setSnapOrder] = useState<{ orderId: string; token: string } | null>(null);
-  const [snapOpening, setSnapOpening] = useState(false);
+  const [snapOrder, setSnapOrder] = useState<{ channel: Method; orderId: string; token: string } | null>(null);
+  const [snapOpening, setSnapOpening] = useState<Method | null>(null);
   const cleared = useRef(false);
 
   const load = useCallback(async () => {
@@ -167,16 +167,17 @@ export default function BookingStatus() {
     });
   }, [checkPaid]);
 
-  const startSnap = useCallback(async () => {
-    // Snap tokens stay valid until the order expires, so reopening reuses the same order.
-    if (snapOrder) return openSnap(snapOrder);
+  const startSnap = useCallback(async (channel: Method) => {
+    // Snap tokens stay valid until the order expires, so reopening the same channel reuses the same order.
+    // Another channel has another price, so it needs a new order.
+    if (snapOrder?.channel === channel) return openSnap(snapOrder);
     setNotice(null);
-    setSnapOpening(true);
+    setSnapOpening(channel);
     try {
       const res = await fetch("/api/midtrans/snap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking_id: id }),
+        body: JSON.stringify({ booking_id: id, channel }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.token || !data.order_id) {
@@ -184,14 +185,14 @@ export default function BookingStatus() {
         if (res.status === 409 || res.status === 410) load();
         return;
       }
-      const order = { orderId: data.order_id as string, token: data.token as string };
+      const order = { channel, orderId: data.order_id as string, token: data.token as string };
       saveOrder(id, order.orderId);
       setSnapOrder(order);
       openSnap(order);
     } catch {
       setNotice("Koneksi putus pas buka pembayaran. Coba lagi.");
     } finally {
-      setSnapOpening(false);
+      setSnapOpening(null);
     }
   }, [id, load, openSnap, snapOrder]);
 
@@ -214,7 +215,7 @@ export default function BookingStatus() {
       saveOrder(id, data.order_id);
       setCharge({ method, orderId: data.order_id, qrImageUrl: data.qrImageUrl ?? null, qrDownloadUrl: data.qrDownloadUrl ?? null, deeplinkUrl: data.deeplinkUrl ?? null });
       setCharging(null);
-      if ((method === "gopay" || method === "shopeepay") && data.deeplinkUrl) window.location.href = data.deeplinkUrl;
+      if (method === "gopay" && data.deeplinkUrl) window.location.href = data.deeplinkUrl;
     } catch {
       setCharging(null);
       setNotice("Koneksi putus pas buka pembayaran. Coba lagi.");
@@ -299,7 +300,9 @@ export default function BookingStatus() {
           <dt className="text-zinc-400">PC</dt><dd className="text-right font-bold">{booking.pc_name}</dd>
           <dt className="text-zinc-400">Paket</dt><dd className="text-right font-bold truncate">{booking.paket_name}</dd>
           <dt className="text-zinc-400">Total</dt>
-          <dd className="text-right font-extrabold tabular-nums">{rupiah(booking.payment_method === "online" ? onlinePrice(booking.price) : booking.price)}</dd>
+          <dd className="text-right font-extrabold tabular-nums">
+            {rupiah(booking.paid_amount ?? (booking.payment_method === "online" ? onlinePrice(booking.price) : booking.price))}
+          </dd>
         </dl>
       </div>
 
@@ -307,15 +310,26 @@ export default function BookingStatus() {
       {unpaid && !expired && ONLINE_ENABLED && PAY_WITH_SNAP && (
         <div className="mt-4">
           <Script src={SNAP_SRC} data-client-key={CLIENT_KEY} strategy="afterInteractive" onReady={() => setSnapReady(true)} />
-          <button
-            onClick={startSnap}
-            disabled={!snapReady || snapOpening}
-            className="h-12 w-full rounded-xl bg-nvidia-green text-black text-sm font-bold inline-flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {snapReady && !snapOpening ? <QrCode size={16} /> : <Loader2 size={16} className="animate-spin" />}
-            {snapOrder ? "Lanjut bayar" : "Bayar Online"} {rupiah(onlinePrice(booking.price))}
-          </button>
-          <p className="mt-2 text-[11px] text-zinc-400 text-center">QRIS (DANA, OVO, m-banking) atau GoPay, dipilih di halaman pembayaran Midtrans.</p>
+          <p className="text-sm font-bold mb-2">Pilih cara bayar</p>
+          <div className="space-y-2">
+            {METHODS.map((m) => (
+              <button
+                key={m.key}
+                onClick={() => startSnap(m.key)}
+                disabled={!snapReady || snapOpening !== null}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition text-left disabled:opacity-50 ${snapOrder?.channel === m.key ? "border-nvidia-green bg-nvidia-green/[0.08]" : "border-white/[0.1] bg-white/[0.03] hover:border-nvidia-green/60 hover:bg-nvidia-green/[0.06]"}`}
+              >
+                <span className="w-9 h-9 rounded-lg bg-nvidia-green/10 border border-nvidia-green/30 flex items-center justify-center shrink-0">
+                  {snapOpening === m.key || !snapReady ? <Loader2 size={16} className="animate-spin text-nvidia-green" /> : <m.icon size={16} className="text-nvidia-green" />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold">{snapOrder?.channel === m.key ? `Lanjut bayar ${m.label}` : m.label}</span>
+                  <span className="block text-[11px] text-zinc-400">{m.hint}</span>
+                </span>
+                <span className="ml-auto text-sm font-extrabold tabular-nums">{rupiah(onlinePrice(booking.price, m.key))}</span>
+              </button>
+            ))}
+          </div>
           {snapOrder && (
             <p className="mt-3 text-[12px] text-zinc-400 inline-flex items-center gap-2">
               {checking ? <Loader2 size={13} className="animate-spin" /> : <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-nvidia-green opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-nvidia-green" /></span>}
